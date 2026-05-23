@@ -38,6 +38,8 @@ import com.astranavi.app.ui.astrologers.AstrologersScreen
 import com.astranavi.app.ui.astrologers.AstrologersViewModel
 import com.astranavi.app.ui.chat.ChatScreen
 import com.astranavi.app.ui.chat.ChatViewModel
+import com.astranavi.app.ui.chat.AvatarSelectionScreen
+import com.astranavi.app.ui.chat.AvatarSelectionViewModel
 import com.astranavi.app.ui.dashboard.DashboardScreen
 import com.astranavi.app.ui.dashboard.DashboardViewModel
 import com.astranavi.app.ui.forecast.ForecastScreen
@@ -80,9 +82,11 @@ import com.astranavi.app.ui.rashis.RashiViewModel
 import com.astranavi.app.ui.splash.IntroAnimationScreen
 import com.astranavi.app.ui.splash.LogoSplashScreen
 import com.astranavi.app.ui.theme.AstraNaviTheme
+import com.astranavi.app.util.LocaleManager
 import com.astranavi.app.util.SessionManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.BorderStroke
@@ -123,13 +127,46 @@ val LocalTopBarColor = compositionLocalOf<((Color?) -> Unit)?> { null }
 val LocalEntitlementViewModel = compositionLocalOf<EntitlementViewModel?> { null }
 val LocalBottomBarHeight = compositionLocalOf { 0.dp }
 
-private fun buildChatRoute(prompt: String?, area: String?): String {
+private fun buildChatRoute(prompt: String?, area: String?, avatarId: String? = null): String {
+    val params = listOfNotNull(
+        prompt?.takeIf { it.isNotBlank() }?.let { "prompt=${Uri.encode(it)}" },
+        area?.takeIf { it.isNotBlank() }?.let { "area=${Uri.encode(it)}" },
+        avatarId?.takeIf { it.isNotBlank() }?.let { "avatarId=${Uri.encode(it)}" }
+    )
+    return if (params.isEmpty()) Screen.Chat.route
+    else "${Screen.Chat.route}?${params.joinToString("&")}"
+}
+
+private fun buildAvatarSelectionRoute(prompt: String?, area: String?): String {
     val params = listOfNotNull(
         prompt?.takeIf { it.isNotBlank() }?.let { "prompt=${Uri.encode(it)}" },
         area?.takeIf { it.isNotBlank() }?.let { "area=${Uri.encode(it)}" }
     )
-    return if (params.isEmpty()) Screen.Chat.route
-    else "${Screen.Chat.route}?${params.joinToString("&")}"
+    return if (params.isEmpty()) "avatar_selection"
+    else "avatar_selection?${params.joinToString("&")}"
+}
+
+@Composable
+private fun ProvideLocalizedContext(
+    languageTag: String,
+    content: @Composable () -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val baseConfiguration = androidx.compose.ui.platform.LocalConfiguration.current
+    val localizedConfiguration = remember(languageTag, baseConfiguration) {
+        android.content.res.Configuration(baseConfiguration).apply {
+            setLocale(java.util.Locale.forLanguageTag(languageTag))
+        }
+    }
+    val localizedContext = remember(languageTag, context) {
+        context.createConfigurationContext(localizedConfiguration)
+    }
+    CompositionLocalProvider(
+        androidx.compose.ui.platform.LocalContext provides localizedContext,
+        androidx.compose.ui.platform.LocalConfiguration provides localizedConfiguration
+    ) {
+        content()
+    }
 }
 
 @Composable
@@ -348,6 +385,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
 val sessionManager = SessionManager(this)
+        LocaleManager.apply(runBlocking { sessionManager.userLanguage.first() })
         RetrofitClient.init(sessionManager)
         val apiService = RetrofitClient.instance
         val apiCache = ApiResponseCache(sessionManager)
@@ -360,8 +398,10 @@ val sessionManager = SessionManager(this)
             val themePreference by sessionManager.themePreference.collectAsState(initial = "system")
             val userName by sessionManager.userName.collectAsState(initial = "Astra User")
             val lagnaSign by sessionManager.lagnaSign.collectAsState(initial = null)
+            val appLanguage by sessionManager.userLanguage.collectAsState(initial = "en")
 
-            AstraNaviTheme(themePreference = themePreference) {
+            ProvideLocalizedContext(languageTag = appLanguage) {
+                AstraNaviTheme(themePreference = themePreference) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -602,7 +642,10 @@ val sessionManager = SessionManager(this)
                                                         LanguageChip(
                                                             currentLanguage = currentLanguage,
                                                             onLanguageSelected = { lang ->
-                                                                scope.launch { sessionManager.setUserLanguage(lang) }
+                                                                scope.launch {
+                                                                    authRepository.updateLanguage(lang)
+                                                                    sessionManager.setUserLanguage(lang)
+                                                                }
                                                             }
                                                         )
                                                     }
@@ -633,7 +676,7 @@ val sessionManager = SessionManager(this)
                                                             Icon(Icons.Default.History, contentDescription = "Match History")
                                                         }
                                                     }
-                                                    if (currentDestination?.route == Screen.Chat.route) {
+                                                    if (currentBaseRoute == Screen.Chat.route) {
                                                         val chatViewModel: ChatViewModel = viewModel(
                                                             factory = sharedViewModelFactory
                                                         )
@@ -646,7 +689,9 @@ val sessionManager = SessionManager(this)
                                                             IconButton(onClick = { chatViewModel.toggleHistory() }) {
                                                                 Icon(Icons.Default.History, contentDescription = "Chat History")
                                                             }
-                                                            IconButton(onClick = { chatViewModel.startNewChat() }) {
+                                                            IconButton(onClick = {
+                                                                navController.navigate("avatar_selection")
+                                                            }) {
                                                                 Icon(Icons.Default.AddComment, contentDescription = "New Chat")
                                                             }
                                                         }
@@ -732,7 +777,7 @@ val sessionManager = SessionManager(this)
                                                 ) {
                                                     FloatingActionButton(
                                                         onClick = {
-                                                            navController.navigate(Screen.Chat.route) {
+                                                            navController.navigate("avatar_selection") {
                                                                 popUpTo(navController.graph.startDestinationId) { saveState = true }
                                                                 launchSingleTop = true
                                                                 restoreState = true
@@ -875,7 +920,7 @@ val sessionManager = SessionManager(this)
                                                     },
                                                     onNavigateToExperts = { navController.navigate(Screen.Astrologers.route) },
                                                     onNavigateToChat = { prompt, area ->
-                                                        navController.navigate(buildChatRoute(prompt, area))
+                                                        navController.navigate(buildAvatarSelectionRoute(prompt, area))
                                                     },
                                                     onNavigateToKundli = { navController.navigate(Screen.Kundli.route) },
                                                     onNavigateToMatch = { navController.navigate(Screen.Match.route) },
@@ -897,7 +942,7 @@ val sessionManager = SessionManager(this)
                                                     initialArea = area,
                                                     onBack = { navController.popBackStack() },
                                                     onNavigateToChat = { prompt ->
-                                                        navController.navigate(buildChatRoute(prompt, null))
+                                                        navController.navigate(buildAvatarSelectionRoute(prompt, null))
                                                     }
                                                 )
                                             }
@@ -937,7 +982,13 @@ val sessionManager = SessionManager(this)
                                             composable("yogas") { YogaScreen(onBack = { navController.popBackStack() }, onOpenDrawer = { isMenuOpen = true }) }
                                             composable(Screen.Astrologers.route) {
                                                 val astrologersViewModel: AstrologersViewModel = viewModel(factory = sharedViewModelFactory)
-                                                AstrologersScreen(viewModel = astrologersViewModel, onBack = { navController.popBackStack() })
+                                                AstrologersScreen(
+                                                    viewModel = astrologersViewModel,
+                                                    onBack = { navController.popBackStack() },
+                                                    onChatWithAvatar = { avatar ->
+                                                        navController.navigate(buildChatRoute(null, null, avatar.avatarId))
+                                                    }
+                                                )
                                             }
                                             composable("${Screen.Rashis.route}?rashiId={rashiId}", arguments = listOf(navArgument("rashiId") { type = NavType.StringType; nullable = true; defaultValue = null })) { backStackEntry ->
                                                 val rashiId = backStackEntry.arguments?.getString("rashiId")
@@ -946,10 +997,11 @@ val sessionManager = SessionManager(this)
                                                 RashiScreen(viewModel = rashiViewModel, onBack = { navController.popBackStack() })
                                             }
                                             composable(
-                                                "${Screen.Chat.route}?prompt={prompt}&area={area}",
+                                                "${Screen.Chat.route}?prompt={prompt}&area={area}&avatarId={avatarId}",
                                                 arguments = listOf(
                                                     navArgument("prompt") { type = NavType.StringType; nullable = true; defaultValue = null },
-                                                    navArgument("area") { type = NavType.StringType; nullable = true; defaultValue = null }
+                                                    navArgument("area") { type = NavType.StringType; nullable = true; defaultValue = null },
+                                                    navArgument("avatarId") { type = NavType.StringType; nullable = true; defaultValue = null }
                                                 )
                                             ) { backStackEntry ->
                                                 val chatViewModel: ChatViewModel = viewModel(factory = sharedViewModelFactory)
@@ -959,8 +1011,28 @@ val sessionManager = SessionManager(this)
                                                     viewModel = chatViewModel,
                                                     seedPrompt = backStackEntry.arguments?.getString("prompt"),
                                                     seedContext = backStackEntry.arguments?.getString("area"),
+                                                    seedAvatarId = backStackEntry.arguments?.getString("avatarId"),
                                                     onBack = { navController.popBackStack() },
                                                     onOpenDrawer = { isMenuOpen = true }
+                                                )
+                                            }
+                                            composable(
+                                                "avatar_selection?prompt={prompt}&area={area}",
+                                                arguments = listOf(
+                                                    navArgument("prompt") { type = NavType.StringType; nullable = true; defaultValue = null },
+                                                    navArgument("area") { type = NavType.StringType; nullable = true; defaultValue = null }
+                                                )
+                                            ) { backStackEntry ->
+                                                val avatarSelectionViewModel: AvatarSelectionViewModel = viewModel(factory = sharedViewModelFactory)
+                                                val seedPrompt = backStackEntry.arguments?.getString("prompt")
+                                                val seedArea = backStackEntry.arguments?.getString("area")
+                                                AvatarSelectionScreen(
+                                                    viewModel = avatarSelectionViewModel,
+                                                    onAvatarSelected = { avatar ->
+                                                        navController.navigate(buildChatRoute(seedPrompt, seedArea, avatar.avatarId)) {
+                                                            popUpTo("avatar_selection") { inclusive = true }
+                                                        }
+                                                    }
                                                 )
                                             }
                                             composable(Screen.Profile.route) {
@@ -1011,6 +1083,7 @@ val sessionManager = SessionManager(this)
                         }
                     }
                 }
+            }
             }
         }
     }

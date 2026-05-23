@@ -23,15 +23,36 @@ class DashboardRepository(
 ) {
     suspend fun getDailyHoroscope(forceRefresh: Boolean = false, metaConsumer: ((CacheMeta) -> Unit)? = null): Response<HoroscopeResponse> {
         val lang = LocaleManager.current()
-        return apiCache?.getOrFetch(
+        android.util.Log.d("DailyHoroscope", "fetch start lang=$lang forceRefresh=$forceRefresh")
+        val response = apiCache?.getOrFetch(
             logicalKey = apiCache.dailyHoroscopeKey(lang),
             responseClass = HoroscopeResponse::class.java,
             policy = ApiCachePolicy.UntilNextLocalHour,
             bypassRead = forceRefresh,
-            onMeta = metaConsumer
+            onMeta = { meta ->
+                android.util.Log.d("DailyHoroscope", "cache meta fromCache=${meta.fromCache} key=${apiCache.dailyHoroscopeKey(lang)}")
+                metaConsumer?.invoke(meta)
+            }
         ) {
+            android.util.Log.d("DailyHoroscope", "calling network lang=$lang")
             apiService.getDailyHoroscope(lang)
-        } ?: apiService.getDailyHoroscope(lang)
+        } ?: run {
+            android.util.Log.d("DailyHoroscope", "no cache layer; direct network call lang=$lang")
+            apiService.getDailyHoroscope(lang)
+        }
+        if (response.isSuccessful) {
+            val body = response.body()
+            android.util.Log.d(
+                "DailyHoroscope",
+                "success code=${response.code()} bodyPreview=${body?.toString()?.take(400)}"
+            )
+        } else {
+            android.util.Log.w(
+                "DailyHoroscope",
+                "failure code=${response.code()} message=${response.message()}"
+            )
+        }
+        return response
     }
 
     suspend fun analyzeFull(request: AnalyzeFullRequest, metaConsumer: ((CacheMeta) -> Unit)? = null): Response<AnalyzeFullWrapper> {

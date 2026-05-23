@@ -142,6 +142,7 @@ moonSign: String?, sunSign: String?, lagnaSign: String?) {
 
     suspend fun setUserLanguage(language: String) {
         context.dataStore.edit { it[USER_LANGUAGE] = language }
+        LocaleManager.apply(language)
     }
 
     suspend fun getApiCacheEntry(cacheKey: String): String? {

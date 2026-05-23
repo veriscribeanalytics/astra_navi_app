@@ -60,11 +60,22 @@ fun ChatScreen(
     viewModel: ChatViewModel,
     seedPrompt: String? = null,
     seedContext: String? = null,
+    seedAvatarId: String? = null,
     onBack: () -> Unit = {},
     onOpenDrawer: () -> Unit,
     guideListPane: (@Composable (modifier: Modifier) -> Unit)? = null
 ) {
     com.astranavi.app.util.SecureScreen()
+
+    LaunchedEffect(seedAvatarId) {
+        if (!seedAvatarId.isNullOrBlank()) {
+            val resolved = FallbackChatAvatarCatalog.avatars.firstOrNull { it.avatarId == seedAvatarId }
+            if (resolved != null && resolved.avatarId != viewModel.activeAvatar.value?.avatarId) {
+                viewModel.setActiveAvatar(resolved)
+            }
+        }
+    }
+
     val uiState = viewModel.uiState.value
     val chatHistory = viewModel.chatHistory.value
     val isSending = viewModel.isSending.value
