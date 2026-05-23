@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="match_btn_calculate">सुसंगतता मोजा</string>
+    <string name="match_desc_vedic_analysis">सामंजस्य आणि दीर्घायुष्यासाठी पारंपारिक ३६ गुण वैदिक कुंडली मिलन विश्लेषण.</string>
+    <string name="match_label_person1">व्यक्ती १ (तुम्ही)</string>
+    <string name="match_label_person2">व्यक्ती २ (जोडीदार)</string>
+    <string name="match_field_name">नाव</string>
+    <string name="match_field_birth_place">जन्म ठिकाण</string>
+    <string name="match_option_male">पुरुष</string>
+    <string name="match_option_female">महिला</string>
+    <string name="match_label_out_of_36">३६ पैकी</string>
+    <string name="match_section_breakdown">अष्टकूट विश्लेषण</string>
+    <string name="match_btn_analyze_another">दुसऱ्या मिलनाचा अभ्यास करा</string>
+    <string name="match_score_excellent">उत्कृष्ट मिलन</string>
+    <string name="match_score_good">चांगले मिलन</string>
+    <string name="match_score_low">कमी सुसंगतता</string>
+    <string name="match_label_mangal_status">मंगळ दोष स्थिती</string>
+    <string name="match_msg_mangal_detected">कुंडलीत मंगळाचा प्रभाव आढळला आहे.</string>
+    <string name="match_msg_no_mangal">कोणताही मंगळ दोष नाही.</string>
+    <string name="match_label_cancellation">निवारण:</string>
+    <string name="match_empty_history">कोणतेही मिलन रेकॉर्ड आढळले नाही.</string>
+    <string name="match_section_guna_milan">गुण मिलन तपशील</string>
+    <string name="match_section_mangal">मंगळ दोष</string>
+    <string name="match_btn_delete_record">रेकॉर्ड डिलीट करा</string>
+    <string name="match_dosha_compatible">सुसंगत (सुरक्षित)</string>
+    <string name="match_dosha_high_influence">उच्च प्रभाव आढळला</string>
+    <string name="match_dosha_influence">प्रभाव आढळला</string>
+    <string name="match_dosha_no_influence">कोणताही मोठा प्रभाव नाही</string>
+</resources>

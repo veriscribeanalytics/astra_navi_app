@@ -4,14 +4,15 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.astranavi.app.R
 import com.astranavi.app.data.repository.AuthRepository
+import com.astranavi.app.util.ApiErrorParser
 import com.astranavi.app.util.ErrorSanitizer
 import com.astranavi.app.util.SessionManager
-import kotlinx.coroutines.launch
-
-import android.util.Log
-import com.astranavi.app.data.model.LoginResponse
+import com.astranavi.app.util.UiText
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class LoginViewModel(
@@ -28,23 +29,40 @@ class LoginViewModel(
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
-    private val _errorMessage = mutableStateOf<String?>(null)
-    val errorMessage: State<String?> = _errorMessage
+    private val _errorMessage = mutableStateOf<UiText?>(null)
+    val errorMessage: State<UiText?> = _errorMessage
 
     private val _isLoginSuccess = mutableStateOf(false)
     val isLoginSuccess: State<Boolean> = _isLoginSuccess
 
     fun onEmailChange(newEmail: String) {
         _email.value = newEmail
+        if (_errorMessage.value != null) _errorMessage.value = null
     }
 
     fun onPasswordChange(newPassword: String) {
         _password.value = newPassword
+        if (_errorMessage.value != null) _errorMessage.value = null
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
+    fun reset() {
+        _errorMessage.value = null
+        _isLoading.value = false
+        _isLoginSuccess.value = false
     }
 
     fun login() {
         if (_email.value.isBlank() || _password.value.isBlank()) {
-            _errorMessage.value = "Email and Password are required"
+            _errorMessage.value = UiText.StringResource(R.string.error_email_password_required)
+            return
+        }
+
+        if (!ApiErrorParser.isValidEmail(_email.value)) {
+            _errorMessage.value = UiText.StringResource(R.string.error_invalid_email_format)
             return
         }
 
@@ -53,23 +71,18 @@ class LoginViewModel(
 
         viewModelScope.launch {
             try {
-                Log.d("LoginFlow", "Starting login for: ${_email.value}")
                 val response = repository.login(_email.value, _password.value)
-                
+
                 if (response.isSuccessful && response.body() != null) {
                     val loginResponse = response.body()!!
                     val user = loginResponse.user
-                    
-                    Log.d("LoginFlow", "Response received. Token present: ${!loginResponse.accessToken.isNullOrBlank()}")
 
                     if (loginResponse.accessToken.isNullOrBlank()) {
-                        _errorMessage.value = "Server error: Missing access token"
+                        _errorMessage.value = UiText.StringResource(R.string.error_missing_access_token)
                         return@launch
                     }
 
-                    // Move heavy serialization and I/O to background thread
                     withContext(Dispatchers.IO) {
-                        Log.d("LoginFlow", "Saving session to DataStore...")
                         sessionManager.saveSession(
                             id = user.id,
                             email = user.email,
@@ -85,17 +98,24 @@ class LoginViewModel(
                             profileComplete = loginResponse.profileComplete ?: false
                         )
                     }
-                    
-                    Log.d("LoginFlow", "Session saved. Triggering navigation.")
+
+                    try {
+                        val localLanguage = sessionManager.userLanguage.first()
+                        if (localLanguage != user.language) {
+                            repository.updateLanguage(localLanguage)
+                        }
+                    } catch (_: Exception) {
+                    }
+
                     _isLoginSuccess.value = true
                 } else {
-                    val errorCode = response.code()
-                    Log.e("LoginFlow", "Login failed with code: $errorCode")
-                    _errorMessage.value = if (errorCode == 401) "Invalid email or password" else "Login failed ($errorCode)"
+                    _errorMessage.value = ApiErrorParser.parse(response)
+                    if (response.code() == 401) {
+                        _password.value = ""
+                    }
                 }
             } catch (e: Exception) {
-                Log.e("LoginFlow", "Exception during login", e)
-                _errorMessage.value = ErrorSanitizer.sanitize(e)
+                _errorMessage.value = UiText.DynamicString(ErrorSanitizer.sanitize(e))
             } finally {
                 _isLoading.value = false
             }

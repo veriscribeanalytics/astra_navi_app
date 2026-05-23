@@ -1,0 +1,18 @@
+<resources>
+    <string name="common_credits_badge_description">क्रेडिट</string>
+    <string name="common_btn_upgrade">अपग्रेड करें</string>
+    <string name="common_search_icon_description">खोजें</string>
+    <string name="common_btn_ok">ठीक है</string>
+    <string name="common_btn_cancel">रद्द करें</string>
+    <string name="common_date_picker_description">तारीख चुनें</string>
+    <string name="common_time_picker_description">समय</string>
+    <string name="common_error_internet_connection">कनेक्शन विफल। कृपया अपने इंटरनेट कनेक्शन की जांच करें।</string>
+    <string name="common_error_server_timeout">सर्वर प्रतिक्रिया में बहुत समय ले रहा है। कृपया पुनः प्रयास करें।</string>
+    <string name="common_error_network">नेटवर्क त्रुटि। कृपया अपने कनेक्शन की जांच करें और पुनः प्रयास करें।</string>
+    <string name="common_error_generic">कुछ गलत हो गया। कृपया पुनः प्रयास करें।</string>
+    <string name="common_error_session_expired">आपके सत्र को ताज़ा करने की आवश्यकता है। कृपया फिर से साइन इन करें।</string>
+    <string name="common_error_feature_upgrade">इस सुविधा के लिए अपग्रेड की आवश्यकता है।</string>
+    <string name="common_error_not_found">हम इस समय यह मार्गदर्शन नहीं खोज सके।</string>
+    <string name="common_error_server_busy">सर्वर व्यस्त है। कृपया एक पल में पुनः प्रयास करें।</string>
+    <string name="common_error_service_unavailable">हमारी सेवा अस्थायी रूप से अनुपलब्ध है। कृपया पुनः प्रयास करें।</string>
+</resources>

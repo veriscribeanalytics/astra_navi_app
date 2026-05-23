@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_credits_badge_description">ക്രെഡിറ്റുകൾ</string>
+    <string name="common_btn_upgrade">അപ്‌ഗ്രേഡ് ചെയ്യുക</string>
+    <string name="common_search_icon_description">തിരയുക</string>
+    <string name="common_btn_ok">ശരി</string>
+    <string name="common_btn_cancel">റദ്ദാക്കുക</string>
+    <string name="common_date_picker_description">തീയതി തിരഞ്ഞെടുക്കുക</string>
+    <string name="common_time_picker_description">സമയം</string>
+    <string name="common_error_internet_connection">ബന്ധം പരാജയപ്പെട്ടു. ദയവായി നിങ്ങളുടെ ഇന്റർനെറ്റ് ബന്ധം പരിശോധിക്കുക.</string>
+    <string name="common_error_server_timeout">സെർവർ പ്രതികരിക്കാൻ ഒട്ടേറെ സമയമെടുക്കുന്നു. ദയവായി വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="common_error_network">നെറ്റ്‌വർക്ക് പിശക്. ദയവായി നിങ്ങളുടെ ബന്ധം പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="common_error_generic">എന്തോ തകരാറുണ്ടായി. ദയവായി വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="common_error_session_expired">നിങ്ങളുടെ സെഷൻ പുതുക്കേണ്ടതുണ്ട്. ദയവായി വീണ്ടും ലോഗിൻ ചെയ്യുക.</string>
+    <string name="common_error_feature_upgrade">ഈ സവിശേഷതയ്ക്ക് ഒരു അപ്‌ഗ്രേഡ് ആവശ്യമാണ്.</string>
+    <string name="common_error_not_found">ഈ മാർഗ്ഗനിർദ്ദേശം ഇപ്പോൾ കണ്ടെത്താൻ ഞങ്ങൾക്ക് കഴിഞ്ഞില്ല.</string>
+    <string name="common_error_server_busy">സെർവർ തിരക്കിലാണ്. ദയവായി അൽപ്പസമയത്തിനകം വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="common_error_service_unavailable">ഞങ്ങളുടെ സേവനം താത്കാലികമായി ലഭ്യമല്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.</string>
+</resources>

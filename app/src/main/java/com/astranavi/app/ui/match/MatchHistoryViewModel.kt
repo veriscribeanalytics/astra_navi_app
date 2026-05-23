@@ -9,7 +9,9 @@ import com.astranavi.app.data.model.MatchRecord
 import com.astranavi.app.data.model.MatchResponse
 import com.astranavi.app.data.repository.AstrologyRepository
 import com.astranavi.app.util.ErrorSanitizer
+import com.astranavi.app.util.LocaleManager
 import com.astranavi.app.util.SessionManager
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -32,22 +34,32 @@ class MatchHistoryViewModel(
 
     init {
         fetchHistory()
+        viewModelScope.launch {
+            LocaleManager.localeVersion.drop(1).collect {
+                expandedDetails.clear()
+                fetchHistory()
+            }
+        }
     }
 
-    fun fetchHistory() {
+    fun fetchHistory(silent: Boolean = false) {
         viewModelScope.launch {
-            _uiState.value = MatchHistoryState.Loading
+            if (!silent || _uiState.value !is MatchHistoryState.Success) {
+                _uiState.value = MatchHistoryState.Loading
+            }
             try {
                 val response = repository.getMatchHistory()
                 if (response.isSuccessful && response.body() != null) {
                     val body = response.body()!!
                     val records = body.results ?: body.history ?: emptyList()
                     _uiState.value = MatchHistoryState.Success(records)
-                } else {
+                } else if (!silent || _uiState.value !is MatchHistoryState.Success) {
                     _uiState.value = MatchHistoryState.Error("Failed to fetch history")
                 }
             } catch (e: Exception) {
-                _uiState.value = MatchHistoryState.Error(ErrorSanitizer.sanitize(e))
+                if (!silent || _uiState.value !is MatchHistoryState.Success) {
+                    _uiState.value = MatchHistoryState.Error(ErrorSanitizer.sanitize(e))
+                }
             }
         }
     }

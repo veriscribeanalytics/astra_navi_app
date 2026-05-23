@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="consult_btn_begin_session">सत्र सुरू करा</string>
+    <string name="consult_title_cosmic_blueprint">कॉस्मिक ब्लूप्रिंट</string>
+    <string name="consult_label_dob">जन्म तारीख (DD-MM-YYYY)</string>
+    <string name="consult_label_tob">जन्म वेळ (HHMM)</string>
+    <string name="consult_label_pob">जन्म ठिकाण</string>
+    <string name="consult_section_preferences">पसंती</string>
+    <string name="consult_label_preferred_language">पसंतीची भाषा</string>
+    <string name="consult_lang_english">इंग्रजी</string>
+    <string name="consult_lang_hindi">हिंदी</string>
+    <string name="consult_lang_marathi">मराठी</string>
+    <string name="consult_lang_gujarati">गुजराती</string>
+    <string name="consult_lang_tamil">तमिळ</string>
+    <string name="consult_title_select_domain">क्षेत्र निवडा</string>
+    <string name="consult_label_personalized_guidance">वैयक्तिकृत मार्गदर्शन</string>
+    <string name="consult_title_focus_area_format">%1$s साठी फोकस क्षेत्र</string>
+    <string name="consult_desc_focus_analysis">या विशिष्ट फोकसवर सखोल माहिती देण्यासाठी नवी तुमच्या कुंडलीचे विश्लेषण करेल.</string>
+    <string name="consult_btn_select_focus">हा फोकस निवडा</string>
+    <string name="consult_title_pick_query">एक प्रश्न निवडा</string>
+    <string name="consult_desc_query_analysis">या विशिष्ट प्रश्नाचे उत्तर देण्यासाठी नवी तुमच्या कुंडलीचे विश्लेषण करेल.</string>
+    <string name="consult_section_settings">सल्लामसलत सेटिंग्ज</string>
+    <string name="consult_label_custom_context">नवीला तुमची परिस्थिती सांगा…</string>
+    <string name="consult_label_response_tone">प्रतिसादाचा सूर</string>
+    <string name="consult_tone_warm">उबदार</string>
+    <string name="consult_tone_direct">थेट</string>
+    <string name="consult_tone_spiritual">आध्यात्मिक</string>
+    <string name="consult_btn_ask_custom">सानुकूल प्रश्न विचारा</string>
+    <string name="consult_title_cosmic_insight">कॉस्मिक अंतर्दृष्टी</string>
+    <string name="consult_loading_planetary">ग्रहांच्या स्थितीचा सल्ला घेत आहे…</string>
+    <string name="consult_loading_cosmic">कॉस्मिक प्रभाव वाचत आहे…</string>
+    <string name="consult_loading_karmic">तुमच्या कर्म पद्धतींचे विश्लेषण करत आहे…</string>
+    <string name="consult_loading_celestial">तुमच्या खगोलीय मार्गदर्शनाशी संपर्क साधत आहे…</string>
+    <string name="consult_btn_explore_again">दुसरी अंतर्दृष्टी शोधा</string>
+    <string name="consult_btn_ok">ठीक आहे</string>
+    <string name="consult_btn_cancel">रद्द करा</string>
+    <string name="consult_empty_state">कोणतीही सल्लामसलत आढळली नाही.</string>
+    <string name="consult_default_category">सल्लामसलत</string>
+    <string name="consult_default_question">ज्योतिषीय चौकशी</string>
+</resources>

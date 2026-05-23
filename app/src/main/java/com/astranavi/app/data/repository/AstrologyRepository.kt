@@ -3,23 +3,27 @@ package com.astranavi.app.data.repository
 import com.astranavi.app.data.api.ApiService
 import com.astranavi.app.data.cache.ApiCachePolicy
 import com.astranavi.app.data.cache.ApiResponseCache
+import com.astranavi.app.data.cache.CacheMeta
 import com.astranavi.app.data.model.*
+import com.astranavi.app.util.LocaleManager
+import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.Response
 
 class AstrologyRepository(
     private val apiService: ApiService,
     private val apiCache: ApiResponseCache? = null
 ) {
-    suspend fun analyzeFull(request: AnalyzeFullRequest): Response<AnalyzeFullWrapper> {
+    suspend fun analyzeFull(request: AnalyzeFullRequest, metaConsumer: ((CacheMeta) -> Unit)? = null): Response<AnalyzeFullWrapper> {
         return apiCache?.getOrFetch(
             logicalKey = apiCache.kundliKey(request),
             responseClass = AnalyzeFullWrapper::class.java,
             policy = ApiCachePolicy.UntilNextLocalMidnight,
             bypassRead = request.force_refresh,
-            shouldCache = { it.success && it.astrologyData != null }
+            shouldCache = { it.success && it.astrologyData != null },
+            onMeta = metaConsumer
         ) {
-            apiService.analyzeFull(request)
-        } ?: apiService.analyzeFull(request)
+            analyzeFullNetwork(request)
+        } ?: analyzeFullNetwork(request)
     }
 
     suspend fun calculateMatch(request: MatchRequest): Response<MatchResponse> {
@@ -50,8 +54,12 @@ class AstrologyRepository(
         return apiService.deleteChat(chatId)
     }
 
-    suspend fun sendMessage(chatId: String, text: String, language: String = "english"): okhttp3.ResponseBody {
-        return apiService.sendMessage(chatId, ChatRequest(text, language))
+    suspend fun sendMessage(chatId: String, text: String, language: String = "english", avatarId: String? = null): okhttp3.ResponseBody {
+        return apiService.sendMessage(chatId, ChatRequest(text, language, avatarId))
+    }
+
+    suspend fun getChatAvatars(): Response<ChatAvatarCatalog> {
+        return apiService.getChatAvatars()
     }
 
     suspend fun getChatHistory(chatId: String): Response<ChatDetailResponse> {
@@ -69,7 +77,8 @@ class AstrologyRepository(
         maritalStatus: String? = null,
         occupation: String? = null
     ): Response<ConsultTreeWrapper> {
-        return apiService.getConsultTree(age, lang, gender, maritalStatus, occupation)
+        val effectiveLang = lang ?: LocaleManager.current()
+        return apiService.getConsultTree(age, effectiveLang, gender, maritalStatus, occupation)
     }
 
     suspend fun generateConsultation(request: ConsultRequest): okhttp3.ResponseBody {
@@ -81,13 +90,14 @@ class AstrologyRepository(
     }
 
     suspend fun getForecast(area: String): Response<ForecastResponse> {
+        val lang = LocaleManager.current()
         return apiCache?.getOrFetch(
-            logicalKey = apiCache.forecastKey(area, daysBack = null, daysForward = null),
+            logicalKey = apiCache.forecastKey(area, daysBack = null, daysForward = null, lang = lang),
             responseClass = ForecastResponse::class.java,
             policy = ApiCachePolicy.UntilNextLocalMidnight
         ) {
-            apiService.getForecast(area)
-        } ?: apiService.getForecast(area)
+            apiService.getForecast(area, lang = lang)
+        } ?: apiService.getForecast(area, lang = lang)
     }
 
     suspend fun getGeneralHoroscope(sign: String): Response<HoroscopeResponse> {
@@ -98,5 +108,20 @@ class AstrologyRepository(
         ) {
             apiService.getGeneralHoroscope(sign)
         } ?: apiService.getGeneralHoroscope(sign)
+    }
+
+    private suspend fun analyzeFullNetwork(request: AnalyzeFullRequest): Response<AnalyzeFullWrapper> {
+        val response = apiService.analyzeFull(request)
+        val body = response.body()
+        return if (response.isSuccessful && body != null) {
+            body.use {
+                Response.success(com.astranavi.app.data.api.AnalyzeFullJsonAdapter.decode(it.string()))
+            }
+        } else {
+            Response.error(
+                response.code(),
+                response.errorBody() ?: "".toResponseBody(null)
+            )
+        }
     }
 }

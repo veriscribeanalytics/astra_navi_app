@@ -20,11 +20,16 @@ interface ApiService {
     @POST("api/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
+    @POST("api/auth/logout")
+    suspend fun logout(@Body request: LogoutRequest): Response<okhttp3.ResponseBody>
+
+    @GET("api/auth/me")
+    suspend fun authMe(): Response<Unit>
+
     // Personalized Horoscope (Home Dashboard)
     @GET("api/daily-horoscope")
     suspend fun getDailyHoroscope(
-        @Query("sign") sign: String? = null,
-        @Query("lang") lang: String = "English"
+        @Query("lang") lang: String = "en"
     ): Response<HoroscopeResponse>
 
     // General Horoscope (Rashi Page)
@@ -41,11 +46,35 @@ interface ApiService {
         @Query("lang") lang: String? = null
     ): Response<ForecastResponse>
 
+    @GET("api/forecast/{area}/weekly")
+    suspend fun getWeeklyForecast(
+        @Path("area") area: String,
+        @Query("date") date: String? = null,
+        @Query("lang") lang: String? = null,
+        @Query("chart_context") chartContext: String? = null
+    ): Response<WeeklyForecastResponse>
+
+    @GET("api/forecast/{area}/monthly")
+    suspend fun getMonthlyForecast(
+        @Path("area") area: String,
+        @Query("month") month: String? = null,
+        @Query("lang") lang: String? = null,
+        @Query("chart_context") chartContext: String? = null
+    ): Response<MonthlyForecastResponse>
+
+    @GET("api/forecast/{area}/yearly")
+    suspend fun getYearlyForecast(
+        @Path("area") area: String,
+        @Query("year") year: Int? = null,
+        @Query("lang") lang: String? = null,
+        @Query("chart_context") chartContext: String? = null
+    ): Response<YearlyForecastResponse>
+
     // Kundli / Full Analysis
     @POST("api/analyze-full")
     suspend fun analyzeFull(
         @Body request: AnalyzeFullRequest
-    ): Response<AnalyzeFullWrapper>
+    ): Response<okhttp3.ResponseBody>
 
     // Match Making
     @POST("api/match")
@@ -98,6 +127,9 @@ interface ApiService {
         @Path("chatId") chatId: String,
         @Body request: ChatRequest
     ): okhttp3.ResponseBody
+
+    @GET("api/chat/avatars")
+    suspend fun getChatAvatars(): Response<ChatAvatarCatalog>
 
     @PUT("api/chats/{chatId}/messages/{msgId}/rate")
     suspend fun rateMessage(
@@ -167,7 +199,8 @@ interface ApiService {
 
     @GET("api/entitlements/catalog")
     suspend fun getCatalog(
-        @Query("product_type") productType: String? = null
+        @Query("product_type") productType: String? = null,
+        @Query("lang") lang: String? = null
     ): Response<CatalogResponse>
 
     // Paywall

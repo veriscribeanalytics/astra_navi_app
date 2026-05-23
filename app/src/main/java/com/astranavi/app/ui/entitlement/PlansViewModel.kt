@@ -31,12 +31,29 @@ class PlansViewModel(
     private val _uiState = mutableStateOf<PlansUiState>(PlansUiState.Loading)
     val uiState: State<PlansUiState> = _uiState
 
+    private val _showUsageHistory = mutableStateOf(false)
+    val showUsageHistory: State<Boolean> = _showUsageHistory
+
     init {
         loadPlansData()
     }
 
+    fun toggleUsageHistory() {
+        _showUsageHistory.value = !_showUsageHistory.value
+    }
+
     fun loadPlansData() {
-        _uiState.value = PlansUiState.Loading
+        if (_uiState.value is PlansUiState.Success) return
+        refreshPlansData()
+    }
+
+    fun refreshPlansData() {
+        val currentState = _uiState.value
+        // Only show loading if we don't have data yet
+        if (currentState !is PlansUiState.Success) {
+            _uiState.value = PlansUiState.Loading
+        }
+        
         viewModelScope.launch {
             try {
                 val balanceRes = repository.getBalance()
@@ -53,7 +70,10 @@ class PlansViewModel(
                     usageHistory = historyRes.body()?.entries ?: emptyList()
                 )
             } catch (e: Exception) {
-                _uiState.value = PlansUiState.Error("Failed to load plans data")
+                // If we already have data, don't revert to Error just because refresh failed silently
+                if (_uiState.value !is PlansUiState.Success) {
+                    _uiState.value = PlansUiState.Error("Failed to load plans data")
+                }
             }
         }
     }

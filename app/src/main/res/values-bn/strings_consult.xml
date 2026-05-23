@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Consult Screen - Birth Details Step -->
+    <string name="consult_btn_begin_session">সেশন শুরু করুন</string>
+    <string name="consult_title_cosmic_blueprint">মহাজাগতিক ব্লুপ্রিন্ট</string>
+    <string name="consult_label_dob">জন্ম তারিখ (DD-MM-YYYY)</string>
+    <string name="consult_label_tob">জন্ম সময় (HHMM)</string>
+    <string name="consult_label_pob">জন্মস্থান</string>
+    <string name="consult_section_preferences">পছন্দসমূহ</string>
+    <string name="consult_label_preferred_language">পছন্দসই ভাষা</string>
+    <string name="consult_lang_english">ইংরেজি</string>
+    <string name="consult_lang_hindi">হিন্দি</string>
+    <string name="consult_lang_marathi">মারাঠি</string>
+    <string name="consult_lang_gujarati">গুজরাটি</string>
+    <string name="consult_lang_tamil">তামিল</string>
+
+    <!-- Consult Screen - Category Selection Step -->
+    <string name="consult_title_select_domain">ক্ষেত্র নির্বাচন করুন</string>
+    <string name="consult_label_personalized_guidance">ব্যক্তিগতকৃত নির্দেশনা</string>
+
+    <!-- Consult Screen - Subcategory Selection Step -->
+    <string name="consult_title_focus_area_format">%1$s এর জন্য ফোকাস এরিয়া</string>
+    <string name="consult_desc_focus_analysis">নাভি আপনার এই নির্দিষ্ট বিষয়ে গভীর অন্তর্দৃষ্টি দিতে আপনার কুণ্ডলী বিশ্লেষণ করবে।</string>
+    <string name="consult_btn_select_focus">এই ফোকাসটি নির্বাচন করুন</string>
+
+    <!-- Consult Screen - Question Selection Step -->
+    <string name="consult_title_pick_query">একটি প্রশ্ন নির্বাচন করুন</string>
+    <string name="consult_desc_query_analysis">নাভি এই নির্দিষ্ট প্রশ্নের উত্তর দিতে আপনার কুণ্ডলী বিশ্লেষণ করবে।</string>
+    <string name="consult_section_settings">পরামর্শ সেটিংস</string>
+    <string name="consult_label_custom_context">নাভিকে আপনার পরিস্থিতি বলুন…</string>
+    <string name="consult_label_response_tone">উত্তরের সুর</string>
+    <string name="consult_tone_warm">আন্তরিক</string>
+    <string name="consult_tone_direct">সরাসরি</string>
+    <string name="consult_tone_spiritual">আধ্যাত্মিক</string>
+    <string name="consult_btn_ask_custom">কাস্টম প্রশ্ন জিজ্ঞাসা করুন</string>
+
+    <!-- Consult Screen - Result Step -->
+    <string name="consult_title_cosmic_insight">মহাজাগতিক অন্তর্দৃষ্টি</string>
+    <string name="consult_loading_planetary">গ্রহের বিন্যাস পরামর্শ করা হচ্ছে…</string>
+    <string name="consult_loading_cosmic">মহাজাগতিক প্রভাব পড়া হচ্ছে…</string>
+    <string name="consult_loading_karmic">আপনার কর্মিক প্যাটার্ন ব্যাখ্যা করা হচ্ছে…</string>
+    <string name="consult_loading_celestial">আপনার স্বর্গীয় নির্দেশনা চ্যানেল করা হচ্ছে…</string>
+    <string name="consult_btn_explore_again">অন্য অন্তর্দৃষ্টি অন্বেষণ করুন</string>
+
+    <!-- Consult Screen - Date/Dialog -->
+    <string name="consult_btn_ok">ঠিক আছে</string>
+    <string name="consult_btn_cancel">বাতিল করুন</string>
+
+    <!-- Consult History Screen -->
+    <string name="consult_empty_state">কোনো মহাজাগতিক পরামর্শ পাওয়া যায়নি।</string>
+    <string name="consult_default_category">পরামর্শ</string>
+    <string name="consult_default_question">জ্যোতিষ সংক্রান্ত অনুসন্ধান</string>
+</resources>

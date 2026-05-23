@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Input Form -->
+    <string name="match_btn_calculate">궁합 계산</string>
+    <string name="match_desc_vedic_analysis">조화와 장수를 위한 전통 36구나 베다 궁합 분석입니다.</string>
+    <string name="match_label_person1">사람 1 (당신)</string>
+    <string name="match_label_person2">사람 2 (파트너)</string>
+    <string name="match_field_name">이름</string>
+    <string name="match_field_birth_place">출생지</string>
+    <string name="match_option_male">남성</string>
+    <string name="match_option_female">여성</string>
+
+    <!-- Match Result View -->
+    <string name="match_label_out_of_36">36점 만점</string>
+    <string name="match_section_breakdown">아슈타쿳 분석</string>
+    <string name="match_btn_analyze_another">다른 궁합 분석</string>
+
+    <!-- Score Labels -->
+    <string name="match_score_excellent">완벽한 궁합</string>
+    <string name="match_score_good">좋은 궁합</string>
+    <string name="match_score_low">낮은 호환성</string>
+
+    <!-- Mangal Dosha Panel -->
+    <string name="match_label_mangal_status">망갈 도샤 상태</string>
+    <string name="match_msg_mangal_detected">차트에서 화성 영향이 감지되었습니다.</string>
+    <string name="match_msg_no_mangal">망갈 도샤가 없습니다.</string>
+    <string name="match_label_cancellation">상쇄:</string>
+
+    <!-- Match History Screen -->
+    <string name="match_empty_history">궁합 기록이 없습니다.</string>
+    <string name="match_section_guna_milan">구나 밀란 상세</string>
+    <string name="match_section_mangal">망갈 도샤</string>
+    <string name="match_btn_delete_record">기록 삭제</string>
+
+    <!-- Mangal Dosha Status -->
+    <string name="match_dosha_compatible">호환 가능 (안전)</string>
+    <string name="match_dosha_high_influence">높은 영향 감지</string>
+    <string name="match_dosha_influence">영향 감지</string>
+    <string name="match_dosha_no_influence">주요 영향 없음</string>
+</resources>

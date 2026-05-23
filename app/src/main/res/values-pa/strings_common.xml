@@ -1,0 +1,18 @@
+<resources>
+    <string name="common_credits_badge_description">ਕ੍ਰੈਡਿਟ</string>
+    <string name="common_btn_upgrade">ਅੱਪਗ੍ਰੇਡ ਕਰੋ</string>
+    <string name="common_search_icon_description">ਖੋਜ</string>
+    <string name="common_btn_ok">ਠੀਕ ਹੈ</string>
+    <string name="common_btn_cancel">ਰੱਦ ਕਰੋ</string>
+    <string name="common_date_picker_description">ਮਿਤੀ ਚੁਣੋ</string>
+    <string name="common_time_picker_description">ਸਮਾਂ</string>
+    <string name="common_error_internet_connection">ਕਨੈਕਸ਼ਨ ਅਸਫਲ ਰਿਹਾ। ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੇ ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ।</string>
+    <string name="common_error_server_timeout">ਸਰਵਰ ਜਵਾਬ ਦੇਣ ਵਿੱਚ ਬਹੁਤ ਸਮਾਂ ਲੈ ਰਿਹਾ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="common_error_network">ਨੈੱਟਵਰਕ ਗੜਬੜੀ। ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੇ ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="common_error_generic">ਕੁਝ ਗਲਤ ਹੋ ਗਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="common_error_session_expired">ਤੁਹਾਡੇ ਸੈਸ਼ਨ ਨੂੰ ਰਿਫ੍ਰੈਸ਼ ਕਰਨ ਦੀ ਲੋੜ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਸਾਈਨ ਇਨ ਕਰੋ।</string>
+    <string name="common_error_feature_upgrade">ਇਸ ਵਿਸ਼ੇਸ਼ਤਾ ਲਈ ਅੱਪਗ੍ਰੇਡ ਦੀ ਲੋੜ ਹੈ।</string>
+    <string name="common_error_not_found">ਸਾਨੂੰ ਇਸ ਸਮੇਂ ਇਹ ਮਾਰਗਦਰਸ਼ਨ ਨਹੀਂ ਮਿਲ ਸਕਿਆ।</string>
+    <string name="common_error_server_busy">ਸਰਵਰ ਰੁੱਝਿਆ ਹੋਇਆ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਕੁਝ ਸਮੇਂ ਬਾਅਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="common_error_service_unavailable">ਸਾਡੀ ਸੇਵਾ ਅਸਥਾਈ ਤੌਰ \'ਤੇ ਉਪਲਬਧ ਨਹੀਂ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+</resources>

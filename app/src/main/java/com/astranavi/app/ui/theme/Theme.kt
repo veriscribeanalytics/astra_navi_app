@@ -1,7 +1,6 @@
 package com.astranavi.app.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -22,7 +21,12 @@ data class SemanticColors(
     val glassSurface: Color,
     val glassBorder: Color,
     val heroGradientStart: Color,
-    val heroGradientEnd: Color
+    val heroGradientEnd: Color,
+    val antiqueGold: Color,
+    val highlightGold: Color,
+    val shadowGold: Color,
+    val softGlowGold: Color,
+    val brandTextColor: Color
 )
 
 val LightSemanticColors = SemanticColors(
@@ -33,7 +37,12 @@ val LightSemanticColors = SemanticColors(
     glassSurface = LightGlassSurface,
     glassBorder = LightGlassBorder,
     heroGradientStart = LightHeroGradientStart,
-    heroGradientEnd = LightHeroGradientEnd
+    heroGradientEnd = LightHeroGradientEnd,
+    antiqueGold = LightAntiqueGold,
+    highlightGold = LightHighlightGold,
+    shadowGold = LightShadowGold,
+    softGlowGold = LightSoftGlowGold,
+    brandTextColor = LightBrandTextColor
 )
 
 val DarkSemanticColors = SemanticColors(
@@ -44,7 +53,12 @@ val DarkSemanticColors = SemanticColors(
     glassSurface = DarkGlassSurface,
     glassBorder = DarkGlassBorder,
     heroGradientStart = DarkHeroGradientStart,
-    heroGradientEnd = DarkHeroGradientEnd
+    heroGradientEnd = DarkHeroGradientEnd,
+    antiqueGold = DarkAntiqueGold,
+    highlightGold = DarkHighlightGold,
+    shadowGold = DarkShadowGold,
+    softGlowGold = DarkSoftGlowGold,
+    brandTextColor = DarkBrandTextColor
 )
 
 val LocalSemanticColors = staticCompositionLocalOf { LightSemanticColors }
@@ -95,15 +109,9 @@ fun AstraNaviTheme(
         SideEffect {
             val window = (view.context as Activity).window
             WindowCompat.setDecorFitsSystemWindows(window, false)
-            window.statusBarColor = android.graphics.Color.TRANSPARENT
-            window.navigationBarColor = android.graphics.Color.TRANSPARENT
             val insetsController = WindowCompat.getInsetsController(window, view)
             insetsController.isAppearanceLightStatusBars = !darkTheme
             insetsController.isAppearanceLightNavigationBars = !darkTheme
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                window.isNavigationBarContrastEnforced = false
-                window.isStatusBarContrastEnforced = false
-            }
         }
     }
 

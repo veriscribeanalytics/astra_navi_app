@@ -47,7 +47,7 @@ From `Features.md` and the app code, these modules already exist or are planned 
 
 ## Priority Action List
 
-### HIGH PRIORITY â€” Before or at launch
+### HIGH PRIORITY — Before or at launch
 
 | # | Feature | Frontend Work | Backend Work | Status |
 |---|---|---|---|---|
@@ -56,29 +56,29 @@ From `Features.md` and the app code, these modules already exist or are planned 
 | 1 | Push Notifications | Notification permission flow, notification UI/settings, in-app fallback banners | FCM integration, user-chosen time scheduling, Dasha transition alerts, cosmic-event notification engine | Post-beta |
 | 11 | Apple/Google SSO | Social sign-in buttons on Login/Register, token handling | OAuth server integration, account linking, session management | Quick Win |
 
-### MEDIUM PRIORITY â€” Next development cycle
+### MEDIUM PRIORITY — Next development cycle
 
 | # | Feature | Frontend Work | Backend Work | Description |
 |---|---|---|---|---|
 | 4 | Panchang / Daily Timing | "Best Hours Today" screen/widget, Rahu Kaal display, Hora/Choghadiya cards, auspicious hours per activity | Panchang calculation engine (Rahu Kaal, Hora, Choghadiya) based on user location + birth chart, location-aware sunrise/sunset | Daily astrological timing tool. Auspicious hours for career/love/travel/finance, inauspicious Rahu Kaal window, ruling Hora, Choghadiya slots. This becomes a daily-open habit feature. |
-| 7 | Cosmic Calendar | Month-view calendar UI showing moon phases, retrograde periods, eclipses, transit events; tab inside Forecast screen | Planetary event computation engine: moon phases, retrograde dates, eclipse dates, major transit entries; per-user relevance scoring | Not a religious calendar â€” a planning tool. Think Google Calendar with planetary events. Can be a tab inside Forecast to keep scope small. |
+| 7 | Cosmic Calendar | Month-view calendar UI showing moon phases, retrograde periods, eclipses, transit events; tab inside Forecast screen | Planetary event computation engine: moon phases, retrograde dates, eclipse dates, major transit entries; per-user relevance scoring | Not a religious calendar — a planning tool. Think Google Calendar with planetary events. Can be a tab inside Forecast to keep scope small. |
 | 9 | Navamsa (D9) + Dashamansha (D10) | Two extra chart tabs inside Kundli screen, SVG rendering for D9/D10, one-line explanation labels | D9 (marriage/soul purpose), D10 (career) chart generation from existing Kundli engine; D7 (children) optional later | The hard calculation work is already done. D9 and D10 are mostly a backend chart rendering addition. Label them clearly with one-line explanations. |
 | 2 | AI Voice Narration | Play/pause/stop controls on daily horoscope, audio player UI | TTS API integration (Google/Azure TTS), audio file generation and caching | Low engineering effort, high perceived value. Users listen while getting ready in the morning. |
-| 3 | Shareable Horoscope Cards | Card template design, image generation (user's sign + reading snippet + branding), share intent to WhatsApp/Instagram | Minimal â€” optional server-side card image generation if client-side is insufficient | Free marketing. One screen, one button. |
+| 3 | Shareable Horoscope Cards | Card template design, image generation (user's sign + reading snippet + branding), share intent to WhatsApp/Instagram | Minimal — optional server-side card image generation if client-side is insufficient | Free marketing. One screen, one button. |
 | 14 | Monthly & Annual Forecast | Forecast display UI for monthly/annual views, premium gating | Monthly/annual forecast generation engine, annual SEO-optimized content, premium entitlement checks | Annual forecast spikes in search traffic every January. Strong premium upsell. |
-| 15 | Multi-turn Consult ("Dig Deeper") | "Dig Deeper" / "Ask a Follow-up" button on consult result, carry context into chat session | Context-passing API: consult result â†’ chat session with pre-loaded birth chart + consult context | Consult becomes a conversation starter, not a dead end. |
+| 15 | Multi-turn Consult ("Dig Deeper") | "Dig Deeper" / "Ask a Follow-up" button on consult result, carry context into chat session | Context-passing API: consult result → chat session with pre-loaded birth chart + consult context | Consult becomes a conversation starter, not a dead end. |
 | 17 | Kundli PDF Export | Download/share button, share sheet, PDF viewer preview | PDF generation service (Kundli layout with chart SVG, planets, houses, Dasha timeline), file delivery | Very commonly requested for sharing with family elders or human astrologers. One-time build, high satisfaction. |
 
-### LOWER PRIORITY â€” Plan for v2
+### LOWER PRIORITY — Plan for v2
 
 | # | Feature | Frontend Work | Backend Work | Description |
 |---|---|---|---|---|
-| 11 | Chat Memory (Navi) | Minimal â€” existing chat UI; possible "past topics" sidebar | Conversation context persistence across sessions, topic extraction, recall engine | Navi remembers past conversations and references them naturally. |
+| 11 | Chat Memory (Navi) | Minimal — existing chat UI; possible "past topics" sidebar | Conversation context persistence across sessions, topic extraction, recall engine | Navi remembers past conversations and references them naturally. |
 | 13 not needed | Knowledge Hub Personalization | Dynamic content linking: show user's relevant planet/sign/nakshatra highlights when reading an article | Per-user chart-to-content mapping, personalized article recommendations | When they read about Mars, show how Mars functions in their own chart. |
-| 8  no | Real Astrologer Booking | Replace placeholder with "Coming Soon" state or remove; if built: booking UI, calendar, payment flow | Booking system with payment, availability, quality control, compliance, customer support â€” OR remove entirely | Either build it properly, or remove the placeholder screen. A broken feature hurts trust more than having no feature. |
+| 8  no | Real Astrologer Booking | Replace placeholder with "Coming Soon" state or remove; if built: booking UI, calendar, payment flow | Booking system with payment, availability, quality control, compliance, customer support — OR remove entirely | Either build it properly, or remove the placeholder screen. A broken feature hurts trust more than having no feature. |
 | 12 | Compatibility Timing | Dual-chart timing display for marriage windows | Combined Dasha overlap calculation for two charts, auspicious window scoring | Show "best marriage" window based on both charts' Dasha. Common user question. |
 
-### Quick Wins â€” Do anytime
+### Quick Wins — Do anytime
 
 | Item | Frontend Work | Backend Work |
 |---|---|---|
@@ -274,12 +274,12 @@ Only these pieces of new feature data can be hardcoded in frontend:
 - Kundli PDF Export: Download or share Kundli as PDF. High satisfaction, commonly requested.
 - Shareable Horoscope Cards: Styled image card (user's sign + reading snippet + AstraNavi branding) for WhatsApp/Instagram. Free marketing.
 - AI Voice Narration: TTS for daily horoscope. Low engineering effort, high perceived value. Only after real voice cost is measured.
-- Monthly & Annual Forecast: Especially annual â€” spikes in search traffic every January, strong premium upsell.
+- Monthly & Annual Forecast: Especially annual — spikes in search traffic every January, strong premium upsell.
 - Knowledge Hub Personalization: Link encyclopedia articles to user's own chart.
 - Chat Memory (Navi): Remember past conversations, reference them naturally.
 - Family profiles for Premium.
 - Compatibility Timing: Dual-chart timing for marriage windows based on both charts' Dasha.
-- Human astrologer marketplace only if it has separate P&L, compliance, quality control, and customer support â€” OR remove placeholder entirely and show "Coming Soon" instead of dummy cards.
+- Human astrologer marketplace only if it has separate P&L, compliance, quality control, and customer support — OR remove placeholder entirely and show "Coming Soon" instead of dummy cards.
 
 ## Tier Philosophy
 

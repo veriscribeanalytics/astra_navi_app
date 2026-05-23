@@ -4,9 +4,13 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.astranavi.app.R
 import com.astranavi.app.data.repository.AuthRepository
+import com.astranavi.app.util.ApiErrorParser
 import com.astranavi.app.util.ErrorSanitizer
 import com.astranavi.app.util.SessionManager
+import com.astranavi.app.util.UiText
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class RegistrationViewModel(
@@ -26,24 +30,50 @@ class RegistrationViewModel(
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
-    private val _errorMessage = mutableStateOf<String?>(null)
-    val errorMessage: State<String?> = _errorMessage
+    private val _errorMessage = mutableStateOf<UiText?>(null)
+    val errorMessage: State<UiText?> = _errorMessage
 
     private val _isRegistrationSuccess = mutableStateOf(false)
     val isRegistrationSuccess: State<Boolean> = _isRegistrationSuccess
 
-    fun onEmailChange(newEmail: String) { _email.value = newEmail }
-    fun onPasswordChange(newPassword: String) { _password.value = newPassword }
-    fun onConfirmPasswordChange(newPassword: String) { _confirmPassword.value = newPassword }
+    fun onEmailChange(newEmail: String) {
+        _email.value = newEmail
+        if (_errorMessage.value != null) _errorMessage.value = null
+    }
+
+    fun onPasswordChange(newPassword: String) {
+        _password.value = newPassword
+        if (_errorMessage.value != null) _errorMessage.value = null
+    }
+
+    fun onConfirmPasswordChange(newPassword: String) {
+        _confirmPassword.value = newPassword
+        if (_errorMessage.value != null) _errorMessage.value = null
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
+    fun reset() {
+        _errorMessage.value = null
+        _isLoading.value = false
+        _isRegistrationSuccess.value = false
+    }
 
     fun register() {
         if (_email.value.isBlank() || _password.value.isBlank()) {
-            _errorMessage.value = "Email and Password are required"
+            _errorMessage.value = UiText.StringResource(R.string.error_email_password_required)
+            return
+        }
+
+        if (!ApiErrorParser.isValidEmail(_email.value)) {
+            _errorMessage.value = UiText.StringResource(R.string.error_invalid_email_format)
             return
         }
 
         if (_password.value != _confirmPassword.value) {
-            _errorMessage.value = "Passwords do not match"
+            _errorMessage.value = UiText.StringResource(R.string.error_passwords_do_not_match)
             return
         }
 
@@ -52,7 +82,6 @@ class RegistrationViewModel(
 
         viewModelScope.launch {
             try {
-                // Register — API returns tokens directly, no separate login needed
                 val regResponse = repository.register(_email.value, _password.value)
                 if (regResponse.isSuccessful && regResponse.body() != null) {
                     val data = regResponse.body()!!
@@ -71,30 +100,21 @@ class RegistrationViewModel(
                         refreshToken = data.refreshToken,
                         profileComplete = data.profileComplete
                     )
+
+                    try {
+                        val localLanguage = sessionManager.userLanguage.first()
+                        if (localLanguage != user.language) {
+                            repository.updateLanguage(localLanguage)
+                        }
+                    } catch (_: Exception) {
+                    }
+
                     _isRegistrationSuccess.value = true
                 } else {
-                    val errorBody = regResponse.errorBody()?.string() ?: ""
-                    val message = try {
-                        val json = org.json.JSONObject(errorBody)
-                        // Try "detail" array first (422 validation errors)
-                        if (json.has("detail")) {
-                            val detail = json.getJSONArray("detail")
-                            if (detail.length() > 0) {
-                                val first = detail.getJSONObject(0)
-                                first.optString("msg", "Registration failed")
-                            } else {
-                                "Registration failed"
-                            }
-                        } else {
-                            json.optString("error", "Registration failed")
-                        }
-                    } catch (e: Exception) {
-                        "Registration failed"
-                    }
-                    _errorMessage.value = message
+                    _errorMessage.value = ApiErrorParser.parse(regResponse)
                 }
             } catch (e: Exception) {
-                _errorMessage.value = ErrorSanitizer.sanitize(e)
+                _errorMessage.value = UiText.DynamicString(ErrorSanitizer.sanitize(e))
             } finally {
                 _isLoading.value = false
             }

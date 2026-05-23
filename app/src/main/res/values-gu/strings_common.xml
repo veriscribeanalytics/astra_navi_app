@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_credits_badge_description">ક્રેડિટ્સ</string>
+    <string name="common_btn_upgrade">અપગ્રેડ કરો</string>
+    <string name="common_search_icon_description">શોધો</string>
+    <string name="common_btn_ok">બરાબર</string>
+    <string name="common_btn_cancel">રદ કરો</string>
+    <string name="common_date_picker_description">તારીખ પસંદ કરો</string>
+    <string name="common_time_picker_description">સમય</string>
+    <string name="common_error_internet_connection">કનેક્શન નિષ્ફળ ગયું. કૃપા કરીને તમારું ઇન્ટરનેટ કનેક્શન તપાસો.</string>
+    <string name="common_error_server_timeout">સર્વર પ્રતિસાદ આપવામાં ઘણો સમય લઈ રહ્યું છે. કૃપા કરીને ફરી પ્રયાસ કરો.</string>
+    <string name="common_error_network">નેટવર્ક ભૂલ. કૃપા કરીને તમારું કનેક્શન તપાસો અને ફરીથી પ્રયાસ કરો.</string>
+    <string name="common_error_generic">કંઈક ખોટું થયું છે. કૃપા કરીને ફરી પ્રયાસ કરો.</string>
+    <string name="common_error_session_expired">તમારું સત્ર નવીકરણ કરવાની જરૂર છે. કૃપા કરીને ફરીથી સાઇન ઇન કરો.</string>
+    <string name="common_error_feature_upgrade">આ સુવિધા માટે અપગ્રેડ કરવું જરૂરી છે.</string>
+    <string name="common_error_not_found">અમને અત્યારે આ માર્ગદર્શન મળ્યું નથી.</string>
+    <string name="common_error_server_busy">સર્વર વ્યસ્ત છે. કૃપા કરીને થોડી વાર પછી ફરી પ્રયાસ કરો.</string>
+    <string name="common_error_service_unavailable">અમારી સેવા અસ્થાયી રૂપે અનુપલબ્ધ છે. કૃપા કરીને ફરી પ્રયાસ કરો.</string>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Input Form -->
+    <string name="match_btn_calculate">अनुकूलता की गणना करें</string>
+    <string name="match_desc_vedic_analysis">समरसता और दीर्घायु के लिए परंपरागत 36 गुण वैदिक मेल विश्लेषण।</string>
+    <string name="match_label_person1">व्यक्ति 1 (आप)</string>
+    <string name="match_label_person2">व्यक्ति 2 (साथी)</string>
+    <string name="match_field_name">नाम</string>
+    <string name="match_field_birth_place">जन्म स्थान</string>
+    <string name="match_option_male">पुरुष</string>
+    <string name="match_option_female">महिला</string>
+
+    <!-- Match Result View -->
+    <string name="match_label_out_of_36">में से 36</string>
+    <string name="match_section_breakdown">अष्टकूट विश्लेषण</string>
+    <string name="match_btn_analyze_another">अन्य मेल का विश्लेषण करें</string>
+
+    <!-- Score Labels -->
+    <string name="match_score_excellent">उत्कृष्ट मेल</string>
+    <string name="match_score_good">अच्छा मेल</string>
+    <string name="match_score_low">कम अनुकूलता</string>
+
+    <!-- Mangal Dosha Panel -->
+    <string name="match_label_mangal_status">मंगल दोष स्थिति</string>
+    <string name="match_msg_mangal_detected">चार्ट में मंगल प्रभाव का पता चला।</string>
+    <string name="match_msg_no_mangal">कोई मंगल दोष नहीं।</string>
+    <string name="match_label_cancellation">निरस्तीकरण:</string>
+
+    <!-- Match History Screen -->
+    <string name="match_empty_history">कोई अनुकूलता रिकॉर्ड नहीं मिला।</string>
+    <string name="match_section_guna_milan">गुण मिलान विवरण</string>
+    <string name="match_section_mangal">मंगल दोष</string>
+    <string name="match_btn_delete_record">रिकॉर्ड हटाएं</string>
+
+    <!-- Mangal Dosha Status -->
+    <string name="match_dosha_compatible">अनुकूल (सुरक्षित)</string>
+    <string name="match_dosha_high_influence">उच्च प्रभाव का पता चला</string>
+    <string name="match_dosha_influence">प्रभाव का पता चला</string>
+    <string name="match_dosha_no_influence">कोई प्रमुख प्रभाव नहीं</string>
+</resources>

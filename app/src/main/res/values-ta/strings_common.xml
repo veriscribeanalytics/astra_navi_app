@@ -1,0 +1,18 @@
+<resources>
+    <string name="common_credits_badge_description">கிரெடிட்கள்</string>
+    <string name="common_btn_upgrade">மேம்படுத்து</string>
+    <string name="common_search_icon_description">தேடு</string>
+    <string name="common_btn_ok">சரி</string>
+    <string name="common_btn_cancel">ரத்துசெய்</string>
+    <string name="common_date_picker_description">தேதியைத் தேர்ந்தெடு</string>
+    <string name="common_time_picker_description">நேரம்</string>
+    <string name="common_error_internet_connection">இணைப்பு தோல்வியடைந்தது. உங்கள் இணைய இணைப்பைச் சரிபார்க்கவும்.</string>
+    <string name="common_error_server_timeout">சர்வர் பதிலளிக்க நீண்ட நேரம் எடுக்கிறது. மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="common_error_network">பிணையப் பிழை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="common_error_generic">ஏதோ தவறு நடந்துவிட்டது. மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="common_error_session_expired">உங்கள் அமர்வை புதுப்பிக்க வேண்டும். மீண்டும் உள்நுழையவும்.</string>
+    <string name="common_error_feature_upgrade">இந்த அம்சத்திற்கு மேம்படுத்தல் தேவைப்படுகிறது.</string>
+    <string name="common_error_not_found">இப்போது இந்த வழிகாட்டுதலை எங்களால் கண்டுபிடிக்க முடியவில்லை.</string>
+    <string name="common_error_server_busy">சர்வர் பிஸியாக உள்ளது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="common_error_service_unavailable">எங்கள் சேவை தற்காலிகமாக கிடைக்கவில்லை. மீண்டும் முயற்சிக்கவும்.</string>
+</resources>

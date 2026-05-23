@@ -6,22 +6,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.astranavi.app.data.model.*
 import com.astranavi.app.data.model.PaywallCardData
+import com.astranavi.app.data.cache.CacheMeta
 import com.astranavi.app.data.repository.DashboardRepository
 import com.astranavi.app.data.repository.AstrologyRepository
 import com.astranavi.app.data.repository.AuthRepository
 import com.astranavi.app.util.ErrorSanitizer
+import com.astranavi.app.util.LocaleManager
+import com.astranavi.app.util.ProfileChangeBus
 import com.astranavi.app.util.SessionManager
 import com.astranavi.app.util.ZodiacMapper
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import retrofit2.Response
 
 sealed class DashboardState {
     object Loading : DashboardState()
     data class Success(
         val horoscope: HoroscopeResponse,
-        val forecast: ForecastResponse? = null,
+        val forecast: WeeklyForecastResponse? = null,
         val kundliPreview: AnalyzeFullResponse? = null,
         val recentConsultations: List<ConsultRecord>? = null,
         val moonSign: String? = null,
@@ -32,7 +37,8 @@ sealed class DashboardState {
         val userEmail: String? = null,
         val accessToken: String? = null,
         val activeSidebarTab: String = "chat",
-        val paywall: PaywallCardData? = null
+        val paywall: PaywallCardData? = null,
+        val meta: CacheMeta? = null
     ) : DashboardState()
     data class Error(val message: String) : DashboardState()
 }
@@ -49,6 +55,16 @@ class DashboardViewModel(
 
     init {
         fetchDashboardData()
+        viewModelScope.launch {
+            LocaleManager.localeVersion.drop(1).collect {
+                fetchDashboardData(forceRefresh = true)
+            }
+        }
+        viewModelScope.launch {
+            ProfileChangeBus.version.drop(1).collect {
+                fetchDashboardData(forceRefresh = true, silent = true)
+            }
+        }
     }
 
     fun setSidebarTab(tab: String) {
@@ -58,23 +74,30 @@ class DashboardViewModel(
         }
     }
 
-    fun fetchDashboardData() {
-        _uiState.value = DashboardState.Loading
+    fun fetchDashboardData(forceRefresh: Boolean = false, silent: Boolean = false) {
+        if (!silent || _uiState.value !is DashboardState.Success) {
+            _uiState.value = DashboardState.Loading
+        }
         viewModelScope.launch {
             var result: DashboardState = DashboardState.Error("Failed to load dashboard")
             for (attempt in 0 until 2) {
                 try {
-                    result = fetchDashboard()
+                    result = fetchDashboard(forceRefresh)
                     if (result is DashboardState.Success) break
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     result = DashboardState.Error(ErrorSanitizer.sanitize(e))
                 }
+            }
+            if (silent && result !is DashboardState.Success && _uiState.value is DashboardState.Success) {
+                return@launch
             }
             _uiState.value = result
         }
     }
 
-    private suspend fun fetchDashboard(): DashboardState {
+    private suspend fun fetchDashboard(forceRefresh: Boolean): DashboardState {
         val localMoonSign = sessionManager.moonSign.first()
         val localSunSign = sessionManager.sunSign.first()
         val localLagnaSign = sessionManager.lagnaSign.first()
@@ -89,7 +112,7 @@ class DashboardViewModel(
         var userName: String? = localUserName
         var user: User? = null
 
-        val profileResponse = authRepository.getProfile()
+        val profileResponse = authRepository.getProfile(forceRefresh)
         user = profileResponse.body()?.user
         moonSign = user?.moonSign ?: localMoonSign
         sunSign = user?.sunSign ?: localSunSign
@@ -98,7 +121,7 @@ class DashboardViewModel(
         userName = user?.name ?: localUserName
 
         if (moonSign.isNullOrBlank()) {
-            val analyzeResponse = repository.analyzeFull(AnalyzeFullRequest(force_refresh = false))
+            val analyzeResponse = repository.analyzeFull(AnalyzeFullRequest(force_refresh = forceRefresh))
             if (analyzeResponse.isSuccessful) {
                 val kundliData = analyzeResponse.body()?.astrologyData
                 if (kundliData != null) {
@@ -123,11 +146,10 @@ class DashboardViewModel(
         }
 
         var horoscope: HoroscopeResponse? = null
-        if (!moonSign.isNullOrBlank()) {
-            val horoscopeResponse = repository.getDailyHoroscope(moonSign)
-            if (horoscopeResponse.isSuccessful) {
-                horoscope = horoscopeResponse.body()
-            }
+        var horoscopeMeta: CacheMeta? = null
+        val horoscopeResponse = repository.getDailyHoroscope(forceRefresh, metaConsumer = { horoscopeMeta = it })
+        if (horoscopeResponse.isSuccessful) {
+            horoscope = horoscopeResponse.body()
         }
 
         if (horoscope != null) {
@@ -144,13 +166,50 @@ class DashboardViewModel(
                 )
             }
 
-            val (forecastRes, kundliRes, consultHistoryRes) = coroutineScope {
-                val forecastDeferred = async { repository.getForecast("general", daysBack = 0, daysForward = 7) }
-                val kundliDeferred = async { repository.analyzeFull(AnalyzeFullRequest(force_refresh = false)) }
+            data class DashboardParallelResults(
+                val forecast: Response<WeeklyForecastResponse>,
+                val kundli: Response<AnalyzeFullWrapper>,
+                val consultHistory: Response<ConsultHistoryResponse>,
+                val forecastMeta: CacheMeta?,
+                val kundliMeta: CacheMeta?
+            )
+
+            val parallelResults = coroutineScope {
+                val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+                var forecastMeta: CacheMeta? = null
+                var kundliMeta: CacheMeta? = null
+                val forecastDeferred = async {
+                    repository.getWeeklyForecast(
+                        "general",
+                        date = currentDate,
+                        forceRefresh = forceRefresh,
+                        metaConsumer = { forecastMeta = it }
+                    )
+                }
+                val kundliDeferred = async {
+                    repository.analyzeFull(
+                        AnalyzeFullRequest(force_refresh = forceRefresh),
+                        metaConsumer = { kundliMeta = it }
+                    )
+                }
                 val consultHistoryDeferred = async { astrologyRepository.getConsultHistory(limit = 5) }
 
-                Triple(forecastDeferred.await(), kundliDeferred.await(), consultHistoryDeferred.await())
+                val forecastRes = forecastDeferred.await()
+                val kundliRes = kundliDeferred.await()
+                val consultHistoryRes = consultHistoryDeferred.await()
+
+                DashboardParallelResults(
+                    forecast = forecastRes,
+                    kundli = kundliRes,
+                    consultHistory = consultHistoryRes,
+                    forecastMeta = forecastMeta,
+                    kundliMeta = kundliMeta
+                )
             }
+
+            val forecastRes = parallelResults.forecast
+            val kundliRes = parallelResults.kundli
+            val consultHistoryRes = parallelResults.consultHistory
 
             val kundliPaywall = if (kundliRes.isSuccessful) kundliRes.body()?.paywall else null
 
@@ -169,13 +228,11 @@ class DashboardViewModel(
                 userName = userName,
                 userEmail = userEmail,
                 accessToken = accessToken,
-                paywall = horoscope.paywall ?: kundliPaywall
+                paywall = horoscope.paywall ?: kundliPaywall,
+                meta = CacheMeta.combine(listOf(horoscopeMeta, parallelResults.forecastMeta, parallelResults.kundliMeta))
             )
         } else {
-            return DashboardState.Error(
-                if (moonSign.isNullOrBlank()) "Please complete your profile to see your daily horoscope"
-                else "Failed to load your cosmic guidance"
-            )
+            return DashboardState.Error("Failed to load your cosmic guidance. Please ensure your profile is complete.")
         }
     }
 }

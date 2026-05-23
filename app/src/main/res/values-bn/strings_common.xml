@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_credits_badge_description">ক্রেডিট</string>
+    <string name="common_btn_upgrade">আপগ্রেড করুন</string>
+    <string name="common_search_icon_description">অনুসন্ধান করুন</string>
+    <string name="common_btn_ok">ঠিক আছে</string>
+    <string name="common_btn_cancel">বাতিল করুন</string>
+    <string name="common_date_picker_description">তারিখ নির্বাচন করুন</string>
+    <string name="common_time_picker_description">সময়</string>
+    <string name="common_error_internet_connection">সংযোগ ব্যর্থ হয়েছে। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।</string>
+    <string name="common_error_server_timeout">সার্ভার সাড়া দিতে খুব বেশি সময় নিচ্ছে। অনুগ্রহ করে আবার চেষ্টা করুন।</string>
+    <string name="common_error_network">নেটওয়ার্ক ত্রুটি। অনুগ্রহ করে আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
+    <string name="common_error_generic">কিছু ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।</string>
+    <string name="common_error_session_expired">আপনার সেশন রিফ্রেশ করা প্রয়োজন। অনুগ্রহ করে আবার সাইন ইন করুন।</string>
+    <string name="common_error_feature_upgrade">এই ফিচারটির জন্য আপগ্রেড করা প্রয়োজন।</string>
+    <string name="common_error_not_found">আমরা এই মুহূর্তে এই নির্দেশনাটি খুঁজে পাইনি।</string>
+    <string name="common_error_server_busy">সার্ভার ব্যস্ত রয়েছে। অনুগ্রহ করে কিছু ক্ষণ পরে আবার চেষ্টা করুন।</string>
+    <string name="common_error_service_unavailable">আমাদের পরিষেবা সাময়িকভাবে বন্ধ আছে। অনুগ্রহ করে আবার চেষ্টা করুন।</string>
+</resources>

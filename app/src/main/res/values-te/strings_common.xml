@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_credits_badge_description">క్రెడిట్స్</string>
+    <string name="common_btn_upgrade">అప్‌గ్రేడ్</string>
+    <string name="common_search_icon_description">శోధన</string>
+    <string name="common_btn_ok">సరే</string>
+    <string name="common_btn_cancel">రద్దు చేయండి</string>
+    <string name="common_date_picker_description">తేదీని ఎంచుకోండి</string>
+    <string name="common_time_picker_description">సమయం</string>
+    <string name="common_error_internet_connection">కనెక్షన్ విఫలమైంది. దయచేసి మీ ఇంటర్నెట్ కనెక్షన్‌ని తనిఖీ చేయండి.</string>
+    <string name="common_error_server_timeout">సర్వర్ స్పందించడానికి చాలా సమయం తీసుకుంటోంది. దయచేసి మళ్లీ ప్రయత్నించండి.</string>
+    <string name="common_error_network">నెట్‌వర్క్ లోపం. దయచేసి మీ కనెక్షన్‌ని తనిఖీ చేసి, మళ్లీ ప్రయత్నించండి.</string>
+    <string name="common_error_generic">ఏదో తప్పు జరిగింది. దయచేసి మళ్లీ ప్రయత్నించండి.</string>
+    <string name="common_error_session_expired">మీ సెషన్ రిఫ్రెష్ కావాలి. దయచేసి మళ్లీ సైన్ ఇన్ చేయండి.</string>
+    <string name="common_error_feature_upgrade">ఈ ఫీచర్ కోసం అప్‌గ్రేడ్ అవసరం.</string>
+    <string name="common_error_not_found">మేము ప్రస్తుతం ఈ మార్గదర్శకత్వాన్ని కనుగొనలేకపోయాము.</string>
+    <string name="common_error_server_busy">సర్వర్ బిజీగా ఉంది. దయచేసి కాసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.</string>
+    <string name="common_error_service_unavailable">మా సేవ తాత్కాలికంగా అందుబాటులో లేదు. దయచేసి మళ్లీ ప్రయత్నించండి.</string>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Input Form -->
+    <string name="match_btn_calculate">সামঞ্জস্যতা গণনা করুন</string>
+    <string name="match_desc_vedic_analysis">সম্প্রীতি এবং দীর্ঘায়ুর জন্য ঐতিহ্যবাহী ৩৬ গুণ বৈদিক মিলন বিশ্লেষণ।</string>
+    <string name="match_label_person1">ব্যক্তি ১ (আপনি)</string>
+    <string name="match_label_person2">ব্যক্তি ২ (সঙ্গী)</string>
+    <string name="match_field_name">নাম</string>
+    <string name="match_field_birth_place">জন্মস্থান</string>
+    <string name="match_option_male">পুরুষ</string>
+    <string name="match_option_female">মহিলা</string>
+
+    <!-- Match Result View -->
+    <string name="match_label_out_of_36">৩৬ এর মধ্যে</string>
+    <string name="match_section_breakdown">অষ্টকূট বিবরণ</string>
+    <string name="match_btn_analyze_another">অন্য একটি মিলন বিশ্লেষণ করুন</string>
+
+    <!-- Score Labels -->
+    <string name="match_score_excellent">চমৎকার মিলন</string>
+    <string name="match_score_good">ভালো মিলন</string>
+    <string name="match_score_low">কম সামঞ্জস্যতা</string>
+
+    <!-- Mangal Dosha Panel -->
+    <string name="match_label_mangal_status">মঙ্গল দোষের স্থিতি</string>
+    <string name="match_msg_mangal_detected">কুণ্ডলীতে মঙ্গলের প্রভাব সনাক্ত করা গেছে।</string>
+    <string name="match_msg_no_mangal">কোনো মঙ্গল দোষ নেই।</string>
+    <string name="match_label_cancellation">খণ্ডন:</string>
+
+    <!-- Match History Screen -->
+    <string name="match_empty_history">কোনো সামঞ্জস্যতার রেকর্ড পাওয়া যায়নি।</string>
+    <string name="match_section_guna_milan">গুণ মিলন বিবরণ</string>
+    <string name="match_section_mangal">মঙ্গল দোষ</string>
+    <string name="match_btn_delete_record">রেকর্ড মুছুন</string>
+
+    <!-- Mangal Dosha Status -->
+    <string name="match_dosha_compatible">সামঞ্জস্যপূর্ণ (নিরাপদ)</string>
+    <string name="match_dosha_high_influence">উচ্চ প্রভাব সনাক্ত করা হয়েছে</string>
+    <string name="match_dosha_influence">প্রভাব সনাক্ত করা হয়েছে</string>
+    <string name="match_dosha_no_influence">কোনো বড় প্রভাব নেই</string>
+</resources>

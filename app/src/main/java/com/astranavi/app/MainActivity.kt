@@ -1,5 +1,6 @@
 package com.astranavi.app
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -43,8 +44,15 @@ import com.astranavi.app.ui.forecast.ForecastScreen
 import com.astranavi.app.ui.forecast.ForecastViewModel
 import com.astranavi.app.ui.components.ParticleBackground
 import com.astranavi.app.ui.components.CreditBadge
+import com.astranavi.app.ui.components.LanguageChip
 import com.astranavi.app.ui.components.PaywallCard
 import com.astranavi.app.ui.components.PaywallFullBlock
+import com.astranavi.app.ui.components.AnimatedAtmosphericGlow
+import com.astranavi.app.ui.components.GlowColors
+import com.astranavi.app.ui.components.LocalSetGlowColors
+import com.astranavi.app.ui.chat.ChatAvatarImage
+import com.astranavi.app.ui.chat.FallbackChatAvatarCatalog
+import com.astranavi.app.data.model.ChatAvatar
 import com.astranavi.app.ui.entitlement.EntitlementViewModel
 import com.astranavi.app.ui.entitlement.PlansPage
 import com.astranavi.app.ui.entitlement.PlansViewModel
@@ -69,6 +77,8 @@ import com.astranavi.app.ui.profile.ProfileScreen
 import com.astranavi.app.ui.profile.ProfileViewModel
 import com.astranavi.app.ui.rashis.RashiScreen
 import com.astranavi.app.ui.rashis.RashiViewModel
+import com.astranavi.app.ui.splash.IntroAnimationScreen
+import com.astranavi.app.ui.splash.LogoSplashScreen
 import com.astranavi.app.ui.theme.AstraNaviTheme
 import com.astranavi.app.util.SessionManager
 import kotlinx.coroutines.flow.first
@@ -111,6 +121,16 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
 val LocalTopBarTitle = compositionLocalOf<((String?) -> Unit)?> { null }
 val LocalTopBarColor = compositionLocalOf<((Color?) -> Unit)?> { null }
 val LocalEntitlementViewModel = compositionLocalOf<EntitlementViewModel?> { null }
+val LocalBottomBarHeight = compositionLocalOf { 0.dp }
+
+private fun buildChatRoute(prompt: String?, area: String?): String {
+    val params = listOfNotNull(
+        prompt?.takeIf { it.isNotBlank() }?.let { "prompt=${Uri.encode(it)}" },
+        area?.takeIf { it.isNotBlank() }?.let { "area=${Uri.encode(it)}" }
+    )
+    return if (params.isEmpty()) Screen.Chat.route
+    else "${Screen.Chat.route}?${params.joinToString("&")}"
+}
 
 @Composable
 fun RowScope.NavBarItem(
@@ -330,11 +350,11 @@ class MainActivity : ComponentActivity() {
 val sessionManager = SessionManager(this)
         RetrofitClient.init(sessionManager)
         val apiService = RetrofitClient.instance
-        val apiCache = ApiResponseCache(sessionManager, RetrofitClient.gson)
+        val apiCache = ApiResponseCache(sessionManager)
         val authRepository = AuthRepository(apiService, apiCache)
         val dashboardRepository = DashboardRepository(apiService, apiCache)
         val astrologyRepository = AstrologyRepository(apiService, apiCache)
-        val entitlementRepository = EntitlementRepository(apiService, RetrofitClient.gson)
+        val entitlementRepository = EntitlementRepository(apiService)
 
         setContent {
             val themePreference by sessionManager.themePreference.collectAsState(initial = "system")
@@ -371,19 +391,7 @@ val sessionManager = SessionManager(this)
                         val activePaywall by entitlementViewModel.activePaywall
 
                         LaunchedEffect(Unit) {
-                            val userId = sessionManager.userId.first()
-                            if (userId != null) {
-                                val isProfileComplete = sessionManager.profileComplete.first() ?: false
-                                startDestination = if (isProfileComplete) Screen.Dashboard.route else Screen.Profile.route
-                            } else {
-                                startDestination = "login"
-                            }
-                        }
-
-                        LaunchedEffect(startDestination) {
-                            if (startDestination != null && startDestination != "login") {
-                                entitlementViewModel.refreshAll()
-                            }
+                            startDestination = "intro"
                         }
 
                         if (startDestination != null) {
@@ -393,10 +401,16 @@ val sessionManager = SessionManager(this)
                             LaunchedEffect(currentDestination?.route) {
                                 dynamicTitle = null
                                 dynamicTopBarColor = null
+                                val route = currentDestination?.route?.substringBefore("?")
+                                if (route != null && route != "login" && route != "intro" && route != "logo_splash") {
+                                    entitlementViewModel.refreshAll()
+                                }
                             }
 
                             val isLogin = currentDestination?.route == "login"
-                            val showMainActivityTopBar = !isLogin
+                            val isIntroOrSplash = currentDestination?.route == "intro" ||
+                                currentDestination?.route?.substringBefore("?") == "logo_splash"
+                            val showMainActivityTopBar = !isLogin && !isIntroOrSplash
                             val showBottomBar = currentDestination?.route in listOf(
                                 Screen.Dashboard.route,
                                 Screen.Blogs.route
@@ -478,7 +492,21 @@ val sessionManager = SessionManager(this)
                             val backDispatcher =
                                 LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
+                            var glowColors by remember { mutableStateOf<GlowColors?>(null) }
+                            val setGlowColors = remember { { c: GlowColors? -> glowColors = c } }
+
+                            val currentLanguage by sessionManager.userLanguage.collectAsState(initial = "en")
+                            var avatarMenuExpanded by remember { mutableStateOf(false) }
+
                             Box(modifier = Modifier.fillMaxSize()) {
+                                glowColors?.let { gc ->
+                                    AnimatedAtmosphericGlow(
+                                        accentColor = gc.accent,
+                                        deepColor = gc.deep,
+                                        radialColor = gc.radial,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
                                 Scaffold(
                                     containerColor = Color.Transparent,
                                     contentWindowInsets = WindowInsets(0.dp),
@@ -486,19 +514,97 @@ val sessionManager = SessionManager(this)
                                         if (showMainActivityTopBar) {
                                             CenterAlignedTopAppBar(
                                                 title = {
-                                                    Text(
-                                                        topBarTitle,
-                                                        fontWeight = FontWeight.Black
-                                                    )
+                                                    if (currentBaseRoute == Screen.Chat.route) {
+                                                        val chatViewModel: ChatViewModel = viewModel(factory = sharedViewModelFactory)
+                                                        val activeAvatar by chatViewModel.activeAvatar
+                                                        Box {
+                                                            Row(
+                                                                modifier = Modifier
+                                                                    .clip(RoundedCornerShape(20.dp))
+                                                                    .clickable { avatarMenuExpanded = true }
+                                                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                                                verticalAlignment = Alignment.CenterVertically
+                                                            ) {
+                                                                ChatAvatarImage(
+                                                                    avatar = activeAvatar,
+                                                                    modifier = Modifier
+                                                                        .size(28.dp)
+                                                                        .clip(CircleShape)
+                                                                )
+                                                                Spacer(Modifier.width(8.dp))
+                                                                Text(
+                                                                    activeAvatar?.name ?: "AI Chat",
+                                                                    fontWeight = FontWeight.Black,
+                                                                    maxLines = 1,
+                                                                    overflow = TextOverflow.Ellipsis
+                                                                )
+                                                                Icon(
+                                                                    Icons.Default.ArrowDropDown,
+                                                                    contentDescription = "Switch avatar"
+                                                                )
+                                                            }
+                                                            DropdownMenu(
+                                                                expanded = avatarMenuExpanded,
+                                                                onDismissRequest = { avatarMenuExpanded = false }
+                                                            ) {
+                                                                FallbackChatAvatarCatalog.avatars.forEach { avatar ->
+                                                                    val isSelected = avatar.avatarId == activeAvatar?.avatarId
+                                                                    DropdownMenuItem(
+                                                                        text = {
+                                                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                                                ChatAvatarImage(
+                                                                                    avatar = avatar,
+                                                                                    modifier = Modifier
+                                                                                        .size(28.dp)
+                                                                                        .clip(CircleShape)
+                                                                                )
+                                                                                Spacer(Modifier.width(10.dp))
+                                                                                Column {
+                                                                                    Text(
+                                                                                        avatar.name,
+                                                                                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold
+                                                                                    )
+                                                                                    Text(
+                                                                                        avatar.title,
+                                                                                        fontSize = 11.sp,
+                                                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                                                    )
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        onClick = {
+                                                                            avatarMenuExpanded = false
+                                                                            if (!isSelected) chatViewModel.switchActiveAvatar(avatar)
+                                                                        }
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Text(
+                                                            topBarTitle,
+                                                            fontWeight = FontWeight.Black
+                                                        )
+                                                    }
                                                 },
                                                 navigationIcon = {
-                                                    if (!isTopLevel) {
-                                                        IconButton(onClick = { backDispatcher?.onBackPressed() }) {
-                                                            Icon(
-                                                                Icons.Default.ArrowBack,
-                                                                contentDescription = "Back"
-                                                            )
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        if (!isTopLevel) {
+                                                            IconButton(onClick = { backDispatcher?.onBackPressed() }) {
+                                                                Icon(
+                                                                    Icons.Default.ArrowBack,
+                                                                    contentDescription = "Back"
+                                                                )
+                                                            }
+                                                        } else {
+                                                            Spacer(Modifier.width(4.dp))
                                                         }
+                                                        LanguageChip(
+                                                            currentLanguage = currentLanguage,
+                                                            onLanguageSelected = { lang ->
+                                                                scope.launch { sessionManager.setUserLanguage(lang) }
+                                                            }
+                                                        )
                                                     }
                                                 },
                                                 actions = {
@@ -650,7 +756,8 @@ val sessionManager = SessionManager(this)
                                     CompositionLocalProvider(
                                         LocalTopBarTitle provides { dynamicTitle = it },
                                         LocalTopBarColor provides { dynamicTopBarColor = it },
-                                        LocalEntitlementViewModel provides entitlementViewModel
+                                        LocalEntitlementViewModel provides entitlementViewModel,
+                                        LocalSetGlowColors provides setGlowColors
                                     ) {
                                         NavHost(
                                             navController = navController,
@@ -662,38 +769,114 @@ val sessionManager = SessionManager(this)
                                                     bottom = innerPadding.calculateBottomPadding()
                                                 )
                                         ) {
+                                            composable("intro") {
+                                                var isFirstLaunch by remember { mutableStateOf(true) }
+                                                var isLoggedIn by remember { mutableStateOf(false) }
+                                                LaunchedEffect(Unit) {
+                                                    isFirstLaunch = !(sessionManager.hasSeenIntro.first())
+                                                    isLoggedIn = sessionManager.userId.first() != null
+                                                }
+                                                IntroAnimationScreen(
+                                                    isLoggedIn = isLoggedIn,
+                                                    isFirstLaunch = isFirstLaunch,
+                                                    onIntroComplete = {
+                                                        scope.launch {
+                                                            sessionManager.setHasSeenIntro(true)
+                                                            val userId = sessionManager.userId.first()
+                                                            val next = if (userId != null) {
+                                                                val isProfileComplete = sessionManager.profileComplete.first() ?: false
+                                                                if (isProfileComplete) Screen.Dashboard.route else Screen.Profile.route
+                                                            } else "login"
+                                                            navController.navigate(next) {
+                                                                popUpTo("intro") { inclusive = true }
+                                                            }
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                            composable(
+                                                "logo_splash?loadingText={loadingText}",
+                                                arguments = listOf(
+                                                    navArgument("loadingText") {
+                                                        type = NavType.StringType
+                                                        nullable = true
+                                                        defaultValue = null
+                                                    }
+                                                )
+                                            ) { backStackEntry ->
+                                                val loadingText = backStackEntry.arguments?.getString("loadingText")
+                                                    ?: "Preparing your first guidance…"
+                                                LogoSplashScreen(
+                                                    loadingText = loadingText,
+                                                    onSplashComplete = {
+                                                        scope.launch {
+                                                            val isProfileComplete = sessionManager.profileComplete.first() ?: false
+                                                            val next = if (isProfileComplete) Screen.Dashboard.route else Screen.Profile.route
+                                                            navController.navigate(next) {
+                                                                popUpTo("logo_splash") { inclusive = true }
+                                                            }
+                                                        }
+                                                    }
+                                                )
+                                            }
                                             composable("login") {
                                                 val loginViewModel: LoginViewModel = viewModel(factory = sharedViewModelFactory)
                                                 val registrationViewModel: RegistrationViewModel = viewModel(factory = sharedViewModelFactory)
+                                                val currentLanguage by sessionManager.userLanguage.collectAsState(initial = "en")
+                                                var isRegisterMode by remember { mutableStateOf(false) }
+
+                                                val isLoginSuccess by loginViewModel.isLoginSuccess
+                                                val isRegistrationSuccess by registrationViewModel.isRegistrationSuccess
+
+                                                LaunchedEffect(isLoginSuccess) {
+                                                    if (isLoginSuccess) {
+                                                        isMenuOpen = false
+                                                        val text = Uri.encode("Aligning your chart…")
+                                                        navController.navigate("logo_splash?loadingText=$text") {
+                                                            popUpTo("login") { inclusive = true }
+                                                        }
+                                                        loginViewModel.reset()
+                                                    }
+                                                }
+
+                                                LaunchedEffect(isRegistrationSuccess) {
+                                                    if (isRegistrationSuccess) {
+                                                        isMenuOpen = false
+                                                        val text = Uri.encode("Setting up your chart…")
+                                                        navController.navigate("logo_splash?loadingText=$text") {
+                                                            popUpTo("login") { inclusive = true }
+                                                        }
+                                                        registrationViewModel.reset()
+                                                    }
+                                                }
+
                                                 LoginScreen(
                                                     loginViewModel = loginViewModel,
                                                     registrationViewModel = registrationViewModel,
-                                                    onLoginSuccess = {
-                                                        isMenuOpen = false
+                                                    currentLanguage = currentLanguage,
+                                                    isRegisterMode = isRegisterMode,
+                                                    onModeChange = { isRegisterMode = it },
+                                                    onLanguageSelected = { lang ->
                                                         scope.launch {
-                                                            val isProfileComplete = sessionManager.profileComplete.first() ?: false
-                                                            val destination = if (isProfileComplete) Screen.Dashboard.route else Screen.Profile.route
-                                                            navController.navigate(destination) { popUpTo("login") { inclusive = true } }
+                                                            sessionManager.setUserLanguage(lang)
                                                         }
                                                     },
-                                                    onNavigateToProfile = {
-                                                        isMenuOpen = false
-                                                        navController.navigate(Screen.Profile.route) { popUpTo("login") { inclusive = true } }
-                                                    }
+                                                    onTriggerAuthAction = { /* No-op, navigation is handled on success states */ }
                                                 )
                                             }
                                             composable(Screen.Dashboard.route) {
                                                 val dashboardViewModel: DashboardViewModel = viewModel(factory = sharedViewModelFactory)
                                                 DashboardScreen(
                                                     viewModel = dashboardViewModel,
-                                                    onOpenDrawer = { isMenuOpen = true },
                                                     onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                                                     onNavigateToRashis = { rashiId ->
                                                         val route = if (rashiId != null) "${Screen.Rashis.route}?rashiId=$rashiId" else Screen.Rashis.route
                                                         navController.navigate(route)
                                                     },
                                                     onNavigateToExperts = { navController.navigate(Screen.Astrologers.route) },
-                                                    onNavigateToChat = { navController.navigate(Screen.Chat.route) },
+                                                    onNavigateToChat = { prompt, area ->
+                                                        navController.navigate(buildChatRoute(prompt, area))
+                                                    },
                                                     onNavigateToKundli = { navController.navigate(Screen.Kundli.route) },
                                                     onNavigateToMatch = { navController.navigate(Screen.Match.route) },
                                                     onNavigateToMatchHistory = { navController.navigate("match_history") },
@@ -709,7 +892,14 @@ val sessionManager = SessionManager(this)
                                             composable("${Screen.Forecast.route}?area={area}", arguments = listOf(navArgument("area") { type = NavType.StringType; nullable = true; defaultValue = null })) { backStackEntry ->
                                                 val area = backStackEntry.arguments?.getString("area")
                                                 val forecastViewModel: ForecastViewModel = viewModel(factory = sharedViewModelFactory)
-                                                ForecastScreen(viewModel = forecastViewModel, initialArea = area, onBack = { navController.popBackStack() })
+                                                ForecastScreen(
+                                                    viewModel = forecastViewModel,
+                                                    initialArea = area,
+                                                    onBack = { navController.popBackStack() },
+                                                    onNavigateToChat = { prompt ->
+                                                        navController.navigate(buildChatRoute(prompt, null))
+                                                    }
+                                                )
                                             }
                                             composable(Screen.Kundli.route) {
                                                 val kundliViewModel: KundliViewModel = viewModel(factory = sharedViewModelFactory)
@@ -755,11 +945,23 @@ val sessionManager = SessionManager(this)
                                                 LaunchedEffect(rashiId) { rashiId?.let { rashiViewModel.selectRashiById(it) } }
                                                 RashiScreen(viewModel = rashiViewModel, onBack = { navController.popBackStack() })
                                             }
-                                            composable(Screen.Chat.route) {
+                                            composable(
+                                                "${Screen.Chat.route}?prompt={prompt}&area={area}",
+                                                arguments = listOf(
+                                                    navArgument("prompt") { type = NavType.StringType; nullable = true; defaultValue = null },
+                                                    navArgument("area") { type = NavType.StringType; nullable = true; defaultValue = null }
+                                                )
+                                            ) { backStackEntry ->
                                                 val chatViewModel: ChatViewModel = viewModel(factory = sharedViewModelFactory)
                                                 val chatShowHistory by chatViewModel.showHistory
                                                 LaunchedEffect(chatShowHistory) { dynamicTitle = if (chatShowHistory) "Chat History" else null }
-                                                ChatScreen(viewModel = chatViewModel, onBack = { navController.popBackStack() }, onOpenDrawer = { isMenuOpen = true })
+                                                ChatScreen(
+                                                    viewModel = chatViewModel,
+                                                    seedPrompt = backStackEntry.arguments?.getString("prompt"),
+                                                    seedContext = backStackEntry.arguments?.getString("area"),
+                                                    onBack = { navController.popBackStack() },
+                                                    onOpenDrawer = { isMenuOpen = true }
+                                                )
                                             }
                                             composable(Screen.Profile.route) {
                                                 val profileViewModel: ProfileViewModel = viewModel(factory = sharedViewModelFactory)

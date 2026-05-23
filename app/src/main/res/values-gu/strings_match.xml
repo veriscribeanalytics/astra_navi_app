@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Input Form -->
+    <string name="match_btn_calculate">સુસંગતતા ગણતરી કરો</string>
+    <string name="match_desc_vedic_analysis">સુમેળ અને દીર્ઘાયુષ્ય માટે પરંપરાગત ૩૬ ગુણ વૈદિક મેળ વિશ્લેષણ.</string>
+    <string name="match_label_person1">વ્યક્તિ ૧ (તમે)</string>
+    <string name="match_label_person2">વ્યક્તિ ૨ (ભાગીદાર)</string>
+    <string name="match_field_name">નામ</string>
+    <string name="match_field_birth_place">જન્મ સ્થળ</string>
+    <string name="match_option_male">પુરુષ</string>
+    <string name="match_option_female">સ્ત્રી</string>
+
+    <!-- Match Result View -->
+    <string name="match_label_out_of_36">૩૬ માંથી</string>
+    <string name="match_section_breakdown">અષ્ટકૂટ વિભાજન</string>
+    <string name="match_btn_analyze_another">બીજા મેળનું વિશ્લેષણ કરો</string>
+
+    <!-- Score Labels -->
+    <string name="match_score_excellent">ઉત્તમ મેળ</string>
+    <string name="match_score_good">સારો મેળ</string>
+    <string name="match_score_low">ઓછી સુસંગતતા</string>
+
+    <!-- Mangal Dosha Panel -->
+    <string name="match_label_mangal_status">મંગળ દોષ સ્થિતિ</string>
+    <string name="match_msg_mangal_detected">કુંડળીમાં મંગળનો પ્રભાવ જોવા મળ્યો છે.</string>
+    <string name="match_msg_no_mangal">કોઈ મંગળ દોષ નથી.</string>
+    <string name="match_label_cancellation">નિવારણ:</string>
+
+    <!-- Match History Screen -->
+    <string name="match_empty_history">કોઈ મેળ રેકોર્ડ મળ્યા નથી.</string>
+    <string name="match_section_guna_milan">ગુણ મિલન વિગતો</string>
+    <string name="match_section_mangal">મંગળ દોષ</string>
+    <string name="match_btn_delete_record">રેકોર્ડ કાઢી નાખો</string>
+
+    <!-- Mangal Dosha Status -->
+    <string name="match_dosha_compatible">સુસંગત (સુરક્ષિત)</string>
+    <string name="match_dosha_high_influence">ઉચ્ચ પ્રભાવ જોવા મળ્યો</string>
+    <string name="match_dosha_influence">પ્રભાવ જોવા મળ્યો</string>
+    <string name="match_dosha_no_influence">કોઈ ખાસ પ્રભાવ નથી</string>
+</resources>

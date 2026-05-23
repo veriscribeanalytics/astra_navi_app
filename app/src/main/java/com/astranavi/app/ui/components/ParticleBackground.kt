@@ -14,33 +14,51 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
+import com.astranavi.app.ui.theme.LocalSemanticColors
 import kotlinx.coroutines.isActive
 import kotlin.math.sin
 import kotlin.random.Random
 
-/**
- * A high-performance, hardware-accelerated particle background.
- * Uses a single Canvas layer and frame-based invalidation to ensure
- * continuous movement and twinkling.
- */
+val LocalBackgroundScrollState = staticCompositionLocalOf<ScrollState?> { null }
+
 @Composable
 fun ParticleBackground(
     modifier: Modifier = Modifier,
-    particleCount: Int = 180,
-    scrollState: ScrollState? = null
+    particleCount: Int = 180
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val bgColor = MaterialTheme.colorScheme.background
+    val scrollState = LocalBackgroundScrollState.current
     
-    // Fade in animation for the whole system
-    val systemAlpha = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        systemAlpha.animateTo(1f, animationSpec = tween(1500, easing = EaseInOutCubic))
-    }
+    val systemAlpha = remember { Animatable(1f) }
     
     Box(modifier = modifier.fillMaxSize().graphicsLayer { alpha = systemAlpha.value }) {
         if (isDark) {
             NebulaGradients()
+        } else {
+            val semanticColors = LocalSemanticColors.current
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                semanticColors.heroGradientStart.copy(alpha = 0.12f),
+                                Color.Transparent
+                            ),
+                            center = Offset(0f, 600f)
+                        )
+                    )
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                semanticColors.heroGradientEnd.copy(alpha = 0.10f),
+                                Color.Transparent
+                            ),
+                            center = Offset(1000f, 1000f)
+                        )
+                    )
+            )
         }
         
         ParticleCanvas(particleCount, isDark, bgColor, scrollState)
@@ -83,9 +101,22 @@ private fun ParticleCanvas(
     val gold = Color(0xFFC8880A)
     val white = Color.White
     val darkPurple = Color(0xFF2A1A4A)
+    val lavender = Color(0xFFB8A9E8)
     
     val particles = remember { mutableListOf<Particle>() }
     var timeMillis by remember { mutableStateOf(0L) }
+
+    LaunchedEffect(isDark) {
+        if (particles.isNotEmpty()) {
+            particles.forEachIndexed { index, p ->
+                p.color = if (isDark) {
+                    if (index % 2 == 0) white else gold
+                } else {
+                    if (index % 2 == 0) darkPurple else gold
+                }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         while (isActive) {
@@ -106,9 +137,9 @@ private fun ParticleCanvas(
         if (particles.isEmpty()) {
             repeat(particleCount) {
                 val color = if (isDark) {
-                    if (Random.nextFloat() > 0.5f) white else gold
+                    if (it % 2 == 0) white else gold
                 } else {
-                    if (Random.nextFloat() > 0.5f) darkPurple else gold
+                    if (it % 2 == 0) darkPurple else gold
                 }
 
                 // Random depth from 0.2 to 1.0 (parallax multiplier)
@@ -167,7 +198,7 @@ private class Particle(
     val baseAlpha: Float,
     val phase: Float,
     val blinkSpeed: Float,
-    val color: Color,
+    var color: Color,
     val depth: Float
 )
 

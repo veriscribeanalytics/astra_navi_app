@@ -6,10 +6,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.onFocusEvent
@@ -29,21 +28,39 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.astranavi.app.R
 import com.astranavi.app.ui.theme.LocalSemanticColors
+import com.astranavi.app.util.LocaleFormatter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+fun String.titleCase(): String {
+    return this.lowercase().split(" ").joinToString(" ") {
+        it.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase(Locale.getDefault()) else char.toString() }
+    }
+}
+
 /**
  * Global utility for applying a shimmering loading effect to any Compose modifier.
  * Creates an infinite left-to-right animated gradient over the component.
  */
+@Composable
+fun ShimmerBlock(
+    height: Dp,
+    modifier: Modifier = Modifier,
+    cornerRadius: Dp = 16.dp
+) {
+    Box(modifier = modifier.fillMaxWidth().height(height).clip(RoundedCornerShape(cornerRadius)).shimmerEffect())
+}
+
 fun Modifier.shimmerEffect(): Modifier = composed {
     val transition = rememberInfiniteTransition(label = "shimmer_transition")
     val translateAnim by transition.animateFloat(
@@ -124,22 +141,33 @@ fun Modifier.bringIntoViewOnFocus(delayMillis: Long = 220L): Modifier = composed
 fun AtmosphericGlowLayer(
     accentColor: Color,
     modifier: Modifier = Modifier,
-    height: Dp = 260.dp
+    deepColor: Color = accentColor,
+    radialColor: Color = accentColor
 ) {
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .height(height)
+            .fillMaxSize()
             .drawBehind {
-                val radius = maxOf(size.width, size.height) * 0.95f
+                drawRect(
+                    brush = Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.00f to accentColor.copy(alpha = 0.50f),
+                            0.18f to accentColor.copy(alpha = 0.28f),
+                            0.42f to deepColor.copy(alpha = 0.12f),
+                            0.65f to Color.Transparent,
+                            1.00f to Color.Transparent
+                        )
+                    )
+                )
+                val radius = size.width * 0.55f
                 drawRect(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            accentColor.copy(alpha = 0.46f),
-                            accentColor.copy(alpha = 0.18f),
+                            radialColor.copy(alpha = 0.22f),
+                            radialColor.copy(alpha = 0.08f),
                             Color.Transparent
                         ),
-                        center = Offset(size.width / 2f, 0f),
+                        center = Offset(size.width / 2f, size.height * 0.22f),
                         radius = radius
                     )
                 )
@@ -228,13 +256,14 @@ fun AstroDatePickerField(
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
-    
+
     val displayDob = remember(value) {
         if (value.isNotEmpty()) {
             try {
-                val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(value)
-                parsed?.let { SimpleDateFormat("dd-MM-yyyy", Locale.US).format(it) } ?: ""
-            } catch (e: Exception) { value }
+                LocaleFormatter.displayDate(value, Locale.US, "dd-MM-yyyy")
+            } catch (e: Exception) {
+                value
+            }
         } else ""
     }
 
@@ -248,10 +277,10 @@ fun AstroDatePickerField(
                         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                         onValueChange(sdf.format(Date(millis)))
                     }
-                }) { Text("OK", fontWeight = FontWeight.Bold) }
+                }) { Text(stringResource(R.string.common_btn_ok), fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.common_btn_cancel)) }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -276,7 +305,7 @@ fun AstroDatePickerField(
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.CalendarToday,
-                contentDescription = "Select Date",
+                contentDescription = stringResource(R.string.common_date_picker_description),
                 modifier = Modifier.clickable { showDatePicker = true }
             )
         },
@@ -324,7 +353,7 @@ fun AstroTimePickerField(
         trailingIcon = {
             Icon(
                 imageVector = Icons.Default.AccessTime,
-                contentDescription = "Time"
+                contentDescription = stringResource(R.string.common_time_picker_description)
             )
         },
         colors = OutlinedTextFieldDefaults.colors(
@@ -333,4 +362,42 @@ fun AstroTimePickerField(
             cursorColor = MaterialTheme.colorScheme.secondary
         )
     )
+}
+
+@Composable
+fun TwoPaneLayout(
+    modifier: Modifier = Modifier,
+    leftContent: @Composable () -> Unit,
+    rightContent: @Composable () -> Unit
+) {
+    val metrics = responsiveMetrics()
+    if (metrics.useTwoPane) {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(metrics.twoPaneGap),
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(modifier = Modifier.weight(metrics.twoPaneLeftWeight)) { leftContent() }
+            Column(modifier = Modifier.weight(metrics.twoPaneRightWeight)) { rightContent() }
+        }
+    } else {
+        Column(modifier = modifier) {
+            leftContent()
+            rightContent()
+        }
+    }
+}
+
+@Composable
+fun AdaptiveMaxWidthBox(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val metrics = responsiveMetrics()
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .widthIn(max = metrics.maxContentWidth),
+        contentAlignment = Alignment.TopCenter
+    ) { content() }
 }

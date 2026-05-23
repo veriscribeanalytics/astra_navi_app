@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Consult Screen - Birth Details Step -->
+    <string name="consult_btn_begin_session">세션 시작</string>
+    <string name="consult_title_cosmic_blueprint">우주 청사진</string>
+    <string name="consult_label_dob">생년월일 (DD-MM-YYYY)</string>
+    <string name="consult_label_tob">출생 시간 (HHMM)</string>
+    <string name="consult_label_pob">출생지</string>
+    <string name="consult_section_preferences">환경설정</string>
+    <string name="consult_label_preferred_language">선호하는 언어</string>
+    <string name="consult_lang_english">영어</string>
+    <string name="consult_lang_hindi">힌디어</string>
+    <string name="consult_lang_marathi">마라티어</string>
+    <string name="consult_lang_gujarati">구자라트어</string>
+    <string name="consult_lang_tamil">타밀어</string>
+
+    <!-- Consult Screen - Category Selection Step -->
+    <string name="consult_title_select_domain">영역 선택</string>
+    <string name="consult_label_personalized_guidance">맞춤형 안내</string>
+
+    <!-- Consult Screen - Subcategory Selection Step -->
+    <string name="consult_title_focus_area_format">%1$s의 초점 영역</string>
+    <string name="consult_desc_focus_analysis">Navi가 당신의 차트를 분석하여 이 특정 초점에 대한 깊은 통찰력을 제공합니다.</string>
+    <string name="consult_btn_select_focus">이 초점 선택</string>
+
+    <!-- Consult Screen - Question Selection Step -->
+    <string name="consult_title_pick_query">질문 선택</string>
+    <string name="consult_desc_query_analysis">Navi가 당신의 차트를 분석하여 이 특정 질문에 답변합니다.</string>
+    <string name="consult_section_settings">상담 설정</string>
+    <string name="consult_label_custom_context">Navi에게 상황 설명…</string>
+    <string name="consult_label_response_tone">응답 톤</string>
+    <string name="consult_tone_warm">따뜻함</string>
+    <string name="consult_tone_direct">직접적</string>
+    <string name="consult_tone_spiritual">영적</string>
+    <string name="consult_btn_ask_custom">맞춤 질문</string>
+
+    <!-- Consult Screen - Result Step -->
+    <string name="consult_title_cosmic_insight">우주 통찰력</string>
+    <string name="consult_loading_planetary">행성 정렬 확인 중…</string>
+    <string name="consult_loading_cosmic">우주적 영향 분석 중…</string>
+    <string name="consult_loading_karmic">카르마 패턴 해석 중…</string>
+    <string name="consult_loading_celestial">천상의 지도 채널링 중…</string>
+    <string name="consult_btn_explore_again">다른 통찰력 탐색</string>
+
+    <!-- Consult Screen - Date/Dialog -->
+    <string name="consult_btn_ok">확인</string>
+    <string name="consult_btn_cancel">취소</string>
+
+    <!-- Consult History Screen -->
+    <string name="consult_empty_state">우주 상담 기록이 없습니다.</string>
+    <string name="consult_default_category">상담</string>
+    <string name="consult_default_question">점성술 문의</string>
+</resources>

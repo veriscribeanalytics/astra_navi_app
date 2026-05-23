@@ -1,11 +1,8 @@
 package com.astranavi.app.ui.consult
 
-import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.animation.*
+import com.astranavi.app.ui.components.PreviewMultiDevice
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,25 +28,39 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import com.astranavi.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import com.astranavi.app.data.model.*
 import com.astranavi.app.ui.components.GlassCard
 import com.astranavi.app.ui.components.bringIntoViewOnFocus
+import com.astranavi.app.ui.components.responsiveMetrics
+import com.astranavi.app.ui.components.ShimmerBlock
 import com.astranavi.app.ui.components.shimmerEffect
 import com.astranavi.app.ui.components.shimmerSweepEffect
+import com.astranavi.app.ui.components.titleCase
 import com.astranavi.app.ui.theme.AstroColors
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.platform.LocalClipboard
+import com.astranavi.app.util.setSensitiveText
+
 import androidx.activity.compose.BackHandler
-import androidx.compose.ui.text.input.TransformedText
+import kotlinx.coroutines.launch
+import com.astranavi.app.util.LocaleFormatter
+import com.astranavi.app.util.currentAppLocale
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -60,20 +71,19 @@ fun ConsultScreen(
     onBack: () -> Unit,
     onViewHistory: () -> Unit
 ) {
+    com.astranavi.app.util.SecureScreen()
     val step = viewModel.step.value
     val isLoading = viewModel.isLoading.value
-    val birthError = viewModel.birthDetailsError.value
+    val metrics = responsiveMetrics()
 
-    // Phase 1C: Handle internal back navigation from TopBar
     BackHandler(enabled = step != ConsultStep.BirthDetails) {
         viewModel.navigateBack()
     }
 
     Column(modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
-        // Phase 1A: Cosmic Progress Tracker
         CosmicStepTracker(
             step = step, 
-            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+            modifier = Modifier.padding(top = metrics.consultSectionGap, bottom = 4.dp),
             onStepClick = { index -> viewModel.jumpToStep(index) }
         )
 
@@ -81,22 +91,21 @@ fun ConsultScreen(
             if (isLoading && step != ConsultStep.Result) {
                 ConsultSkeleton(modifier = Modifier.fillMaxSize())
             } else {
-                // Phase 1B: Step Transitions with AnimatedContent
                 AnimatedContent(
                     targetState = step,
                     transitionSpec = {
-                        (slideInVertically(animationSpec = tween(400, easing = EaseOutQuart)) { it / 8 } + fadeIn(tween(400)))
-                            .togetherWith(slideOutVertically(animationSpec = tween(300, easing = EaseInQuart)) { -it / 8 } + fadeOut(tween(300)))
+                        (slideInVertically(animationSpec = tween(400)) { it / 8 } + fadeIn(tween(400)))
+                            .togetherWith(slideOutVertically(animationSpec = tween(300)) { -it / 8 } + fadeOut(tween(300)))
                     },
                     label = "step_transition"
                 ) { targetStep ->
                     Column(modifier = Modifier.fillMaxSize()) {
                         when (targetStep) {
-                            is ConsultStep.BirthDetails -> BirthDetailsStep(viewModel, onViewHistory)
-                            is ConsultStep.CategorySelection -> CategoryStep(viewModel)
-                            is ConsultStep.SubCategorySelection -> SubCategoryStep(viewModel)
-                            is ConsultStep.QuestionSelection -> QuestionStep(viewModel)
-                            is ConsultStep.Result -> ResultStep(viewModel)
+                            ConsultStep.BirthDetails -> BirthDetailsStep(viewModel, onViewHistory)
+                            ConsultStep.CategorySelection -> CategoryStep(viewModel)
+                            ConsultStep.SubCategorySelection -> SubCategoryStep(viewModel)
+                            ConsultStep.QuestionSelection -> QuestionStep(viewModel)
+                            ConsultStep.Result -> ResultStep(viewModel)
                         }
                     }
                 }
@@ -111,12 +120,13 @@ fun CosmicStepTracker(
     modifier: Modifier = Modifier,
     onStepClick: (Int) -> Unit = {}
 ) {
+    val metrics = responsiveMetrics()
     val currentIndex = when (step) {
-        is ConsultStep.BirthDetails -> 0
-        is ConsultStep.CategorySelection -> 1
-        is ConsultStep.SubCategorySelection -> 2
-        is ConsultStep.QuestionSelection -> 3
-        is ConsultStep.Result -> 4
+        ConsultStep.BirthDetails -> 0
+        ConsultStep.CategorySelection -> 1
+        ConsultStep.SubCategorySelection -> 2
+        ConsultStep.QuestionSelection -> 3
+        ConsultStep.Result -> 4
     }
 
     val nodes = listOf("Birth", "Domain", "Focus", "Query", "Insight")
@@ -124,7 +134,7 @@ fun CosmicStepTracker(
     val inactiveColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
 
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 32.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = metrics.pagePadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         nodes.forEachIndexed { index, _ ->
@@ -132,7 +142,6 @@ fun CosmicStepTracker(
             val isCompleted = index < currentIndex
             val isClickable = index <= currentIndex
 
-            // Pulse animation for active node
             val infiniteTransition = rememberInfiniteTransition(label = "node_pulse")
             val scale by infiniteTransition.animateFloat(
                 initialValue = 1.1f,
@@ -144,13 +153,12 @@ fun CosmicStepTracker(
                 label = "scale"
             )
 
-            // Node Circle with Clickable Target
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable(enabled = isClickable) { onStepClick(index) }
-                    .padding(6.dp)
+                    .padding(metrics.consultSectionGap / 2)
             ) {
                 Surface(
                     modifier = Modifier
@@ -166,7 +174,6 @@ fun CosmicStepTracker(
                 }
             }
 
-            // Connecting line (between nodes)
             if (index < nodes.size - 1) {
                 val lineColor = if (index < currentIndex) activeColor else inactiveColor
                 Box(
@@ -182,36 +189,37 @@ fun CosmicStepTracker(
 
 @Composable
 fun ConsultSkeleton(modifier: Modifier = Modifier) {
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    val metrics = responsiveMetrics()
+
+    Column(
+        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(metrics.pagePadding),
+        verticalArrangement = Arrangement.spacedBy(metrics.consultSectionGap)
     ) {
-        item {
-            Box(modifier = Modifier.width(180.dp).height(28.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-            Spacer(modifier = Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(modifier = Modifier.size(56.dp).clip(CircleShape).shimmerEffect())
+            Spacer(modifier = Modifier.width(metrics.cardPadding))
+            Column {
+                Box(modifier = Modifier.width(200.dp).height(20.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(modifier = Modifier.width(140.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+            }
         }
-        
-        items(4) {
-            // Phase 7B: Branded Skeleton Shimmer
-            GlassCard(
-                modifier = Modifier.fillMaxWidth().height(104.dp),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)).shimmerEffect()
-                    )
-                    Spacer(modifier = Modifier.width(20.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Box(modifier = Modifier.width(140.dp).height(20.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Box(modifier = Modifier.width(100.dp).height(14.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-                    }
-                    Box(modifier = Modifier.size(24.dp).clip(CircleShape).shimmerEffect())
+
+        Spacer(modifier = Modifier.height(metrics.consultSectionGap * 2))
+
+        GlassCard(shape = RoundedCornerShape(24.dp)) {
+            Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                val widths = listOf(0.9f, 0.75f, 0.85f, 0.6f, 0.5f)
+                widths.forEach { frac ->
+                    Box(modifier = Modifier.fillMaxWidth(frac).height(20.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(metrics.heroBottomPadding))
+
+        ShimmerBlock(height = 56.dp, cornerRadius = 16.dp)
     }
 }
 
@@ -219,24 +227,23 @@ fun ConsultSkeleton(modifier: Modifier = Modifier) {
 @Composable
 fun BirthDetailsStep(viewModel: ConsultViewModel, onViewHistory: () -> Unit) {
     val birthError = viewModel.birthDetailsError.value
+    val metrics = responsiveMetrics()
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { isVisible = true }
 
-    // Date Picker State
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
 
-    // Helper to format stored YYYY-MM-DD to DD-MM-YYYY for display
     val displayDob = remember(viewModel.dob.value) {
         if (viewModel.dob.value.isNotEmpty()) {
             try {
-                val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(viewModel.dob.value)
-                parsed?.let { SimpleDateFormat("dd-MM-yyyy", Locale.US).format(it) } ?: ""
-            } catch (e: Exception) { viewModel.dob.value }
+                LocaleFormatter.displayDate(viewModel.dob.value, Locale.US, "dd-MM-yyyy")
+            } catch (e: Exception) {
+                viewModel.dob.value
+            }
         } else ""
     }
 
-    // Phase 2D: Button Upgrade (moved to top)
     var isPressed by remember { mutableStateOf(false) }
     val buttonScale by animateFloatAsState(
         targetValue = if (isPressed) 0.96f else 1f,
@@ -281,10 +288,9 @@ fun BirthDetailsStep(viewModel: ConsultViewModel, onViewHistory: () -> Unit) {
             .verticalScroll(rememberScrollState())
             .imePadding()
             .navigationBarsPadding()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(metrics.pagePadding),
+        verticalArrangement = Arrangement.spacedBy(metrics.consultSectionGap)
     ) {
-        // Phase 2A: Header Rewrite
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             val infiniteTransition = rememberInfiniteTransition(label = "icon_rotation")
             val rotation by infiniteTransition.animateFloat(
@@ -302,37 +308,38 @@ fun BirthDetailsStep(viewModel: ConsultViewModel, onViewHistory: () -> Unit) {
                 tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.graphicsLayer { rotationZ = rotation }
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(metrics.consultSectionGap))
             Text(
-                "Cosmic Blueprint",
+                stringResource(R.string.consult_title_cosmic_blueprint),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.primary
             )
         }
 
+        val interactionSource = remember { MutableInteractionSource() }
+        LaunchedEffect(interactionSource) {
+            interactionSource.interactions.collect { interaction ->
+                when (interaction) {
+                    is androidx.compose.foundation.interaction.PressInteraction.Press -> isPressed = true
+                    is androidx.compose.foundation.interaction.PressInteraction.Release -> isPressed = false
+                    is androidx.compose.foundation.interaction.PressInteraction.Cancel -> isPressed = false
+                }
+            }
+        }
+
         Button(
             onClick = { viewModel.fetchTree() },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .heightIn(min = metrics.buttonHeight)
                 .scale(buttonScale)
                 .shimmerSweepEffect(),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            interactionSource = remember { MutableInteractionSource() }.also { interactionSource ->
-                LaunchedEffect(interactionSource) {
-                    interactionSource.interactions.collect { interaction ->
-                        when (interaction) {
-                            is androidx.compose.foundation.interaction.PressInteraction.Press -> isPressed = true
-                            is androidx.compose.foundation.interaction.PressInteraction.Release -> isPressed = false
-                            is androidx.compose.foundation.interaction.PressInteraction.Cancel -> isPressed = false
-                        }
-                    }
-                }
-            }
+            interactionSource = interactionSource
         ) {
-            Text("Begin Session", fontWeight = FontWeight.ExtraBold)
+            Text(stringResource(R.string.consult_btn_begin_session), fontWeight = FontWeight.ExtraBold)
         }
 
         if (birthError != null) {
@@ -340,13 +347,12 @@ fun BirthDetailsStep(viewModel: ConsultViewModel, onViewHistory: () -> Unit) {
                 text = birthError,
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = metrics.consultSectionGap / 2)
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(metrics.consultSectionGap / 2))
 
-        // Phase 2B & 2C: Staggered Input Fields
         AnimatedVisibility(
             visible = isVisible,
             enter = fadeIn(tween(500, delayMillis = 0)) + slideInVertically(tween(500, delayMillis = 0)) { it / 4 }
@@ -354,7 +360,7 @@ fun BirthDetailsStep(viewModel: ConsultViewModel, onViewHistory: () -> Unit) {
             CosmicClickableField(
                 value = displayDob,
                 onClick = { showDatePicker = true },
-                label = "Date of Birth (DD-MM-YYYY)"
+                label = stringResource(R.string.consult_label_dob)
             )
         }
 
@@ -365,7 +371,7 @@ fun BirthDetailsStep(viewModel: ConsultViewModel, onViewHistory: () -> Unit) {
             CosmicInputField(
                 value = viewModel.tob.value,
                 onValueChange = { if (it.length <= 4) viewModel.tob.value = it },
-                label = "Time of Birth (HHMM)",
+                label = stringResource(R.string.consult_label_tob),
                 visualTransformation = com.astranavi.app.ui.components.TimeVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
@@ -378,15 +384,15 @@ fun BirthDetailsStep(viewModel: ConsultViewModel, onViewHistory: () -> Unit) {
             CosmicInputField(
                 value = viewModel.pob.value,
                 onValueChange = { viewModel.pob.value = it },
-                label = "Place of Birth"
+                label = stringResource(R.string.consult_label_pob)
             )
         }
 
         Text(
-            "Preferences",
+            stringResource(R.string.consult_section_preferences),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Black,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = metrics.consultSectionGap / 2)
         )
 
         AnimatedVisibility(
@@ -395,7 +401,7 @@ fun BirthDetailsStep(viewModel: ConsultViewModel, onViewHistory: () -> Unit) {
                     slideInVertically(tween(500, delayMillis = 400)) { it / 4 }
         ) {
             GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Box(modifier = Modifier.padding(16.dp)) {
+                Box(modifier = Modifier.padding(metrics.cardPadding)) {
                     var languageMenuExpanded by remember { mutableStateOf(false) }
                     ExposedDropdownMenuBox(
                         expanded = languageMenuExpanded,
@@ -405,9 +411,12 @@ fun BirthDetailsStep(viewModel: ConsultViewModel, onViewHistory: () -> Unit) {
                             value = viewModel.selectedLanguage.value,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Preferred Language") },
+                            label = { Text(stringResource(R.string.consult_label_preferred_language)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = languageMenuExpanded) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor().bringIntoViewOnFocus(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
+                                .bringIntoViewOnFocus(),
                             shape = RoundedCornerShape(16.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = MaterialTheme.colorScheme.secondary,
@@ -420,7 +429,7 @@ fun BirthDetailsStep(viewModel: ConsultViewModel, onViewHistory: () -> Unit) {
                             expanded = languageMenuExpanded,
                             onDismissRequest = { languageMenuExpanded = false }
                         ) {
-                            listOf("English", "Hindi", "Marathi", "Gujarati", "Tamil").forEach { lang ->
+                            listOf(stringResource(R.string.consult_lang_english), stringResource(R.string.consult_lang_hindi), stringResource(R.string.consult_lang_marathi), stringResource(R.string.consult_lang_gujarati), stringResource(R.string.consult_lang_tamil)).forEach { lang ->
                                 DropdownMenuItem(
                                     text = { Text(lang) },
                                     onClick = {
@@ -504,7 +513,7 @@ fun CosmicClickableField(
             onValueChange = {},
             label = { Text(label) },
             readOnly = true,
-            enabled = false, // Handle clicks via parent clickable
+            enabled = false,
             modifier = Modifier.fillMaxWidth().bringIntoViewOnFocus(),
             shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -520,13 +529,14 @@ fun CosmicClickableField(
 @Composable
 fun CategoryStep(viewModel: ConsultViewModel) {
     val tree = viewModel.tree.value ?: return
+    val metrics = responsiveMetrics()
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { isVisible = true }
     
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        contentPadding = PaddingValues(metrics.pagePadding),
+        verticalArrangement = Arrangement.spacedBy(metrics.consultSectionGap)
     ) {
         item {
             Row(
@@ -535,14 +545,16 @@ fun CategoryStep(viewModel: ConsultViewModel) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "Select Domain",
+                    stringResource(R.string.consult_title_select_domain),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 
-                // Phase 3D: Orbit Badge
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(8.dp)) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(metrics.consultSectionGap / 2)) {
                     val infiniteTransition = rememberInfiniteTransition(label = "orbit")
                     val rotation by infiniteTransition.animateFloat(
                         initialValue = 0f,
@@ -557,7 +569,7 @@ fun CategoryStep(viewModel: ConsultViewModel) {
                     val secondaryColor = MaterialTheme.colorScheme.secondary
                     val strokeWidthPx = with(LocalDensity.current) { 2.dp.toPx() }
 
-                    Canvas(modifier = Modifier.size(80.dp)) {
+                    Canvas(modifier = Modifier.size(metrics.consultAvatarSize * 1.25f)) {
                         drawArc(
                             color = secondaryColor.copy(alpha = 0.3f),
                             startAngle = rotation,
@@ -572,20 +584,22 @@ fun CategoryStep(viewModel: ConsultViewModel) {
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         Text(
-                            tree.life_stage.replace("_", " ").uppercase(),
+                            tree.life_stage.replace("_", " ").titleCase(),
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                             color = MaterialTheme.colorScheme.onSecondary,
                             fontWeight = FontWeight.Black,
-                            style = MaterialTheme.typography.labelSmall
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(metrics.consultSectionGap / 2))
         }
         
-        itemsIndexed(tree.primary) { index, category ->
-            // Phase 3C: Staggered Card Entrance
+        items(tree.primary, key = { it.key }) { category ->
+            val index = tree.primary.indexOf(category)
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn(tween(600, delayMillis = index * 80)) +
@@ -600,7 +614,8 @@ fun CategoryStep(viewModel: ConsultViewModel) {
 
 @Composable
 fun CosmicCategoryCard(category: Category, index: Int, isHighlighted: Boolean, onClick: () -> Unit) {
-    // Phase 3B: Idle Floating Animation
+    val metrics = responsiveMetrics()
+
     val infiniteTransition = rememberInfiniteTransition(label = "float")
     val floatOffset by infiniteTransition.animateFloat(
         initialValue = -2f,
@@ -632,10 +647,10 @@ fun CosmicCategoryCard(category: Category, index: Int, isHighlighted: Boolean, o
         shape = RoundedCornerShape(24.dp),
         border = if (isHighlighted) androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.secondary) else null
     ) {
-        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.padding(metrics.cardPadding), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(metrics.consultAvatarSize)
                     .background(
                         brush = Brush.linearGradient(
                             colors = listOf(planetColor, planetColor.copy(alpha = 0.6f))
@@ -644,23 +659,23 @@ fun CosmicCategoryCard(category: Category, index: Int, isHighlighted: Boolean, o
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(category.icon, fontSize = 28.sp)
+                Text(category.icon, fontSize = if (metrics.isCompactWidth || metrics.isLargeFont) 24.sp else 28.sp)
             }
-            Spacer(modifier = Modifier.width(20.dp))
+            Spacer(modifier = Modifier.width(metrics.cardPadding))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     category.label,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    "Personalized guidance",
+                    stringResource(R.string.consult_label_personalized_guidance),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     fontWeight = FontWeight.Bold,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -672,28 +687,30 @@ fun CosmicCategoryCard(category: Category, index: Int, isHighlighted: Boolean, o
 @Composable
 fun SubCategoryStep(viewModel: ConsultViewModel) {
     val category = viewModel.selectedCategory.value ?: return
+    val metrics = responsiveMetrics()
     var expandedSubKey by remember { mutableStateOf<String?>(null) }
     
     LazyColumn(
         modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(metrics.pagePadding),
+        verticalArrangement = Arrangement.spacedBy(metrics.consultSectionGap)
     ) {
         item {
             Text(
-                "Focus area for ${category.label}",
+                stringResource(R.string.consult_title_focus_area_format, category.label),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(metrics.consultSectionGap))
         }
         
-        items(category.subs) { sub ->
+        items(category.subs, key = { it.key }) { sub ->
             val isExpanded = expandedSubKey == sub.key
             val rotation by animateFloatAsState(if (isExpanded) 90f else 0f, label = "arrow_rotation")
 
-            // Phase 4A: Accordion-Style Expanding Cards
             GlassCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -701,14 +718,14 @@ fun SubCategoryStep(viewModel: ConsultViewModel) {
                     .clickable { expandedSubKey = if (isExpanded) null else sub.key },
                 shape = RoundedCornerShape(24.dp)
             ) {
-                Column(modifier = Modifier.padding(24.dp)) {
+                Column(modifier = Modifier.padding(metrics.cardPadding)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             sub.label,
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.ExtraBold,
                             modifier = Modifier.weight(1f),
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                         Icon(
@@ -720,21 +737,21 @@ fun SubCategoryStep(viewModel: ConsultViewModel) {
                     }
                     
                     if (isExpanded) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(metrics.consultSectionGap))
                         Text(
-                            "Navi will analyze your chart to provide deep insights on this specific focus.",
+                            stringResource(R.string.consult_desc_focus_analysis),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             fontWeight = FontWeight.Medium
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(metrics.consultSectionGap))
                         Button(
                             onClick = { viewModel.selectSubCategory(sub) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                         ) {
-                            Text("Select this Focus", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.consult_btn_select_focus), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -747,24 +764,24 @@ fun SubCategoryStep(viewModel: ConsultViewModel) {
 @Composable
 fun QuestionStep(viewModel: ConsultViewModel) {
     val sub = viewModel.selectedSubCategory.value ?: return
+    val metrics = responsiveMetrics()
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { isVisible = true }
     
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(metrics.pagePadding),
+        verticalArrangement = Arrangement.spacedBy(metrics.consultSectionGap)
     ) {
         item {
-            Text("Pick a Query", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
-            Text("Navi will analyze your chart to answer this specific question.", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f), fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(16.dp))
+            Text(stringResource(R.string.consult_title_pick_query), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+            Text(stringResource(R.string.consult_desc_query_analysis), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f), fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(metrics.consultSectionGap))
         }
         
-        itemsIndexed(sub.questions) { index, question ->
+        itemsIndexed(sub.questions, key = { _, question -> question }) { index, question ->
             val isSelected = viewModel.selectedQuestion.value == question
             
-            // Phase 5A: Destiny Prompt Cards
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn(tween(600, delayMillis = index * 100)) + slideInVertically(tween(600, delayMillis = index * 100)) { it / 4 }
@@ -777,12 +794,10 @@ fun QuestionStep(viewModel: ConsultViewModel) {
                     shape = RoundedCornerShape(24.dp),
                     border = if (isSelected) androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.secondary) else null
                 ) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        // Gold left stripe
-                        Box(modifier = Modifier.width(4.dp).height(80.dp).background(MaterialTheme.colorScheme.secondary))
+                    Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                        Box(modifier = Modifier.width(4.dp).fillMaxHeight().background(MaterialTheme.colorScheme.secondary))
                         
-                        Box(modifier = Modifier.padding(24.dp)) {
-                            // Subtle constellation line background could be added with Canvas here
+                        Box(modifier = Modifier.padding(metrics.cardPadding)) {
                             Text(question, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black)
                         }
                     }
@@ -791,24 +806,22 @@ fun QuestionStep(viewModel: ConsultViewModel) {
         }
 
         item {
-            Text("Consultation Settings", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, modifier = Modifier.padding(top = 24.dp))
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Phase 5C: Context Box Upgrade
+            Text(stringResource(R.string.consult_section_settings), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, modifier = Modifier.padding(top = metrics.consultSectionGap))
+            Spacer(modifier = Modifier.height(metrics.consultSectionGap))
+
             CosmicInputField(
                 value = viewModel.customNote.value,
                 onValueChange = { viewModel.customNote.value = it },
-                label = "Tell Navi your situation..."
+                label = stringResource(R.string.consult_label_custom_context)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-            Text("Response Tone", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black)
+            Spacer(modifier = Modifier.height(metrics.consultSectionGap))
+            Text(stringResource(R.string.consult_label_response_tone), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black)
             
-            // Phase 5D: Emotionally Distinct Tone Chips
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp), 
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(vertical = 12.dp)
+                horizontalArrangement = Arrangement.spacedBy(metrics.consultSectionGap), 
+                verticalArrangement = Arrangement.spacedBy(metrics.consultSectionGap / 2),
+                modifier = Modifier.padding(vertical = metrics.consultSectionGap)
             ) {
                 listOf("warm", "direct", "spiritual").forEach { tone ->
                     ToneChip(
@@ -821,22 +834,20 @@ fun QuestionStep(viewModel: ConsultViewModel) {
         }
         
         item {
-            // Phase 5E: Dynamic Custom Question Button
             val hasContext = viewModel.customNote.value.isNotBlank()
             Button(
                 onClick = { viewModel.selectQuestion("Other") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(vertical = 8.dp)
+                    .heightIn(min = metrics.buttonHeight)
                     .then(if (hasContext) Modifier.shimmerSweepEffect() else Modifier),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (hasContext) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (hasContext) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                    contentColor = if (hasContext) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             ) {
-                Text("Ask Custom Question", fontWeight = FontWeight.ExtraBold)
+                Text(stringResource(R.string.consult_btn_ask_custom), fontWeight = FontWeight.ExtraBold)
             }
         }
     }
@@ -844,13 +855,14 @@ fun QuestionStep(viewModel: ConsultViewModel) {
 
 @Composable
 fun ToneChip(tone: String, isSelected: Boolean, onClick: () -> Unit) {
+    val metrics = responsiveMetrics()
     val shape = when(tone) {
         "warm" -> RoundedCornerShape(16.dp)
         "direct" -> RoundedCornerShape(4.dp)
         "spiritual" -> CircleShape
         else -> RoundedCornerShape(12.dp)
     }
-    
+
     val color = when(tone) {
         "warm" -> MaterialTheme.colorScheme.secondary
         "direct" -> MaterialTheme.colorScheme.outlineVariant
@@ -858,86 +870,106 @@ fun ToneChip(tone: String, isSelected: Boolean, onClick: () -> Unit) {
         else -> MaterialTheme.colorScheme.secondary
     }
 
+    val toneDisplayText = when(tone) {
+        "warm" -> stringResource(R.string.consult_tone_warm)
+        "direct" -> stringResource(R.string.consult_tone_direct)
+        "spiritual" -> stringResource(R.string.consult_tone_spiritual)
+        else -> tone.replaceFirstChar { it.uppercase() }
+    }
+
     Surface(
         modifier = Modifier.clickable { onClick() },
         shape = shape,
         color = if (isSelected) color else Color.Transparent,
         border = if (!isSelected) androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f)) else null,
-        contentColor = if (isSelected) Color.White else color
+        contentColor = if (isSelected) MaterialTheme.colorScheme.onSecondary else color
     ) {
         Text(
-            tone.replaceFirstChar { it.uppercase() },
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            toneDisplayText,
+            modifier = Modifier.padding(horizontal = metrics.cardPadding, vertical = metrics.consultSectionGap / 2),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold
         )
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ResultStep(viewModel: ConsultViewModel) {
     val result = viewModel.consultResult.value
+    val metrics = responsiveMetrics()
     var revealStarted by remember { mutableStateOf(false) }
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
     
     LaunchedEffect(result) {
         if (result != null && !revealStarted) {
-            delay(600) // Phase 6B: Ceremonial Reveal pacing
+            delay(600) 
             revealStarted = true
         }
     }
     
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)) {
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(metrics.pagePadding)) {
         AnimatedVisibility(
             visible = true,
             enter = fadeIn(tween(800)) + scaleIn(initialScale = 0.95f)
         ) {
             Column {
                 Box(
-                    modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.secondary, CircleShape),
+                    modifier = Modifier.size(metrics.consultAvatarSize).background(MaterialTheme.colorScheme.secondary, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Color.White)
+                    Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondary)
                 }
-                Spacer(modifier = Modifier.height(24.dp))
-                Text("Cosmic Insight", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(metrics.consultSectionGap))
+                Text(stringResource(R.string.consult_title_cosmic_insight), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
                 Text(
-                    if (viewModel.selectedQuestion.value == "Other") viewModel.customNote.value else viewModel.selectedQuestion.value, 
-                    color = MaterialTheme.colorScheme.secondary, 
+                    if (viewModel.selectedQuestion.value == "Other") viewModel.customNote.value else viewModel.selectedQuestion.value,
+                    color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.ExtraBold
                 )
             }
         }
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(metrics.consultSectionGap * 2))
         
         if (result != null) {
-            // Phase 6C: Sacred Document Style Result Card
             AnimatedVisibility(
                 visible = revealStarted,
                 enter = fadeIn(tween(1000)) + slideInVertically { it / 10 }
             ) {
                 GlassCard(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .combinedClickable(
+                            onClick = {},
+                            onLongClick = {
+                                if (result != null) {
+                                    scope.launch {
+                                        clipboard.setSensitiveText("insight", result)
+                                    }
+                                }
+                            }
+                        ),
                     shape = RoundedCornerShape(28.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f))
                 ) {
                     Text(
                         text = result,
-                        modifier = Modifier.padding(24.dp),
+                        modifier = Modifier.padding(metrics.cardPadding),
                         style = MaterialTheme.typography.bodyLarge,
-                        lineHeight = 28.sp,
+                        lineHeight = if (metrics.isLargeFont) 26.sp else 28.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
         } else {
-            // Phase 6A: Constellation Loader
             val secondaryColor = MaterialTheme.colorScheme.secondary
             val strokeWidthPx = with(LocalDensity.current) { 2.dp.toPx() }
             val dotRadiusPx = with(LocalDensity.current) { 6.dp.toPx() }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(top = 48.dp)) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(120.dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(top = metrics.consultSectionGap * 2)) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(metrics.orbitCoreSize)) {
                     val infiniteTransition = rememberInfiniteTransition(label = "loader")
                     val rotation by infiniteTransition.animateFloat(
                         initialValue = 0f,
@@ -951,7 +983,6 @@ fun ResultStep(viewModel: ConsultViewModel) {
                             color = secondaryColor.copy(alpha = 0.1f),
                             style = Stroke(width = strokeWidthPx)
                         )
-                        // Orbiting dots
                         val radius = size.width / 2
                         val angleRad = Math.toRadians(rotation.toDouble())
                         val x = (center.x + radius * Math.cos(angleRad)).toFloat()
@@ -963,17 +994,17 @@ fun ResultStep(viewModel: ConsultViewModel) {
                         Icons.Default.AutoAwesome, 
                         contentDescription = null, 
                         tint = secondaryColor,
-                        modifier = Modifier.size(40.dp).scale(1f)
+                        modifier = Modifier.size(metrics.snapshotImageSize).scale(1f)
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(metrics.consultSectionGap))
                 
                 val loadingTexts = listOf(
-                    "Consulting planetary alignments...",
-                    "Reading cosmic influences...",
-                    "Interpreting your karmic patterns...",
-                    "Channeling your celestial guidance..."
+                    stringResource(R.string.consult_loading_planetary),
+                    stringResource(R.string.consult_loading_cosmic),
+                    stringResource(R.string.consult_loading_karmic),
+                    stringResource(R.string.consult_loading_celestial)
                 )
                 var textIndex by remember { mutableStateOf(0) }
                 LaunchedEffect(Unit) {
@@ -994,15 +1025,26 @@ fun ResultStep(viewModel: ConsultViewModel) {
             }
         }
         
-        Spacer(modifier = Modifier.height(48.dp))
-        // Phase 6E: Explore Another Insight Button
+        Spacer(modifier = Modifier.height(metrics.heroBottomPadding))
+        
         Button(
             onClick = { viewModel.navigateBack() },
-            modifier = Modifier.fillMaxWidth().height(56.dp).shimmerSweepEffect(),
+            modifier = Modifier.fillMaxWidth().heightIn(min = metrics.buttonHeight).shimmerSweepEffect(),
             colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Explore Another Insight", fontWeight = FontWeight.ExtraBold)
+            Text(stringResource(R.string.consult_btn_explore_again), fontWeight = FontWeight.ExtraBold)
         }
+    }
+}
+
+@PreviewMultiDevice
+@Composable
+fun CosmicStepTrackerPreview() {
+    Surface {
+        CosmicStepTracker(
+            step = ConsultStep.CategorySelection,
+            onStepClick = {}
+        )
     }
 }

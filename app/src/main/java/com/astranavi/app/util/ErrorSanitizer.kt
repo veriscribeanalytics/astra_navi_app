@@ -18,4 +18,15 @@ object ErrorSanitizer {
             else -> "Something went wrong. Please try again."
         }
     }
+
+    fun sanitizeHttpCode(code: Int): String {
+        return when (code) {
+            401, 403 -> "Your session needs a refresh. Please sign in again."
+            402 -> "This feature requires an upgrade."
+            404 -> "We couldn't find this guidance right now."
+            408, 429 -> "The server is busy. Please try again in a moment."
+            in 500..599 -> "Our service is temporarily unavailable. Please try again."
+            else -> "Something went wrong. Please try again."
+        }
+    }
 }

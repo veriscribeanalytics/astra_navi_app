@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KnowledgeHubScreen -->
+    <string name="knowledge_hub_intro">ನಮ್ಮ ವ್ಯವಸ್ಥಿತ ವಿಶ್ವಕೋಶದ ಮೂಲಕ ಬೆಳಕಿನ ಪ್ರಾಚೀನ ವಿಜ್ಞಾನವನ್ನು ಅನ್ವೇಷಿಸಿ.</string>
+    <string name="knowledge_hub_rashis">ರಾಶಿಚಕ್ರದ ರಾಶಿಗಳು</string>
+    <string name="knowledge_hub_rashis_desc">ರಾಶಿಚಕ್ರದ 12 ರಾಶಿಗಳು.</string>
+    <string name="knowledge_hub_planets">ನವಗ್ರಹಗಳು</string>
+    <string name="knowledge_hub_planets_desc">ಗ್ರಹಗಳ ಶಕ್ತಿಗಳು ಮತ್ತು ಅವುಗಳ ಪ್ರಭಾವ.</string>
+    <string name="knowledge_hub_nakshatras">27 ನಕ್ಷತ್ರಗಳು</string>
+    <string name="knowledge_hub_nakshatras_desc">ಚಂದ್ರನ ಮನೆಗಳ ಆಳವಾದ ವಿಶ್ಲೇಷಣೆ.</string>
+    <string name="knowledge_hub_houses">ಭಾವ ಚಕ್ರ</string>
+    <string name="knowledge_hub_houses_desc">ನಿಮ್ಮ ಜೀವನದ 12 ಮನೆಗಳು.</string>
+    <string name="knowledge_hub_yogas">ಕಾಸ್ಮಿಕ್ ಯೋಗಗಳು</string>
+    <string name="knowledge_hub_yogas_desc">ಪವಿತ್ರ ಗ್ರಹಗಳ ಸಂಯೋಜನೆಗಳು.</string>
+
+    <!-- RashiScreen / PlanetScreen / NakshatraScreen / HouseScreen -->
+    <string name="knowledge_section_core_nature">ಮೂಲ ಸ್ವಭಾವ</string>
+    <string name="knowledge_section_identity_grid">ಗುರುತಿನ ಗ್ರಿಡ್</string>
+    <string name="knowledge_section_career_resonance">ವೃತ್ತಿಜೀವನದ ಅನುರಣನ</string>
+    <string name="knowledge_section_positive_traits">ಧನಾತ್ಮಕ ಗುಣಲಕ್ಷಣಗಳು</string>
+    <string name="knowledge_section_challenging_traits">ಸವಾಲಿನ ಗುಣಲಕ್ಷಣಗಳು</string>
+    <string name="knowledge_section_core_meaning">ಮೂಲ ಅರ್ಥ</string>
+    <string name="knowledge_section_significations">ಸೂಚನೆಗಳು</string>
+    <string name="knowledge_section_planetary_indications">ಗ್ರಹಗಳ ಸೂಚನೆಗಳು</string>
+    <string name="knowledge_section_karakatvas">ಕಾರಕತ್ವಗಳು</string>
+    <string name="knowledge_section_padas">ನಾಲ್ಕು ಪಾದಗಳು</string>
+
+    <!-- NakshatraScreen pada display -->
+    <string name="knowledge_pada_prefix">ಪಾದ %1$d</string>
+    <string name="knowledge_pada_navamsha">%1$s ನವಾಂಶ</string>
+
+    <!-- HouseScreen display -->
+    <string name="knowledge_house_prefix">ಮನೆ %1$d</string>
+
+    <!-- IdentityTile labels (generic) -->
+    <string name="knowledge_tile_label_ruler">ಅಧಿಪತಿ</string>
+    <string name="knowledge_tile_label_element">ತತ್ವ</string>
+    <string name="knowledge_tile_label_quality">ಗುಣಮಟ್ಟ</string>
+    <string name="knowledge_tile_label_caste">ವರ್ಣ</string>
+    <string name="knowledge_tile_label_nature">ಸ್ವಭಾವ</string>
+    <string name="knowledge_tile_label_direction">ದಿಕ್ಕು</string>
+
+    <!-- IdentityTile labels specific to Houses -->
+    <string name="knowledge_tile_label_natural_sign">ನೈಸರ್ಗಿಕ ರಾಶಿ</string>
+    <string name="knowledge_tile_label_karaka">ಕಾರಕ</string>
+    <string name="knowledge_tile_label_classification">ವರ್ಗೀಕರಣ</string>
+    <string name="knowledge_tile_label_body_part">ದೇಹದ ಭಾಗ</string>
+
+    <!-- PlanetScreen specific -->
+    <string name="knowledge_planet_exaltation">ಉಚ್ಛ ಸ್ಥಿತಿ</string>
+    <string name="knowledge_planet_debilitation">ನೀಚ ಸ್ಥಿತಿ</string>
+    <string name="knowledge_planet_own_sign">ಸ್ವಂತ ರಾಶಿ</string>
+
+    <!-- YogaScreen -->
+    <string name="knowledge_yoga_intro">ವೈದಿಕ ಜ್ಯೋತಿಷ್ಯವು ನೂರಾರು ಯೋಗಗಳನ್ನು ಗುರುತಿಸುತ್ತದೆ — ಇವು ವಿಶಿಷ್ಟ ಜೀವನ ಫಲಿತಾಂಶಗಳನ್ನು ಸೃಷ್ಟಿಸುವ ನಿರ್ದಿಷ್ಟ ಗ್ರಹಗಳ ಜೋಡಣೆಗಳಾಗಿವೆ.</string>
+    <string name="knowledge_yoga_stats_classification">ವರ್ಗೀಕರಣ</string>
+    <string name="knowledge_yoga_stats_key_planets">ಪ್ರಮುಖ ಗ್ರಹಗಳು</string>
+    <string name="knowledge_yoga_logic">ತಾರ್ಕಿಕ ವಿವರಣೆ</string>
+    <string name="knowledge_yoga_detailed_analysis">ವಿವರವಾದ ವಿಶ್ಲೇಷಣೆ</string>
+    <string name="knowledge_yoga_expected_results">ನಿರೀಕ್ಷಿತ ಫಲಿತಾಂಶಗಳು</string>
+
+    <!-- Screen titles (set via LocalTopBarTitle) -->
+    <string name="knowledge_title_rashis">ರಾಶಿಗಳು</string>
+    <string name="knowledge_title_planets">ಗ್ರಹಗಳು</string>
+    <string name="knowledge_title_nakshatras">ನಕ್ಷತ್ರಗಳು</string>
+    <string name="knowledge_title_houses">ಮನೆಗಳು</string>
+    <string name="knowledge_title_yogas">ಯೋಗಗಳು</string>
+</resources>

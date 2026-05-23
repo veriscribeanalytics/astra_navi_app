@@ -3,11 +3,14 @@ package com.astranavi.app.data.repository
 import com.astranavi.app.data.api.ApiService
 import com.astranavi.app.data.cache.ApiCachePolicy
 import com.astranavi.app.data.cache.ApiResponseCache
+import com.astranavi.app.data.cache.CacheMeta
 import com.astranavi.app.data.model.LoginRequest
 import com.astranavi.app.data.model.LoginResponse
+import com.astranavi.app.data.model.LogoutRequest
 import com.astranavi.app.data.model.ProfileResponse
 import com.astranavi.app.data.model.ProfileUpdateRequest
 import com.astranavi.app.data.model.User
+import com.astranavi.app.util.ProfileChangeBus
 import retrofit2.Response
 
 class AuthRepository(
@@ -18,12 +21,18 @@ class AuthRepository(
         return apiService.login(LoginRequest(email, password))
     }
 
-    suspend fun getProfile(): Response<ProfileResponse> {
+    suspend fun validateToken(): Response<Unit> {
+        return apiService.authMe()
+    }
+
+    suspend fun getProfile(forceRefresh: Boolean = false, metaConsumer: ((CacheMeta) -> Unit)? = null): Response<ProfileResponse> {
         return apiCache?.getOrFetch(
             logicalKey = apiCache.profileKey(),
             responseClass = ProfileResponse::class.java,
-            policy = ApiCachePolicy.ForDuration(ApiResponseCache.PROFILE_TTL_MILLIS),
-            shouldCache = { it.user != null }
+            policy = ApiCachePolicy.UntilNextLocalMidnight,
+            bypassRead = forceRefresh,
+            shouldCache = { it.user != null },
+            onMeta = metaConsumer
         ) {
             apiService.getProfile()
         } ?: apiService.getProfile()
@@ -50,12 +59,26 @@ suspend fun updateProfile(user: User): Response<ProfileResponse> {
         val response = apiService.updateProfile(request)
         if (response.isSuccessful) {
             apiCache?.invalidateCurrentUserProfileAndAstrology()
+            ProfileChangeBus.bump()
+        }
+        return response
+    }
+
+    suspend fun updateLanguage(language: String): Response<ProfileResponse> {
+        val response = apiService.updateProfile(ProfileUpdateRequest(language = language))
+        if (response.isSuccessful) {
+            apiCache?.invalidateCurrentUserProfileAndAstrology()
+            ProfileChangeBus.bump()
         }
         return response
     }
 
     suspend fun register(email: String, password: String): Response<com.astranavi.app.data.model.RegisterResponse> {
         return apiService.register(com.astranavi.app.data.model.RegisterRequest(email, password))
+    }
+
+    suspend fun logout(refreshToken: String): Response<okhttp3.ResponseBody> {
+        return apiService.logout(LogoutRequest(refreshToken))
     }
 
     suspend fun deleteUser(): Response<Map<String, String>> {

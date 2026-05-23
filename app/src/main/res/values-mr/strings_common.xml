@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_credits_badge_description">क्रेडिट</string>
+    <string name="common_btn_upgrade">अपग्रेड करा</string>
+    <string name="common_search_icon_description">शोधा</string>
+    <string name="common_btn_ok">ठीक आहे</string>
+    <string name="common_btn_cancel">रद्द करा</string>
+    <string name="common_date_picker_description">तारीख निवडा</string>
+    <string name="common_time_picker_description">वेळ</string>
+    <string name="common_error_internet_connection">कनेक्शन अयशस्वी. कृपया आपले इंटरनेट कनेक्शन तपासा.</string>
+    <string name="common_error_server_timeout">सर्व्हर प्रतिसाद देण्यास खूप वेळ घेत आहे. कृपया पुन्हा प्रयत्न करा.</string>
+    <string name="common_error_network">नेटवर्क त्रुटी. कृपया आपले कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.</string>
+    <string name="common_error_generic">काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.</string>
+    <string name="common_error_session_expired">तुमचे सत्र कालबाह्य झाले आहे. कृपया पुन्हा साइन इन करा.</string>
+    <string name="common_error_feature_upgrade">या वैशिष्ट्यासाठी अपग्रेड आवश्यक आहे.</string>
+    <string name="common_error_not_found">आम्हाला सध्या हे मार्गदर्शन सापडले नाही.</string>
+    <string name="common_error_server_busy">सर्व्हर व्यस्त आहे. कृपया थोड्या वेळात पुन्हा प्रयत्न करा.</string>
+    <string name="common_error_service_unavailable">आमची सेवा तात्पुरती अनुपलब्ध आहे. कृपया पुन्हा प्रयत्न करा.</string>
+</resources>

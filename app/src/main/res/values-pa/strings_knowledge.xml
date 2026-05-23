@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KnowledgeHubScreen -->
+    <string name="knowledge_hub_intro">ਸਾਡੇ ਯੋਜਨਾਬੱਧ ਵਿਸ਼ਵਕੋਸ਼ ਰਾਹੀਂ ਪ੍ਰਕਾਸ਼ ਦੇ ਪ੍ਰਾਚੀਨ ਵਿਗਿਆਨ ਦੀ ਖੋਜ ਕਰੋ।</string>
+    <string name="knowledge_hub_rashis">ਰਾਸ਼ੀਆਂ</string>
+    <string name="knowledge_hub_rashis_desc">ਰਾਸ਼ੀ ਚੱਕਰ ਦੀਆਂ 12 ਰਾਸ਼ੀਆਂ।</string>
+    <string name="knowledge_hub_planets">ਨਵਗ੍ਰਹਿ</string>
+    <string name="knowledge_hub_planets_desc">ਗ੍ਰਹਿਆਂ ਦੀਆਂ ਸ਼ਕਤੀਆਂ ਅਤੇ ਉਨ੍ਹਾਂ ਦਾ ਪ੍ਰਭਾਵ।</string>
+    <string name="knowledge_hub_nakshatras">27 ਨਕਸ਼ੱਤਰ</string>
+    <string name="knowledge_hub_nakshatras_desc">ਚੰਦਰ ਨਿਵਾਸ ਸਥਾਨਾਂ (ਨਕਸ਼ੱਤਰਾਂ) ਬਾਰੇ ਵਿਸਥਾਰਪੂਰਵਕ ਜਾਣਕਾਰੀ।</string>
+    <string name="knowledge_hub_houses">ਭਾਵ ਚੱਕਰ</string>
+    <string name="knowledge_hub_houses_desc">ਤੁਹਾਡੇ ਜੀਵਨ ਦੇ 12 ਘਰ।</string>
+    <string name="knowledge_hub_yogas">ਬ੍ਰਹਿਮੰਡੀ ਯੋਗ</string>
+    <string name="knowledge_hub_yogas_desc">ਪਵਿੱਤਰ ਗ੍ਰਹਿਆਂ ਦੇ ਸੰਯੋਗ।</string>
+
+    <!-- RashiScreen / PlanetScreen / NakshatraScreen / HouseScreen -->
+    <string name="knowledge_section_core_nature">ਮੁੱਖ ਸੁਭਾਅ</string>
+    <string name="knowledge_section_identity_grid">ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ</string>
+    <string name="knowledge_section_career_resonance">ਕਰੀਅਰ ਅਨੁਕੂਲਤਾ</string>
+    <string name="knowledge_section_positive_traits">ਸਕਾਰਾਤਮਕ ਗੁਣ</string>
+    <string name="knowledge_section_challenging_traits">ਚੁਣੌਤੀਪੂਰਨ ਗੁਣ</string>
+    <string name="knowledge_section_core_meaning">ਮੁੱਖ ਅਰਥ</string>
+    <string name="knowledge_section_significations">ਪ੍ਰਤੀਕਤਾ</string>
+    <string name="knowledge_section_planetary_indications">ਗ੍ਰਹਿ ਸੰਕੇਤ</string>
+    <string name="knowledge_section_karakatvas">ਕਾਰਕਤਵ</string>
+    <string name="knowledge_section_padas">ਚਾਰ ਪਦ</string>
+
+    <!-- NakshatraScreen pada display -->
+    <string name="knowledge_pada_prefix">ਪਦ %1$d</string>
+    <string name="knowledge_pada_navamsha">%1$s ਨਵਾਂਸ਼</string>
+
+    <!-- HouseScreen display -->
+    <string name="knowledge_house_prefix">ਘਰ %1$d</string>
+
+    <!-- IdentityTile labels (generic) -->
+    <string name="knowledge_tile_label_ruler">ਸਵਾਮੀ</string>
+    <string name="knowledge_tile_label_element">ਤੱਤ</string>
+    <string name="knowledge_tile_label_quality">ਗੁਣ</string>
+    <string name="knowledge_tile_label_caste">ਵਰਣ</string>
+    <string name="knowledge_tile_label_nature">ਪ੍ਰਕਿਰਤੀ</string>
+    <string name="knowledge_tile_label_direction">ਦਿਸ਼ਾ</string>
+
+    <!-- IdentityTile labels specific to Houses -->
+    <string name="knowledge_tile_label_natural_sign">ਕੁਦਰਤੀ ਰਾਸ਼ੀ</string>
+    <string name="knowledge_tile_label_karaka">ਕਾਰਕ</string>
+    <string name="knowledge_tile_label_classification">ਵਰਗੀਕਰਨ</string>
+    <string name="knowledge_tile_label_body_part">ਸਰੀਰ ਦਾ ਅੰਗ</string>
+
+    <!-- PlanetScreen specific -->
+    <string name="knowledge_planet_exaltation">ਉੱਚ ਰਾਸ਼ੀ</string>
+    <string name="knowledge_planet_debilitation">ਨੀਚ ਰਾਸ਼ੀ</string>
+    <string name="knowledge_planet_own_sign">ਆਪਣੀ ਰਾਸ਼ੀ</string>
+
+    <!-- YogaScreen -->
+    <string name="knowledge_yoga_intro">ਵੈਦਿਕ ਜੋਤਿਸ਼ ਸੈਂਕੜੇ ਯੋਗਾਂ ਦੀ ਪਛਾਣ ਕਰਦਾ ਹੈ — ਖਾਸ ਗ੍ਰਹਿਆਂ ਦੇ ਸੰਯੋਗ ਜੋ ਜੀਵਨ ਵਿੱਚ ਵਿਲੱਖਣ ਨਤੀਜੇ ਪੈਦਾ ਕਰਦੇ ਹਨ।</string>
+    <string name="knowledge_yoga_stats_classification">ਵਰਗੀਕਰਨ</string>
+    <string name="knowledge_yoga_stats_key_planets">ਮੁੱਖ ਗ੍ਰਹਿ</string>
+    <string name="knowledge_yoga_logic">ਤਰਕ</string>
+    <string name="knowledge_yoga_detailed_analysis">ਵਿਸਥਾਰਪੂਰਵਕ ਵਿਸ਼ਲੇਸ਼ਣ</string>
+    <string name="knowledge_yoga_expected_results">ਸੰਭਾਵਿਤ ਨਤੀਜੇ</string>
+
+    <!-- Screen titles (set via LocalTopBarTitle) -->
+    <string name="knowledge_title_rashis">ਰਾਸ਼ੀਆਂ</string>
+    <string name="knowledge_title_planets">ਗ੍ਰਹਿ</string>
+    <string name="knowledge_title_nakshatras">ਨਕਸ਼ੱਤਰ</string>
+    <string name="knowledge_title_houses">ਘਰ</string>
+    <string name="knowledge_title_yogas">ਯੋਗ</string>
+</resources>

@@ -15,9 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.astranavi.app.R
 import com.astranavi.app.data.model.MatchRecord
 import com.astranavi.app.data.model.MatchResponse
 import com.astranavi.app.ui.components.GlassCard
@@ -28,6 +30,7 @@ fun MatchHistoryScreen(
     onOpenDrawer: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
+    com.astranavi.app.util.SecureScreen()
     val uiState = viewModel.uiState.value
 
     Column(modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
@@ -48,7 +51,7 @@ fun MatchHistoryScreen(
                         ) {
                             Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("No compatibility records found.", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.match_empty_history), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
                         }
                     } else {
                         LazyColumn(
@@ -56,7 +59,7 @@ fun MatchHistoryScreen(
                             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            items(uiState.history) { record ->
+                            items(uiState.history, key = { it.id }) { record ->
                                 HistoryRecordCard(
                                     record = record,
                                     details = viewModel.expandedDetails[record.id],
@@ -120,7 +123,7 @@ fun HistoryRecordCard(
                         fontWeight = FontWeight.ExtraBold
                     )
                     Text(
-                        (record.created_at ?: "").take(10),
+                        (record.created_at ?: record.createdAt ?: "").take(10),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         fontWeight = FontWeight.Bold
@@ -161,7 +164,7 @@ fun HistoryRecordCard(
                         val koots = ashtakoot?.koots ?: responseToUse?.koot_details
                         if (koots != null) {
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Guna Milan Details", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.secondary)
+                            Text(stringResource(R.string.match_section_guna_milan), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.secondary)
                             Spacer(modifier = Modifier.height(8.dp))
                             koots.forEach { koot ->
                                 val kootObtained = koot.obtained ?: koot.score ?: 0.0
@@ -179,15 +182,15 @@ fun HistoryRecordCard(
                         val mangal = responseToUse?.mangal_dosha
                         if (mangal != null) {
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Mangal Dosha", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.secondary)
-                            val doshaStatus = when {
-                                mangal.compatible == true -> "Compatible (Safe)"
-                                mangal.person2?.has_dosha == true -> "High Influence Detected"
-                                mangal.is_mangal_dosha == true -> "Influence Detected"
-                                else -> "No Major Influence"
+                            Text(stringResource(R.string.match_section_mangal), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.secondary)
+                            val doshaStatusResId = when {
+                                mangal.compatible == true -> R.string.match_dosha_compatible
+                                mangal.person2?.has_dosha == true -> R.string.match_dosha_high_influence
+                                mangal.is_mangal_dosha == true -> R.string.match_dosha_influence
+                                else -> R.string.match_dosha_no_influence
                             }
                             Text(
-                                doshaStatus,
+                                stringResource(doshaStatusResId),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold
                             )
@@ -202,7 +205,7 @@ fun HistoryRecordCard(
                         ) {
                             Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Delete Record", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.match_btn_delete_record), fontWeight = FontWeight.Bold)
                         }
                     }
                 }

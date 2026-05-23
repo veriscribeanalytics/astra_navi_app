@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Consult Screen - Birth Details Step -->
+    <string name="consult_btn_begin_session">Begin Session</string>
+    <string name="consult_title_cosmic_blueprint">Cosmic Blueprint</string>
+    <string name="consult_label_dob">Date of Birth (DD-MM-YYYY)</string>
+    <string name="consult_label_tob">Time of Birth (HHMM)</string>
+    <string name="consult_label_pob">Place of Birth</string>
+    <string name="consult_section_preferences">Preferences</string>
+    <string name="consult_label_preferred_language">Preferred Language</string>
+    <string name="consult_lang_english">English</string>
+    <string name="consult_lang_hindi">Hindi</string>
+    <string name="consult_lang_marathi">Marathi</string>
+    <string name="consult_lang_gujarati">Gujarati</string>
+    <string name="consult_lang_tamil">Tamil</string>
+
+    <!-- Consult Screen - Category Selection Step -->
+    <string name="consult_title_select_domain">Select Domain</string>
+    <string name="consult_label_personalized_guidance">Personalized guidance</string>
+
+    <!-- Consult Screen - Subcategory Selection Step -->
+    <string name="consult_title_focus_area_format">Focus area for %1$s</string>
+    <string name="consult_desc_focus_analysis">Navi will analyze your chart to provide deep insights on this specific focus.</string>
+    <string name="consult_btn_select_focus">Select this Focus</string>
+
+    <!-- Consult Screen - Question Selection Step -->
+    <string name="consult_title_pick_query">Pick a Query</string>
+    <string name="consult_desc_query_analysis">Navi will analyze your chart to answer this specific question.</string>
+    <string name="consult_section_settings">Consultation Settings</string>
+    <string name="consult_label_custom_context">Tell Navi your situation…</string>
+    <string name="consult_label_response_tone">Response Tone</string>
+    <string name="consult_tone_warm">Warm</string>
+    <string name="consult_tone_direct">Direct</string>
+    <string name="consult_tone_spiritual">Spiritual</string>
+    <string name="consult_btn_ask_custom">Ask Custom Question</string>
+
+    <!-- Consult Screen - Result Step -->
+    <string name="consult_title_cosmic_insight">Cosmic Insight</string>
+    <string name="consult_loading_planetary">Consulting planetary alignments…</string>
+    <string name="consult_loading_cosmic">Reading cosmic influences…</string>
+    <string name="consult_loading_karmic">Interpreting your karmic patterns…</string>
+    <string name="consult_loading_celestial">Channeling your celestial guidance…</string>
+    <string name="consult_btn_explore_again">Explore Another Insight</string>
+
+    <!-- Consult Screen - Date/Dialog -->
+    <string name="consult_btn_ok">OK</string>
+    <string name="consult_btn_cancel">Cancel</string>
+
+    <!-- Consult History Screen -->
+    <string name="consult_empty_state">No cosmic consultations found.</string>
+    <string name="consult_default_category">CONSULTATION</string>
+    <string name="consult_default_question">Astrology Inquiry</string>
+</resources>

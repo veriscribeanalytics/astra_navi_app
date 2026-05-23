@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KnowledgeHubScreen -->
+    <string name="knowledge_hub_intro">আমাদের সুবিন্যস্ত বিশ্বকোষের মাধ্যমে জ্যোতিষের প্রাচীন বিজ্ঞান অন্বেষণ করুন।</string>
+    <string name="knowledge_hub_rashis">রাশি চক্রের রাশি</string>
+    <string name="knowledge_hub_rashis_desc">রাশি চক্রের ১২টি রাশি।</string>
+    <string name="knowledge_hub_planets">নবগ্রহ</string>
+    <string name="knowledge_hub_planets_desc">গ্রহের শক্তি এবং তাদের প্রভাব।</string>
+    <string name="knowledge_hub_nakshatras">২৭ নক্ষত্র</string>
+    <string name="knowledge_hub_nakshatras_desc">চন্দ্র ভুবন বা নক্ষত্র সম্পর্কে বিস্তারিত জানুন।</string>
+    <string name="knowledge_hub_houses">ভাব চক্র</string>
+    <string name="knowledge_hub_houses_desc">আপনার জীবনের ১২টি ভাব।</string>
+    <string name="knowledge_hub_yogas">মহাজাগতিক যোগ</string>
+    <string name="knowledge_hub_yogas_desc">পবিত্র গ্রহের সংমিশ্রণ।</string>
+
+    <!-- RashiScreen / PlanetScreen / NakshatraScreen / HouseScreen -->
+    <string name="knowledge_section_core_nature">মূল প্রকৃতি</string>
+    <string name="knowledge_section_identity_grid">পরিচয় গ্রিড</string>
+    <string name="knowledge_section_career_resonance">কর্মজীবনের উপযুক্ততা</string>
+    <string name="knowledge_section_positive_traits">ইতিবাচক বৈশিষ্ট্য</string>
+    <string name="knowledge_section_challenging_traits">চ্যালেঞ্জিং বৈশিষ্ট্য</string>
+    <string name="knowledge_section_core_meaning">মূল অর্থ</string>
+    <string name="knowledge_section_significations">তাৎপর্য</string>
+    <string name="knowledge_section_planetary_indications">গ্রহের ইঙ্গিত</string>
+    <string name="knowledge_section_karakatvas">কারকত্ব</string>
+    <string name="knowledge_section_padas">চারটি পদ</string>
+
+    <!-- NakshatraScreen pada display -->
+    <string name="knowledge_pada_prefix">পদ %1$d</string>
+    <string name="knowledge_pada_navamsha">%1$s নবাংশ</string>
+
+    <!-- HouseScreen display -->
+    <string name="knowledge_house_prefix">ভাব %1$d</string>
+
+    <!-- IdentityTile labels (generic) -->
+    <string name="knowledge_tile_label_ruler">অধিপতি</string>
+    <string name="knowledge_tile_label_element">তত্ত্ব</string>
+    <string name="knowledge_tile_label_quality">গুণ</string>
+    <string name="knowledge_tile_label_caste">বর্ণ</string>
+    <string name="knowledge_tile_label_nature">প্রকৃতি</string>
+    <string name="knowledge_tile_label_direction">দিক</string>
+
+    <!-- IdentityTile labels specific to Houses -->
+    <string name="knowledge_tile_label_natural_sign">স্বাভাবিক রাশি</string>
+    <string name="knowledge_tile_label_karaka">কারক</string>
+    <string name="knowledge_tile_label_classification">শ্রেণীবিভাগ</string>
+    <string name="knowledge_tile_label_body_part">শরীরের অঙ্গ</string>
+
+    <!-- PlanetScreen specific -->
+    <string name="knowledge_planet_exaltation">উচ্চ স্থান (তুঙ্গ)</string>
+    <string name="knowledge_planet_debilitation">নীচ স্থান (নীচ)</string>
+    <string name="knowledge_planet_own_sign">স্বরাশি</string>
+
+    <!-- YogaScreen -->
+    <string name="knowledge_yoga_intro">বৈদিক জ্যোতিষশাস্ত্র শত শত যোগ চিহ্নিত করে — নির্দিষ্ট গ্রহের বিন্যাস যা অনন্য জীবন ফলাফল তৈরি করে।</string>
+    <string name="knowledge_yoga_stats_classification">শ্রেণীবিভাগ</string>
+    <string name="knowledge_yoga_stats_key_planets">প্রধান গ্রহসমূহ</string>
+    <string name="knowledge_yoga_logic">যুক্তি</string>
+    <string name="knowledge_yoga_detailed_analysis">বিস্তারিত বিশ্লেষণ</string>
+    <string name="knowledge_yoga_expected_results">প্রত্যাশিত ফলাফল</string>
+
+    <!-- Screen titles (set via LocalTopBarTitle) -->
+    <string name="knowledge_title_rashis">রাশি</string>
+    <string name="knowledge_title_planets">গ্রহ</string>
+    <string name="knowledge_title_nakshatras">নক্ষত্র</string>
+    <string name="knowledge_title_houses">ভাব</string>
+    <string name="knowledge_title_yogas">যোগ</string>
+</resources>

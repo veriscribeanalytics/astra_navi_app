@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Consult Screen - Birth Details Step -->
+    <string name="consult_btn_begin_session">அமர்வைத் தொடங்கு</string>
+    <string name="consult_title_cosmic_blueprint">பிரபஞ்ச வரைபடம்</string>
+    <string name="consult_label_dob">பிறந்த தேதி (DD-MM-YYYY)</string>
+    <string name="consult_label_tob">பிறந்த நேரம் (HHMM)</string>
+    <string name="consult_label_pob">பிறந்த இடம்</string>
+    <string name="consult_section_preferences">விருப்பத்தேர்வுகள்</string>
+    <string name="consult_label_preferred_language">விருப்பமான மொழி</string>
+    <string name="consult_lang_english">ஆங்கிலம்</string>
+    <string name="consult_lang_hindi">இந்தி</string>
+    <string name="consult_lang_marathi">மராத்தி</string>
+    <string name="consult_lang_gujarati">குஜராத்தி</string>
+    <string name="consult_lang_tamil">தமிழ்</string>
+
+    <!-- Consult Screen - Category Selection Step -->
+    <string name="consult_title_select_domain">துறையைத் தேர்ந்தெடு</string>
+    <string name="consult_label_personalized_guidance">தனிப்பயனாக்கப்பட்ட வழிகாட்டுதல்</string>
+
+    <!-- Consult Screen - Subcategory Selection Step -->
+    <string name="consult_title_focus_area_format">%1$s-க்கான கவனப் பகுதி</string>
+    <string name="consult_desc_focus_analysis">இந்த குறிப்பிட்ட கவனம் குறித்து ஆழமான நுண்ணறிவுகளை வழங்க நவி உங்கள் ஜாதகத்தை பகுப்பாய்வு செய்யும்.</string>
+    <string name="consult_btn_select_focus">இந்த கவனத்தைத் தேர்ந்தெடு</string>
+
+    <!-- Consult Screen - Question Selection Step -->
+    <string name="consult_title_pick_query">கேள்வியைத் தேர்ந்தெடு</string>
+    <string name="consult_desc_query_analysis">இந்த குறிப்பிட்ட கேள்விக்கு பதிலளிக்க நவி உங்கள் ஜாதகத்தை பகுப்பாய்வு செய்யும்.</string>
+    <string name="consult_section_settings">ஆலோசனை அமைப்புகள்</string>
+    <string name="consult_label_custom_context">உங்கள் சூழ்நிலையை நவியிடம் கூறுங்கள்…</string>
+    <string name="consult_label_response_tone">பதில் தொனி</string>
+    <string name="consult_tone_warm">அன்பான</string>
+    <string name="consult_tone_direct">நேரடியான</string>
+    <string name="consult_tone_spiritual">ஆன்மீக</string>
+    <string name="consult_btn_ask_custom">தனிப்பயன் கேள்வி கேள்</string>
+
+    <!-- Consult Screen - Result Step -->
+    <string name="consult_title_cosmic_insight">பிரபஞ்ச நுண்ணறிவு</string>
+    <string name="consult_loading_planetary">கிரக நிலைகளை ஆலோசிக்கிறது…</string>
+    <string name="consult_loading_cosmic">பிரபஞ்ச தாக்கங்களை வாசிக்கிறது…</string>
+    <string name="consult_loading_karmic">உங்கள் கர்ம வினைகளை விளக்குகிறது…</string>
+    <string name="consult_loading_celestial">உங்கள் விண்வெளி வழிகாட்டுதலைத் தொடர்பு கொள்கிறது…</string>
+    <string name="consult_btn_explore_again">மற்றொரு நுண்ணறிவை ஆராய்</string>
+
+    <!-- Consult Screen - Date/Dialog -->
+    <string name="consult_btn_ok">சரி</string>
+    <string name="consult_btn_cancel">ரத்துசெய்</string>
+
+    <!-- Consult History Screen -->
+    <string name="consult_empty_state">பிரபஞ்ச ஆலோசனைகள் எதுவும் காணப்படவில்லை.</string>
+    <string name="consult_default_category">ஆலோசனை</string>
+    <string name="consult_default_question">ஜோதிட விசாரணை</string>
+</resources>

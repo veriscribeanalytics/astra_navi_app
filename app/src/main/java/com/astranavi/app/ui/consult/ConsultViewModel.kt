@@ -167,43 +167,43 @@ class ConsultViewModel(
 
                 withContext(Dispatchers.IO) {
                     val responseBody = repository.generateConsultation(request)
-                    
-                    val contentType = responseBody.contentType()
-                    if (contentType != null && contentType.subtype == "json") {
-                        val errorBody = responseBody.string()
-                        val paywallData = entitlementRepository?.parsePaywallFrom402Body(errorBody)
-                        if (paywallData != null) {
+                    responseBody.use { body ->
+                        val contentType = body.contentType()
+                        if (contentType != null && contentType.subtype == "json") {
+                            val errorBody = body.string()
+                            val paywallData = entitlementRepository?.parsePaywallFrom402Body(errorBody)
+                            if (paywallData != null) {
+                                launch(Dispatchers.Main) {
+                                    _paywall.value = paywallData
+                                    _isLoading.value = false
+                                }
+                                return@use
+                            }
                             launch(Dispatchers.Main) {
-                                _paywall.value = paywallData
+                                _consultResult.value = "I'm sorry, I'm having trouble connecting. Please try again."
                                 _isLoading.value = false
                             }
-                            return@withContext
+                            return@use
                         }
-                        launch(Dispatchers.Main) {
-                            _consultResult.value = "I'm sorry, I'm having trouble connecting. Please try again."
-                            _isLoading.value = false
-                        }
-                        return@withContext
-                    }
-                    
-                    var fullResponse = ""
-                    
-                    responseBody.byteStream().bufferedReader().use { reader ->
-                        reader.forEachLine { line ->
-                            if (line.startsWith("data: ")) {
-                                val dataStr = line.substring(6).trim()
-                                if (dataStr == "[DONE]") return@forEachLine
-                                
-                                try {
-                                    val json = JSONObject(dataStr)
-                                    val token = json.optString("token")
-                                    if (token.isNotEmpty()) {
-                                        fullResponse += token
-                                        launch(Dispatchers.Main) {
-                                            _consultResult.value = fullResponse
+                        
+                        var fullResponse = ""
+                        body.byteStream().bufferedReader().use { reader ->
+                            reader.forEachLine { line ->
+                                if (line.startsWith("data: ")) {
+                                    val dataStr = line.substring(6).trim()
+                                    if (dataStr == "[DONE]") return@forEachLine
+                                    
+                                    try {
+                                        val json = JSONObject(dataStr)
+                                        val token = json.optString("token")
+                                        if (token.isNotEmpty()) {
+                                            fullResponse += token
+                                            launch(Dispatchers.Main) {
+                                                _consultResult.value = fullResponse
+                                            }
                                         }
+                                    } catch (_: Exception) {
                                     }
-                                } catch (e: Exception) {
                                 }
                             }
                         }

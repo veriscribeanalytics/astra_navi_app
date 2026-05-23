@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Input Form -->
+    <string name="match_btn_calculate">అనుకూలతను లెక్కించండి</string>
+    <string name="match_desc_vedic_analysis">సామరస్యం మరియు దీర్ఘాయువు కోసం సాంప్రదాయ 36 గుణాల వైదిక జాతక పొంతన విశ్లేషణ.</string>
+    <string name="match_label_person1">మొదటి వ్యక్తి (మీరు)</string>
+    <string name="match_label_person2">రెండవ వ్యక్తి (భాగస్వామి)</string>
+    <string name="match_field_name">పేరు</string>
+    <string name="match_field_birth_place">పుట్టిన స్థలం</string>
+    <string name="match_option_male">పురుషుడు</string>
+    <string name="match_option_female">స్త్రీ</string>
+
+    <!-- Match Result View -->
+    <string name="match_label_out_of_36">36 కి గాను</string>
+    <string name="match_section_breakdown">అష్టకూట విభజన</string>
+    <string name="match_btn_analyze_another">మరొక పొంతనను విశ్లేషించండి</string>
+
+    <!-- Score Labels -->
+    <string name="match_score_excellent">అద్భుతమైన పొంతన</string>
+    <string name="match_score_good">మంచి పొంతన</string>
+    <string name="match_score_low">తక్కువ అనుకూలత</string>
+
+    <!-- Mangal Dosha Panel -->
+    <string name="match_label_mangal_status">మంగళ దోష స్థితి</string>
+    <string name="match_msg_mangal_detected">జాతక చక్రాలలో కుజ ప్రభావం కనుగొనబడింది.</string>
+    <string name="match_msg_no_mangal">ఎటువంటి మంగళ దోషం లేదు.</string>
+    <string name="match_label_cancellation">దోష రద్దు:</string>
+
+    <!-- Match History Screen -->
+    <string name="match_empty_history">ఎటువంటి అనుకూలత రికార్డులు కనుగొనబడలేదు.</string>
+    <string name="match_section_guna_milan">గుణ మిలన్ వివరాలు</string>
+    <string name="match_section_mangal">మంగళ దోషం</string>
+    <string name="match_btn_delete_record">రికార్డును తొలగించండి</string>
+
+    <!-- Mangal Dosha Status -->
+    <string name="match_dosha_compatible">అనుకూలమైనది (సురక్షితం)</string>
+    <string name="match_dosha_high_influence">అధిక ప్రభావం కనుగొనబడింది</string>
+    <string name="match_dosha_influence">ప్రభావం కనుగొనబడింది</string>
+    <string name="match_dosha_no_influence">పెద్దగా ప్రభావం లేదు</string>
+</resources>

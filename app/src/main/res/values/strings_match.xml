@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Input Form -->
+    <string name="match_btn_calculate">Calculate Compatibility</string>
+    <string name="match_desc_vedic_analysis">Traditional 36 Guna Vedic match analysis for harmony and longevity.</string>
+    <string name="match_label_person1">PERSON 1 (YOU)</string>
+    <string name="match_label_person2">PERSON 2 (PARTNER)</string>
+    <string name="match_field_name">Name</string>
+    <string name="match_field_birth_place">Birth Place</string>
+    <string name="match_option_male">Male</string>
+    <string name="match_option_female">Female</string>
+
+    <!-- Match Result View -->
+    <string name="match_label_out_of_36">OUT OF 36</string>
+    <string name="match_section_breakdown">Ashtakoot Breakdown</string>
+    <string name="match_btn_analyze_another">Analyze Another Match</string>
+
+    <!-- Score Labels -->
+    <string name="match_score_excellent">Excellent Match</string>
+    <string name="match_score_good">Good Match</string>
+    <string name="match_score_low">Low Compatibility</string>
+
+    <!-- Mangal Dosha Panel -->
+    <string name="match_label_mangal_status">MANGAL DOSHA STATUS</string>
+    <string name="match_msg_mangal_detected">Mars influence detected in the charts.</string>
+    <string name="match_msg_no_mangal">No Mangal Dosha present.</string>
+    <string name="match_label_cancellation">Cancellation:</string>
+
+    <!-- Match History Screen -->
+    <string name="match_empty_history">No compatibility records found.</string>
+    <string name="match_section_guna_milan">Guna Milan Details</string>
+    <string name="match_section_mangal">Mangal Dosha</string>
+    <string name="match_btn_delete_record">Delete Record</string>
+
+    <!-- Mangal Dosha Status -->
+    <string name="match_dosha_compatible">Compatible (Safe)</string>
+    <string name="match_dosha_high_influence">High Influence Detected</string>
+    <string name="match_dosha_influence">Influence Detected</string>
+    <string name="match_dosha_no_influence">No Major Influence</string>
+</resources>

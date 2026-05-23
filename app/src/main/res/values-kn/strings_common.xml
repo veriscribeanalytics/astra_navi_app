@@ -1,0 +1,18 @@
+<resources>
+    <string name="common_credits_badge_description">ಕ್ರೆಡಿಟ್‌ಗಳು</string>
+    <string name="common_btn_upgrade">ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ</string>
+    <string name="common_search_icon_description">ಹುಡುಕು</string>
+    <string name="common_btn_ok">ಸರಿ</string>
+    <string name="common_btn_cancel">ರದ್ದುಮಾಡು</string>
+    <string name="common_date_picker_description">ದಿನಾಂಕ ಆಯ್ಕೆಮಾಡಿ</string>
+    <string name="common_time_picker_description">ಸಮಯ</string>
+    <string name="common_error_internet_connection">ಸಂಪರ್ಕ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ.</string>
+    <string name="common_error_server_timeout">ಸರ್ವರ್ ಪ್ರತಿಕ್ರಿಯಿಸಲು ತುಂಬಾ ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ.</string>
+    <string name="common_error_network">ನೆಟ್‌ವರ್ಕ್ ದೋಷ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ.</string>
+    <string name="common_error_generic">ಏನೋ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ.</string>
+    <string name="common_error_session_expired">ನಿಮ್ಮ ಸೆಶನ್ ನವೀಕರಿಸಬೇಕಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.</string>
+    <string name="common_error_feature_upgrade">ಈ ವೈಶಿಷ್ಟ್ಯಕ್ಕಾಗಿ ಅಪ್‌ಗ್ರೇಡ್ ಅಗತ್ಯವಿದೆ.</string>
+    <string name="common_error_not_found">ನಮಗೆ ಈ ಮಾರ್ಗದರ್ಶನವನ್ನು ಈಗ ಹುಡುಕಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.</string>
+    <string name="common_error_server_busy">ಸರ್ವರ್ ಕಾರ್ಯನಿರತವಾಗಿದೆ. ದಯವಿಟ್ಟು ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಪ್ರಯತ್ನಿಸಿ.</string>
+    <string name="common_error_service_unavailable">ನಮ್ಮ ಸೇವೆ ತಾತ್ಕಾಲಿಕವಾಗಿ ಲಭ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ.</string>
+</resources>

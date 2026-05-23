@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KnowledgeHubScreen -->
+    <string name="knowledge_hub_intro">Explore the ancient science of light through our structured encyclopedia.</string>
+    <string name="knowledge_hub_rashis">Zodiac Rashis</string>
+    <string name="knowledge_hub_rashis_desc">The 12 signs of the zodiac.</string>
+    <string name="knowledge_hub_planets">The Navagraha</string>
+    <string name="knowledge_hub_planets_desc">Planetary forces and their impact.</string>
+    <string name="knowledge_hub_nakshatras">27 Nakshatras</string>
+    <string name="knowledge_hub_nakshatras_desc">Deep-dive into lunar mansions.</string>
+    <string name="knowledge_hub_houses">Bhava Chakra</string>
+    <string name="knowledge_hub_houses_desc">The 12 houses of your life.</string>
+    <string name="knowledge_hub_yogas">Cosmic Yogas</string>
+    <string name="knowledge_hub_yogas_desc">Sacred planetary combinations.</string>
+
+    <!-- RashiScreen / PlanetScreen / NakshatraScreen / HouseScreen -->
+    <string name="knowledge_section_core_nature">Core Nature</string>
+    <string name="knowledge_section_identity_grid">Identity Grid</string>
+    <string name="knowledge_section_career_resonance">Career Resonance</string>
+    <string name="knowledge_section_positive_traits">Positive Traits</string>
+    <string name="knowledge_section_challenging_traits">Challenging Traits</string>
+    <string name="knowledge_section_core_meaning">Core Meaning</string>
+    <string name="knowledge_section_significations">Significations</string>
+    <string name="knowledge_section_planetary_indications">Planetary Indications</string>
+    <string name="knowledge_section_karakatvas">Karakatvas</string>
+    <string name="knowledge_section_padas">The Four Padas</string>
+
+    <!-- NakshatraScreen pada display -->
+    <string name="knowledge_pada_prefix">PADA %1$d</string>
+    <string name="knowledge_pada_navamsha">%1$s Navamsha</string>
+
+    <!-- HouseScreen display -->
+    <string name="knowledge_house_prefix">HOUSE %1$d</string>
+
+    <!-- IdentityTile labels (generic) -->
+    <string name="knowledge_tile_label_ruler">Ruler</string>
+    <string name="knowledge_tile_label_element">Element</string>
+    <string name="knowledge_tile_label_quality">Quality</string>
+    <string name="knowledge_tile_label_caste">Caste</string>
+    <string name="knowledge_tile_label_nature">Nature</string>
+    <string name="knowledge_tile_label_direction">Direction</string>
+
+    <!-- IdentityTile labels specific to Houses -->
+    <string name="knowledge_tile_label_natural_sign">Natural Sign</string>
+    <string name="knowledge_tile_label_karaka">Karaka</string>
+    <string name="knowledge_tile_label_classification">Classification</string>
+    <string name="knowledge_tile_label_body_part">Body Part</string>
+
+    <!-- PlanetScreen specific -->
+    <string name="knowledge_planet_exaltation">Exaltation</string>
+    <string name="knowledge_planet_debilitation">Debilitation</string>
+    <string name="knowledge_planet_own_sign">Own Sign</string>
+
+    <!-- YogaScreen -->
+    <string name="knowledge_yoga_intro">Vedic astrology identifies hundreds of Yogas — specific planetary alignments that create unique life results.</string>
+    <string name="knowledge_yoga_stats_classification">Classification</string>
+    <string name="knowledge_yoga_stats_key_planets">Key Planets</string>
+    <string name="knowledge_yoga_logic">THE LOGIC</string>
+    <string name="knowledge_yoga_detailed_analysis">Detailed Analysis</string>
+    <string name="knowledge_yoga_expected_results">EXPECTED RESULTS</string>
+
+    <!-- Screen titles (set via LocalTopBarTitle) -->
+    <string name="knowledge_title_rashis">Rashis</string>
+    <string name="knowledge_title_planets">Planets</string>
+    <string name="knowledge_title_nakshatras">Nakshatras</string>
+    <string name="knowledge_title_houses">Houses</string>
+    <string name="knowledge_title_yogas">Yogas</string>
+</resources>

@@ -9,8 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.astranavi.app.R
 import com.astranavi.app.data.model.LocationSearchResult
 import kotlinx.coroutines.delay
 
@@ -78,7 +80,7 @@ fun LocationSearchField(
                 if (isSearching) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Icon(Icons.Default.Search, contentDescription = "Search")
+                    Icon(Icons.Default.Search, contentDescription = stringResource(R.string.common_search_icon_description))
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(

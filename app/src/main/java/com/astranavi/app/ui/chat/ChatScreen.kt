@@ -2,17 +2,23 @@ package com.astranavi.app.ui.chat
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
+import com.astranavi.app.ui.components.PreviewMultiDevice
+import com.astranavi.app.ui.theme.AstraNaviTheme
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
@@ -21,8 +27,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.astranavi.app.R
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -32,13 +43,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.astranavi.app.data.model.ChatAvatar
 import com.astranavi.app.data.model.ChatMessage
 import com.astranavi.app.data.model.ChatSummary
+import com.astranavi.app.ui.components.ApplyRootGlow
+import com.astranavi.app.ui.components.GlowColors
 import com.astranavi.app.ui.components.bringIntoViewOnFocus
+import com.astranavi.app.ui.components.responsiveMetrics
+import com.astranavi.app.util.setSensitiveText
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.util.Locale
 
 @Composable
-fun ChatScreen(viewModel: ChatViewModel, onBack: () -> Unit = {}, onOpenDrawer: () -> Unit) {
+fun ChatScreen(
+    viewModel: ChatViewModel,
+    seedPrompt: String? = null,
+    seedContext: String? = null,
+    onBack: () -> Unit = {},
+    onOpenDrawer: () -> Unit,
+    guideListPane: (@Composable (modifier: Modifier) -> Unit)? = null
+) {
+    com.astranavi.app.util.SecureScreen()
     val uiState = viewModel.uiState.value
     val chatHistory = viewModel.chatHistory.value
     val isSending = viewModel.isSending.value
@@ -46,86 +72,104 @@ fun ChatScreen(viewModel: ChatViewModel, onBack: () -> Unit = {}, onOpenDrawer: 
     val canLoadMore = viewModel.canLoadMoreHistory.value
     val userRatings = viewModel.userRatings.value
     val showHistory = viewModel.showHistory.value
+    val activeAvatar = viewModel.activeAvatar.value
+    val userName = viewModel.userName.value
+    val suggestedQuestions = viewModel.suggestedQuestions.value
+    val metrics = responsiveMetrics()
 
     var showDeleteDialog by remember { mutableStateOf<String?>(null) }
 
+    val palette = chatAvatarPalette(activeAvatar?.avatarId)
+    ApplyRootGlow(GlowColors(accent = palette.accent, deep = palette.deep, radial = palette.radial))
+
+    // Wide-screen split: guide list left, conversation right.
+    // Triggered at >= 600dp via responsive.isMediumWidth (foldables unfolded + tablets).
+    val showSplit = guideListPane != null && metrics.isMediumWidth && !showHistory
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // History error banner
+            // History error banner (spans full width either way)
             if (historyError != null && showHistory) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.errorContainer
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(horizontal = metrics.pagePadding, vertical = metrics.chatMessagePadding / 2),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Warning, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.Warning, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize), tint = MaterialTheme.colorScheme.error)
+                        Spacer(modifier = Modifier.width(metrics.chatMessagePadding / 2))
                         Text(historyError, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
                         TextButton(onClick = {
                             viewModel.clearHistoryError()
                             viewModel.loadHistory()
                         }) {
-                            Text("Retry", fontSize = 12.sp)
+                            Text(stringResource(R.string.chat_btn_retry), fontSize = 12.sp)
                         }
                     }
                 }
             }
 
-            Box(modifier = Modifier.weight(1f)) {
-                when {
-                    showHistory -> ChatHistoryList(
-                        history = chatHistory,
-                        canLoadMore = canLoadMore,
-                        onSelect = { chat -> viewModel.selectChat(chat.id) },
-                        onDelete = { chatId -> showDeleteDialog = chatId },
-                        onLoadMore = { viewModel.loadMoreHistory() }
+            if (showSplit) {
+                Row(modifier = Modifier.fillMaxSize()) {
+                    guideListPane!!(Modifier.weight(0.38f).fillMaxHeight())
+                    VerticalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f),
+                        modifier = Modifier.fillMaxHeight()
                     )
-                    uiState is ChatUiState.LoadingHistory || uiState is ChatUiState.LoadingMessages -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = MaterialTheme.colorScheme.secondary)
-                        }
-                    }
-                    uiState is ChatUiState.ActiveChat -> {
-                        if (uiState.messages.isEmpty()) {
-                            ChatEmptyState(
-                                suggestedQuestions = listOf(
-                                    "How will my career be in 2024?",
-                                    "Tell me about my relationship compatibility.",
-                                    "What are my health prospects?",
-                                    "Which gemstones should I wear?"
-                                ),
-                                onQuestionClick = { viewModel.sendMessage(it) }
-                            )
-                        } else {
-                            ChatConversationList(
-                                messages = uiState.messages,
-                                chatId = uiState.chatId,
+                    Column(modifier = Modifier.weight(0.62f).fillMaxHeight()) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            ChatBodySelector(
+                                viewModel = viewModel,
+                                uiState = uiState,
                                 isSending = isSending,
                                 userRatings = userRatings,
-                                onRate = { msgId, rating -> viewModel.rateMessage(uiState.chatId, msgId, rating) }
+                                activeAvatar = activeAvatar,
+                                userName = userName,
+                                palette = palette,
+                                seedPrompt = seedPrompt,
+                                seedContext = seedContext
                             )
                         }
-                    }
-                    uiState is ChatUiState.Error -> {
-                        ChatErrorState(
-                            message = uiState.message,
-                            onRetry = { uiState.retryAction?.invoke() }
+                        ChatInputBar(
+                            isSending = isSending,
+                            suggestedQuestions = suggestedQuestions,
+                            onSendMessage = { viewModel.sendMessage(it) }
                         )
                     }
-                    else -> {
-                        // Waiting for initialization
+                }
+            } else {
+                Box(modifier = Modifier.weight(1f)) {
+                    when {
+                        showHistory -> ChatHistoryList(
+                            history = chatHistory,
+                            canLoadMore = canLoadMore,
+                            onSelect = { chat -> viewModel.selectChat(chat.id) },
+                            onDelete = { chatId -> showDeleteDialog = chatId },
+                            onLoadMore = { viewModel.loadMoreHistory() }
+                        )
+                        else -> ChatBodySelector(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            isSending = isSending,
+                            userRatings = userRatings,
+                            activeAvatar = activeAvatar,
+                            userName = userName,
+                            palette = palette,
+                            seedPrompt = seedPrompt,
+                            seedContext = seedContext
+                        )
                     }
                 }
-            }
 
-            if (!showHistory) {
-                ChatInputBar(
-                    isSending = isSending,
-                    onSendMessage = { viewModel.sendMessage(it) }
-                )
+                if (!showHistory) {
+                    ChatInputBar(
+                        isSending = isSending,
+                        suggestedQuestions = suggestedQuestions,
+                        onSendMessage = { viewModel.sendMessage(it) }
+                    )
+                }
             }
         }
     }
@@ -134,8 +178,8 @@ fun ChatScreen(viewModel: ChatViewModel, onBack: () -> Unit = {}, onOpenDrawer: 
     showDeleteDialog?.let { chatId ->
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },
-            title = { Text("Delete Chat") },
-            text = { Text("Are you sure you want to delete this conversation? This cannot be undone.") },
+            title = { Text(stringResource(R.string.chat_delete_title)) },
+            text = { Text(stringResource(R.string.chat_delete_confirm_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -144,12 +188,12 @@ fun ChatScreen(viewModel: ChatViewModel, onBack: () -> Unit = {}, onOpenDrawer: 
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.chat_btn_delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = null }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.chat_btn_cancel))
                 }
             }
         )
@@ -157,77 +201,391 @@ fun ChatScreen(viewModel: ChatViewModel, onBack: () -> Unit = {}, onOpenDrawer: 
 }
 
 @Composable
+private fun ChatBodySelector(
+    viewModel: ChatViewModel,
+    uiState: ChatUiState,
+    isSending: Boolean,
+    userRatings: Map<String, Int>,
+    activeAvatar: ChatAvatar?,
+    userName: String,
+    palette: ChatAvatarPalette,
+    seedPrompt: String? = null,
+    seedContext: String? = null
+) {
+    when {
+        uiState is ChatUiState.LoadingHistory || uiState is ChatUiState.LoadingMessages -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.secondary)
+            }
+        }
+        uiState is ChatUiState.ActiveChat -> {
+            if (uiState.messages.isEmpty()) {
+                ChatEmptyState(
+                    avatar = activeAvatar,
+                    userName = userName,
+                    suggestedQuestions = listOf(
+                        stringResource(R.string.chat_suggested_question_1),
+                        stringResource(R.string.chat_suggested_question_2),
+                        stringResource(R.string.chat_suggested_question_3),
+                        stringResource(R.string.chat_suggested_question_4)
+                    ),
+                    onQuestionClick = { viewModel.sendMessage(it) },
+                    seedPrompt = seedPrompt,
+                    seedContext = seedContext
+                )
+            } else {
+                ChatConversationList(
+                    messages = uiState.messages,
+                    chatId = uiState.chatId,
+                    isSending = isSending,
+                    userRatings = userRatings,
+                    userBubbleColor = palette.bubble,
+                    onUserBubbleColor = palette.onBubble,
+                    onRate = { msgId, rating -> viewModel.rateMessage(uiState.chatId, msgId, rating) }
+                )
+            }
+        }
+        uiState is ChatUiState.Error -> {
+            ChatErrorState(
+                message = uiState.message,
+                onRetry = { uiState.retryAction?.invoke() }
+            )
+        }
+        else -> {
+            // Waiting for initialization
+        }
+    }
+}
+
+@Composable
 fun ChatErrorState(message: String, onRetry: (() -> Unit)?) {
+    val metrics = responsiveMetrics()
+
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(metrics.pagePadding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
             Icons.Default.CloudOff,
             contentDescription = null,
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(metrics.orbitCoreSize * 0.4f),
             tint = MaterialTheme.colorScheme.outlineVariant
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(metrics.chatMessagePadding))
         Text(message, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
         if (onRetry != null) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(metrics.chatMessagePadding))
             Button(onClick = onRetry, shape = RoundedCornerShape(20.dp)) {
-                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Retry")
+                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize))
+                Spacer(modifier = Modifier.width(metrics.chatMessagePadding / 2))
+                Text(stringResource(R.string.chat_btn_retry))
             }
         }
     }
 }
 
 @Composable
-fun ChatEmptyState(suggestedQuestions: List<String>, onQuestionClick: (String) -> Unit) {
+fun ChatEmptyState(
+    avatar: ChatAvatar?,
+    userName: String,
+    suggestedQuestions: List<String>,
+    onQuestionClick: (String) -> Unit,
+    seedPrompt: String? = null,
+    seedContext: String? = null
+) {
+    val metrics = responsiveMetrics()
+    val primary = MaterialTheme.colorScheme.primary
+    val secondary = MaterialTheme.colorScheme.secondary
+    val displayName = avatar?.name ?: "Navi"
+    val displayTitle = avatar?.title ?: stringResource(R.string.chat_default_guide_title)
+    val heroSize = if (metrics.isVeryCompactWidth || metrics.isLargeFont) 104.dp
+                   else if (metrics.isCompactWidth) 132.dp else 156.dp
+
+    val greeting = if (userName.isNotBlank()) {
+        stringResource(R.string.chat_greeting_with_name, userName)
+    } else {
+        stringResource(R.string.chat_greeting_default)
+    }
+    val intro = stringResource(R.string.chat_intro_format, displayName, displayTitle)
+
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = metrics.pagePadding, vertical = metrics.chatMessagePadding),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Surface(
-            modifier = Modifier.size(80.dp),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+        Spacer(modifier = Modifier.height(metrics.chatMessagePadding))
+
+        // Hero avatar with soft glow
+        Box(
+            modifier = Modifier.size(heroSize + 40.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
-            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                primary.copy(alpha = 0.30f),
+                                primary.copy(alpha = 0.12f),
+                                Color.Transparent
+                            )
+                        ),
+                        CircleShape
+                    )
+            )
+            ChatAvatarImage(
+                avatar = avatar,
+                modifier = Modifier
+                    .size(heroSize)
+                    .clip(CircleShape)
+                    .border(2.dp, primary.copy(alpha = 0.45f), CircleShape),
+                contentScale = ContentScale.Crop
+            )
         }
-        Spacer(modifier = Modifier.height(24.dp))
-        Text("Namaste ✦", fontSize = 32.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
-        Spacer(modifier = Modifier.height(12.dp))
+
+        Spacer(modifier = Modifier.height(metrics.chatMessagePadding * 1.25f))
+
         Text(
-            "I am Navi, your cosmic guide. Ask me about your career, relationships, or health based on your Vedic chart.",
+            text = greeting,
+            fontSize = if (metrics.isVeryCompactWidth || metrics.isLargeFont) 22.sp
+                      else if (metrics.isCompactWidth) 24.sp else 26.sp,
+            fontWeight = FontWeight.Black,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-            modifier = Modifier.padding(horizontal = 16.dp)
+            maxLines = 2
         )
-        Spacer(modifier = Modifier.height(40.dp))
 
-        Text("HOW CAN I HELP YOU TODAY?", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            items(suggestedQuestions) { question ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().clickable { onQuestionClick(question) },
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+        Text(
+            text = intro,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
+            lineHeight = 20.sp,
+            modifier = Modifier.padding(horizontal = if (metrics.isCompactWidth) 0.dp else metrics.pagePadding)
+        )
+
+        Spacer(modifier = Modifier.height(metrics.chatMessagePadding * 1.5f))
+
+        // Trust chips
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Top
+        ) {
+            TrustChip(
+                icon = Icons.Default.AutoAwesome,
+                tint = primary,
+                title = stringResource(R.string.chat_trust_vedic_title),
+                subtitle = stringResource(R.string.chat_trust_vedic_subtitle)
+            )
+            TrustChip(
+                icon = Icons.Default.Person,
+                tint = primary,
+                title = stringResource(R.string.chat_trust_personalized_title),
+                subtitle = stringResource(R.string.chat_trust_personalized_subtitle)
+            )
+            TrustChip(
+                icon = Icons.Default.Shield,
+                tint = primary,
+                title = stringResource(R.string.chat_trust_private_title),
+                subtitle = stringResource(R.string.chat_trust_private_subtitle)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(metrics.chatMessagePadding * 1.5f))
+
+        if (!seedPrompt.isNullOrBlank()) {
+            val contextTitle = if (!seedContext.isNullOrBlank()) seedContext else "From your daily energy reading"
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = metrics.chatMessagePadding),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = primary.copy(alpha = 0.08f)
+                ),
+                border = BorderStroke(1.5.dp, Brush.horizontalGradient(listOf(primary.copy(alpha = 0.4f), secondary.copy(alpha = 0.4f))))
+            ) {
+                Column(
+                    modifier = Modifier.padding(metrics.cardPadding),
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.ChatBubble, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.secondary)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(question, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = contextTitle,
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = primary
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Text(
+                        text = seedPrompt,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 22.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Button(
+                        onClick = { onQuestionClick(seedPrompt) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text(
+                            text = "Ask $displayName",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
                     }
                 }
             }
+        }
+
+        // Popular Questions card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = secondary.copy(alpha = 0.06f)
+            ),
+            border = BorderStroke(1.dp, secondary.copy(alpha = 0.2f))
+        ) {
+            Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = secondary
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        stringResource(R.string.chat_popular_questions_title),
+                        fontWeight = FontWeight.Black,
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+                Spacer(modifier = Modifier.height(metrics.chatMessagePadding * 0.75f))
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    suggestedQuestions.forEach { question ->
+                        PopularQuestionRow(question = question, onClick = { onQuestionClick(question) })
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(metrics.chatMessagePadding))
+    }
+}
+
+@Composable
+private fun TrustChip(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tint: Color,
+    title: String,
+    subtitle: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.widthIn(min = 88.dp)
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = tint.copy(alpha = 0.10f),
+            modifier = Modifier.size(40.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = tint
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            title,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            subtitle,
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun PopularQuestionRow(question: String, onClick: () -> Unit) {
+    val metrics = responsiveMetrics()
+    val hPad = if (metrics.isVeryCompactWidth) 12.dp else 14.dp
+    val vPad = if (metrics.isVeryCompactWidth) 10.dp else 12.dp
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = hPad, vertical = vPad),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                question,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.outlineVariant
+            )
         }
     }
 }
@@ -240,16 +598,17 @@ fun ChatHistoryList(
     onDelete: (String) -> Unit,
     onLoadMore: () -> Unit
 ) {
+    val metrics = responsiveMetrics()
     if (history.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.outlineVariant)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("No past conversations found.", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f))
+                Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(metrics.orbitCoreSize * 0.4f), tint = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(modifier = Modifier.height(metrics.chatMessagePadding))
+                Text(stringResource(R.string.chat_no_past_conversations), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f))
             }
         }
     } else {
-        LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(metrics.pagePadding), verticalArrangement = Arrangement.spacedBy(metrics.chatMessagePadding / 2)) {
             items(history, key = { it.id }) { chat ->
                 ChatHistoryItem(
                     chat = chat,
@@ -260,13 +619,13 @@ fun ChatHistoryList(
             if (canLoadMore) {
                 item {
                     Box(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(metrics.pagePadding),
                         contentAlignment = Alignment.Center
                     ) {
                         TextButton(onClick = onLoadMore) {
-                            Icon(Icons.Default.ExpandMore, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Load more chats")
+                            Icon(Icons.Default.ExpandMore, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize))
+                            Spacer(modifier = Modifier.width(metrics.chatMessagePadding / 4))
+                            Text(stringResource(R.string.chat_load_more_button))
                         }
                     }
                 }
@@ -277,6 +636,7 @@ fun ChatHistoryList(
 
 @Composable
 fun ChatHistoryItem(chat: ChatSummary, onSelect: () -> Unit, onDelete: () -> Unit) {
+    val metrics = responsiveMetrics()
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onSelect() },
         shape = RoundedCornerShape(20.dp),
@@ -284,29 +644,29 @@ fun ChatHistoryItem(chat: ChatSummary, onSelect: () -> Unit, onDelete: () -> Uni
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.1f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            modifier = Modifier.padding(horizontal = metrics.cardPadding, vertical = metrics.cardPadding * 0.75f),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)) {
+            Surface(modifier = Modifier.size(metrics.snapshotImageSize), shape = CircleShape, color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.ChatBubble, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.ChatBubble, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(metrics.bottomNavIconSize))
                 }
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(metrics.chatMessagePadding))
             Column(modifier = Modifier.weight(1f)) {
                 Text(chat.title, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        chat.updatedAt?.take(10) ?: chat.createdAt?.take(10) ?: "Past conversation",
+                        chat.updatedAt?.take(10) ?: chat.createdAt?.take(10) ?: stringResource(R.string.chat_history_default_title),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                     )
                     if (chat.averageRating != null && chat.averageRating > 0) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(12.dp), tint = Color(0xFFFFC107))
+                        Spacer(modifier = Modifier.width(metrics.chatMessagePadding / 2))
+                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize * 0.75f), tint = Color(0xFFFFC107))
                         Spacer(modifier = Modifier.width(2.dp))
                         Text(
-                            String.format("%.1f", chat.averageRating),
+                            String.format(Locale.US, "%.1f", chat.averageRating),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFFFFC107),
                             fontWeight = FontWeight.Bold
@@ -314,8 +674,8 @@ fun ChatHistoryItem(chat: ChatSummary, onSelect: () -> Unit, onDelete: () -> Uni
                     }
                 }
             }
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.DeleteOutline, contentDescription = "Delete", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.outlineVariant)
+            IconButton(onClick = onDelete, modifier = Modifier.size(metrics.snapshotImageSize * 0.8f)) {
+                Icon(Icons.Default.DeleteOutline, contentDescription = stringResource(R.string.chat_btn_delete), modifier = Modifier.size(metrics.kundliSmallIconSize), tint = MaterialTheme.colorScheme.outlineVariant)
             }
         }
     }
@@ -327,27 +687,43 @@ fun ChatConversationList(
     chatId: String,
     isSending: Boolean,
     userRatings: Map<String, Int>,
+    userBubbleColor: Color,
+    onUserBubbleColor: Color,
     onRate: (msgId: String, rating: Int) -> Unit
 ) {
     val listState = rememberLazyListState()
+    val metrics = responsiveMetrics()
 
     val reversedMessages = remember(messages) { messages.reversed() }
+
+    LaunchedEffect(messages.size, isSending) {
+        if (messages.isNotEmpty()) {
+            val lastMessage = messages.last()
+            val isUserMessage = lastMessage.role == "user" || lastMessage.type == "user"
+            val isAtBottom = listState.firstVisibleItemIndex <= 1
+            if (isAtBottom || isUserMessage) {
+                listState.animateScrollToItem(0)
+            }
+        }
+    }
 
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(metrics.pagePadding),
+        verticalArrangement = Arrangement.spacedBy(metrics.chatMessagePadding),
         reverseLayout = true
     ) {
         if (isSending) {
             item { ThinkingIndicator() }
         }
-        items(reversedMessages) { message ->
+        items(reversedMessages, key = { it.id }) { message ->
             ChatBubble(
                 message = message,
                 chatId = chatId,
                 userRating = userRatings[message.id],
+                userBubbleColor = userBubbleColor,
+                onUserBubbleColor = onUserBubbleColor,
                 onRate = onRate
             )
         }
@@ -355,39 +731,50 @@ fun ChatConversationList(
 }
 
 @Composable
-fun ChatInputBar(isSending: Boolean, onSendMessage: (String) -> Unit) {
+fun ChatInputBar(
+    isSending: Boolean,
+    suggestedQuestions: List<String>,
+    onSendMessage: (String) -> Unit
+) {
     var inputText by remember { mutableStateOf("") }
-    val suggestions = listOf(
-        "How will my day go today?",
-        "Ask about my career",
-        "Ask about my education"
-    )
+    val metrics = responsiveMetrics()
+    val verticalPad = if (metrics.isVeryCompactWidth) 6.dp
+                      else if (metrics.isCompactWidth) 8.dp
+                      else metrics.chatMessagePadding
+    val sendButtonSize = if (metrics.isCompactWidth) 40.dp else 44.dp
+    val fieldMaxLines = if (metrics.isVeryCompactWidth) 3 else 4
 
     Surface(
         tonalElevation = 8.dp,
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)).imePadding(),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)).imePadding().navigationBarsPadding(),
         color = MaterialTheme.colorScheme.surface
     ) {
-        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                contentPadding = PaddingValues(end = 24.dp)
-            ) {
-                items(suggestions) { suggestion ->
-                    SuggestionChip(
-                        onClick = { onSendMessage(suggestion) },
-                        label = { Text(suggestion, fontSize = 12.sp, fontWeight = FontWeight.Bold) },
-                        colors = SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.05f),
-                            labelColor = MaterialTheme.colorScheme.secondary
-                        ),
-                        border = BorderStroke(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
+        Column(modifier = Modifier.padding(horizontal = metrics.pagePadding, vertical = verticalPad)) {
+            if (suggestedQuestions.isNotEmpty() && !isSending) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
+                ) {
+                    items(suggestedQuestions) { question ->
+                        Surface(
+                            modifier = Modifier
+                                .clickable { onSendMessage(question) },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+                        ) {
+                            Text(
+                                text = question,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -399,27 +786,29 @@ fun ChatInputBar(isSending: Boolean, onSendMessage: (String) -> Unit) {
                     value = inputText,
                     onValueChange = { inputText = it },
                     modifier = Modifier.weight(1f).bringIntoViewOnFocus(),
-                    placeholder = { Text("Ask questions...") },
-                    shape = RoundedCornerShape(24.dp),
+                    placeholder = { Text(stringResource(R.string.chat_input_placeholder)) },
+                    shape = RoundedCornerShape(20.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                         focusedBorderColor = MaterialTheme.colorScheme.primary
                     ),
-                    maxLines = 4
+                    maxLines = fieldMaxLines
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(metrics.chatMessagePadding))
                 IconButton(
                     onClick = {
                         onSendMessage(inputText)
                         inputText = ""
                     },
                     enabled = inputText.isNotBlank() && !isSending,
-                    modifier = Modifier.background(
-                        if (inputText.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
-                        CircleShape
-                    )
+                    modifier = Modifier
+                        .size(sendButtonSize)
+                        .background(
+                            if (inputText.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                            CircleShape
+                        )
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = Color.White)
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.chat_desc_send), tint = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
@@ -429,6 +818,7 @@ fun ChatInputBar(isSending: Boolean, onSendMessage: (String) -> Unit) {
 @Composable
 fun ThinkingIndicator() {
     var dots by remember { mutableStateOf("") }
+    val metrics = responsiveMetrics()
     LaunchedEffect(Unit) {
         while (true) {
             dots = when (dots) {
@@ -440,12 +830,12 @@ fun ThinkingIndicator() {
             delay(500)
         }
     }
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
-        Box(modifier = Modifier.size(24.dp).background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f), CircleShape), contentAlignment = Alignment.Center) {
-            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.secondary)
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(metrics.chatMessagePadding / 2)) {
+        Box(modifier = Modifier.size(metrics.bottomNavIconSize * 1.2f).background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f), CircleShape), contentAlignment = Alignment.Center) {
+            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize * 0.75f), tint = MaterialTheme.colorScheme.secondary)
         }
-        Spacer(modifier = Modifier.width(12.dp))
-        Text("Navi is reflecting$dots", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.width(metrics.chatMessagePadding))
+        Text(stringResource(R.string.chat_thinking_message_format, dots), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -455,10 +845,20 @@ fun ChatBubble(
     message: ChatMessage,
     chatId: String,
     userRating: Int?,
+    userBubbleColor: Color,
+    onUserBubbleColor: Color,
     onRate: (msgId: String, rating: Int) -> Unit
 ) {
     val isUser = message.role == "user" || message.type == "user"
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    val metrics = responsiveMetrics()
+    fun copyMessage() {
+        scope.launch {
+            val text = message.content.ifEmpty { message.text ?: "" }
+            clipboard.setSensitiveText("message", text)
+        }
+    }
 
     Box(
         modifier = Modifier.fillMaxWidth(),
@@ -468,19 +868,17 @@ fun ChatBubble(
             // AI label
             if (!isUser) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)) {
-                    Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(10.dp), tint = MaterialTheme.colorScheme.secondary)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("NAVI · AI ASTROLOGER", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                    Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize * 0.6f), tint = MaterialTheme.colorScheme.secondary)
+                    Spacer(modifier = Modifier.width(metrics.chatMessagePadding / 3))
+                    Text(stringResource(R.string.chat_ai_astrologer_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                 }
             }
 
             // Message card
             Card(
-                modifier = Modifier.combinedClickable(
+                modifier = Modifier.widthIn(max = metrics.chatBubbleMaxWidth).combinedClickable(
                     onClick = {},
-                    onLongClick = {
-                        clipboardManager.setText(AnnotatedString(message.content))
-                    }
+                    onLongClick = { copyMessage() }
                 ),
                 shape = RoundedCornerShape(
                     topStart = 24.dp,
@@ -489,22 +887,25 @@ fun ChatBubble(
                     bottomEnd = if (isUser) 4.dp else 24.dp
                 ),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (isUser) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surface
+                    containerColor = if (isUser) userBubbleColor else MaterialTheme.colorScheme.surface
                 ),
                 border = if (isUser) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
             ) {
                 if (isUser) {
                     Text(
-                        text = message.content,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
-                        color = MaterialTheme.colorScheme.onSecondary,
+                        text = message.content.ifEmpty { message.text ?: "" },
+                        modifier = Modifier.padding(horizontal = metrics.cardPadding, vertical = metrics.chatMessagePadding),
+                        color = onUserBubbleColor,
                         fontSize = 15.sp,
                         lineHeight = 22.sp
                     )
                 } else {
+                    val parsedContent = remember(message.content, message.text) {
+                        renderMarkdown(message.content.ifEmpty { message.text ?: "" })
+                    }
                     Text(
-                        text = renderMarkdown(message.content),
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+                        text = parsedContent,
+                        modifier = Modifier.padding(horizontal = metrics.cardPadding, vertical = metrics.chatMessagePadding),
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 15.sp,
                         lineHeight = 22.sp
@@ -534,12 +935,12 @@ fun ChatBubble(
                             val newRating = if (userRating == 1) 0 else 1
                             onRate(message.id, newRating)
                         },
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(metrics.bottomNavIconSize * 1.4f)
                     ) {
                         Icon(
                             if (userRating == 1) Icons.Default.ThumbUp else Icons.Default.ThumbUpOffAlt,
-                            contentDescription = "Helpful",
-                            modifier = Modifier.size(16.dp),
+                            contentDescription = stringResource(R.string.chat_desc_helpful),
+                            modifier = Modifier.size(metrics.kundliSmallIconSize),
                             tint = if (userRating == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                         )
                     }
@@ -549,24 +950,24 @@ fun ChatBubble(
                             val newRating = if (userRating == -1) 0 else -1
                             onRate(message.id, newRating)
                         },
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(metrics.bottomNavIconSize * 1.4f)
                     ) {
                         Icon(
                             if (userRating == -1) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
-                            contentDescription = "Not helpful",
-                            modifier = Modifier.size(16.dp),
+                            contentDescription = stringResource(R.string.chat_desc_not_helpful),
+                            modifier = Modifier.size(metrics.kundliSmallIconSize),
                             tint = if (userRating == -1) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outlineVariant
                         )
                     }
                     // Copy
                     IconButton(
-                        onClick = { clipboardManager.setText(AnnotatedString(message.content)) },
-                        modifier = Modifier.size(28.dp)
+                        onClick = { copyMessage() },
+                        modifier = Modifier.size(metrics.bottomNavIconSize * 1.4f)
                     ) {
                         Icon(
                             Icons.Default.ContentCopy,
-                            contentDescription = "Copy",
-                            modifier = Modifier.size(14.dp),
+                            contentDescription = stringResource(R.string.chat_desc_copy),
+                            modifier = Modifier.size(metrics.kundliSmallIconSize * 0.85f),
                             tint = MaterialTheme.colorScheme.outlineVariant
                         )
                     }
@@ -575,6 +976,11 @@ fun ChatBubble(
         }
     }
 }
+
+private val bulletRegex = Regex("^[*]\\s.+")
+private val numberedRegex = Regex("^(\\d+\\.\\s)(.+)")
+private val boldRegex = Regex("\\*\\*(.+?)\\*\\*")
+private val italicRegex = Regex("\\*(.+?)\\*")
 
 /**
  * Basic markdown → AnnotatedString renderer.
@@ -609,7 +1015,7 @@ private fun renderMarkdown(text: String): AnnotatedString {
             }
 
             // Bullet points: - or • or *
-            if (trimmed.startsWith("- ") || trimmed.startsWith("• ") || trimmed.matches(Regex("^[*]\\s.+"))) {
+            if (trimmed.startsWith("- ") || trimmed.startsWith("• ") || trimmed.matches(bulletRegex)) {
                 append("• ")
                 val content = trimmed.removePrefix("- ").removePrefix("• ").removePrefix("* ")
                 appendMarkdownInline(content)
@@ -617,7 +1023,7 @@ private fun renderMarkdown(text: String): AnnotatedString {
             }
 
             // Numbered lists: 1. 2. etc
-            val numberedMatch = Regex("^(\\d+\\.\\s)(.+)").find(trimmed)
+            val numberedMatch = numberedRegex.find(trimmed)
             if (numberedMatch != null) {
                 append(numberedMatch.groupValues[1])
                 appendMarkdownInline(numberedMatch.groupValues[2])
@@ -632,9 +1038,6 @@ private fun renderMarkdown(text: String): AnnotatedString {
 
 private fun AnnotatedString.Builder.appendMarkdownInline(text: String) {
     var remaining = text
-    // Process **bold** and *italic*
-    val boldRegex = Regex("\\*\\*(.+?)\\*\\*")
-    val italicRegex = Regex("\\*(.+?)\\*")
 
     while (remaining.isNotEmpty()) {
         val boldMatch = boldRegex.find(remaining)
@@ -680,5 +1083,25 @@ private fun formatTimestamp(timestamp: String): String {
         "$datePart $timePart"
     } catch (e: Exception) {
         timestamp.take(16)
+    }
+}
+
+@PreviewMultiDevice
+@Composable
+fun ChatEmptyStatePreview() {
+    AstraNaviTheme {
+        Surface {
+            ChatEmptyState(
+                avatar = FallbackChatAvatarCatalog.avatars.first(),
+                userName = "Ankit Prasad",
+                suggestedQuestions = listOf(
+                    "How will my day go today?",
+                    "Ask about my career",
+                    "Is this a good time for a new job?",
+                    "What should I focus on right now?"
+                ),
+                onQuestionClick = {}
+            )
+        }
     }
 }

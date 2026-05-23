@@ -47,9 +47,23 @@ val DarkGlassBorder = Color(0x4DFFFFFF) // Faint gold/white glow
 val DarkHeroGradientStart = Color(0xFF1A237E) // Deep navy
 val DarkHeroGradientEnd = Color(0xFF000000)  // Black
 
+// Brand Gold Tokens — Dark Mode
+val DarkAntiqueGold = Color(0xFFD8A84A)
+val DarkHighlightGold = Color(0xFFFFE2A3)
+val DarkShadowGold = Color(0xFF8A5A18)
+val DarkSoftGlowGold = Color(0xFFF6B94A)
+val DarkBrandTextColor = Color.White
+
+// Brand Gold Tokens — Light Mode (warmer/darker for ivory contrast)
+val LightAntiqueGold = Color(0xFF8A5A18)
+val LightHighlightGold = Color(0xFFD8A84A)
+val LightShadowGold = Color(0xFF5A3A08)
+val LightSoftGlowGold = Color(0xFFC8880A)
+val LightBrandTextColor = LightForeground
+
 object AstroColors {
     val Sun = Color(0xFFF57C00) // Orange/Gold
-    val Moon = Color(0xFFE0E0E0) // Silver/White
+    val Moon = Color(0xFF78909C) // Midnight Silver
     val Mars = Color(0xFFD32F2F) // Red
     val Mercury = Color(0xFF388E3C) // Green
     val Jupiter = Color(0xFFFBC02D) // Yellow
@@ -58,6 +72,17 @@ object AstroColors {
     val Rahu = Color(0xFF455A64) // Dark Grey/Smoke
     val Ketu = Color(0xFF795548) // Brown/Earth
     val Default = Color(0xFF7C3AED) // Default Purple
+
+    // ── Floating Card Tokens (Ivory Cosmic) ──
+    // Light: warm ivory surface + soft gold border + faint gold spot shadow
+    val LightFloatingSurface = Color(0xFFFBF7EE)
+    val LightFloatingBorder = Color(0xFFD8A84A)
+    val LightFloatingGlow = Color(0xFFC8880A)
+
+    // Dark: warm onyx surface + dim gold border + soft purple glow
+    val DarkFloatingSurface = Color(0xFF15102B)
+    val DarkFloatingBorder = Color(0xFF8A5A18)
+    val DarkFloatingGlow = Color(0xFF7C3AED)
 
     fun getPlanetaryColor(planet: String?): Color {
         if (planet == null) return Default

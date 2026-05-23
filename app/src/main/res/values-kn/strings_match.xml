@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Input Form -->
+    <string name="match_btn_calculate">ಹೊಂದಾಣಿಕೆ ಲೆಕ್ಕಾಚಾರ ಮಾಡಿ</string>
+    <string name="match_desc_vedic_analysis">ಸಾಮರಸ್ಯ ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯಕ್ಕಾಗಿ ಸಾಂಪ್ರದಾಯಿಕ 36 ಗುಣ ವೈದಿಕ ಹೊಂದಾಣಿಕೆ ವಿಶ್ಲೇಷಣೆ.</string>
+    <string name="match_label_person1">ವ್ಯಕ್ತಿ 1 (ನೀವು)</string>
+    <string name="match_label_person2">ವ್ಯಕ್ತಿ 2 (ಸಂಗಾತಿ)</string>
+    <string name="match_field_name">ಹೆಸರು</string>
+    <string name="match_field_birth_place">ಹುಟ್ಟಿದ ಸ್ಥಳ</string>
+    <string name="match_option_male">ಪುರುಷ</string>
+    <string name="match_option_female">ಮಹಿಳೆ</string>
+
+    <!-- Match Result View -->
+    <string name="match_label_out_of_36">36 ರಲ್ಲಿ</string>
+    <string name="match_section_breakdown">ಅಷ್ಟಕೂಟ ವಿಶ್ಲೇಷಣೆ</string>
+    <string name="match_btn_analyze_another">ಮತ್ತೊಂದು ಹೊಂದಾಣಿಕೆ ವಿಶ್ಲೇಷಿಸಿ</string>
+
+    <!-- Score Labels -->
+    <string name="match_score_excellent">ಅತ್ಯುತ್ತಮ ಹೊಂದಾಣಿಕೆ</string>
+    <string name="match_score_good">ಒಳ್ಳೆಯ ಹೊಂದಾಣಿಕೆ</string>
+    <string name="match_score_low">ಕಡಿಮೆ ಹೊಂದಾಣಿಕೆ</string>
+
+    <!-- Mangal Dosha Panel -->
+    <string name="match_label_mangal_status">ಮಂಗಳ ದೋಷ ಸ್ಥಿತಿ</string>
+    <string name="match_msg_mangal_detected">ಕುಂಡಲಿಗಳಲ್ಲಿ ಮಂಗಳನ ಪ್ರಭಾವ ಕಂಡುಬಂದಿದೆ.</string>
+    <string name="match_msg_no_mangal">ಯಾವುದೇ ಮಂಗಳ ದೋಷವಿಲ್ಲ.</string>
+    <string name="match_label_cancellation">ರದ್ದತಿ:</string>
+
+    <!-- Match History Screen -->
+    <string name="match_empty_history">ಯಾವುದೇ ಹೊಂದಾಣಿಕೆ ದಾಖಲೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ.</string>
+    <string name="match_section_guna_milan">ಗುಣ ಮಿಲನ ವಿವರಗಳು</string>
+    <string name="match_section_mangal">ಮಂಗಳ ದೋಷ</string>
+    <string name="match_btn_delete_record">ದಾಖಲೆ ಅಳಿಸಿ</string>
+
+    <!-- Mangal Dosha Status -->
+    <string name="match_dosha_compatible">ಹೊಂದಾಣಿಕೆಯಾಗುವ (ಸುರಕ್ಷಿತ)</string>
+    <string name="match_dosha_high_influence">ಹೆಚ್ಚಿನ ಪ್ರಭಾವ ಕಂಡುಬಂದಿದೆ</string>
+    <string name="match_dosha_influence">ಪ್ರಭಾವ ಕಂಡುಬಂದಿದೆ</string>
+    <string name="match_dosha_no_influence">ಯಾವುದೇ ಪ್ರಮುಖ ಪ್ರಭಾವವಿಲ್ಲ</string>
+</resources>

@@ -5,8 +5,9 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import com.astranavi.app.ui.components.LocalBackgroundScrollState
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
@@ -31,16 +33,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
+import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
 import coil.decode.SvgDecoder
-import com.astranavi.app.ui.components.DashaTimelineItem
+import com.astranavi.app.ui.components.DashaCircularItem
 import com.astranavi.app.data.model.*
 import java.util.*
 import com.astranavi.app.util.ZodiacMapper
+import com.astranavi.app.ui.components.ShimmerBlock
 import com.astranavi.app.ui.components.shimmerEffect
 import com.astranavi.app.ui.components.shimmerSweepEffect
+import com.astranavi.app.R
 import com.astranavi.app.ui.theme.AstroColors
 import com.astranavi.app.ui.components.ScoreColors
+import com.astranavi.app.ui.components.floatingCard
+import com.astranavi.app.ui.components.responsiveMetrics
+import com.astranavi.app.LocalBottomBarHeight
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -71,18 +81,39 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.nativeCanvas
 import com.astranavi.app.BuildConfig
+import com.astranavi.app.ui.components.PaywallCard
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.astranavi.app.util.LocaleFormatter
+import com.astranavi.app.util.currentAppLocale
+import com.astranavi.app.util.nextLocalHourMillis
+import kotlinx.coroutines.isActive
+
+private const val CARD_SURFACE_ALPHA = 0.68f
+private const val CARD_SURFACE_LIGHT_ALPHA = 0.5f
+
+fun titleCase(text: String?): String {
+    if (text.isNullOrBlank()) return ""
+    return text.trim().split("\\s+".toRegex()).joinToString(" ") { word ->
+        word.lowercase().replaceFirstChar { it.uppercase() }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
-    onOpenDrawer: () -> Unit,
     onNavigateToProfile: () -> Unit = {},
+    onNavigateToPlans: () -> Unit = {},
     onNavigateToRashis: (String?) -> Unit = {},
     onNavigateToExperts: () -> Unit = {},
-    onNavigateToChat: (String?) -> Unit = {},
+    onNavigateToChat: (String?, String?) -> Unit = { _, _ -> },
     onNavigateToKundli: () -> Unit = {},
     onNavigateToMatch: () -> Unit = {},
     onNavigateToMatchHistory: () -> Unit = {},
@@ -93,376 +124,457 @@ fun DashboardScreen(
 ) {
     val uiState = viewModel.uiState.value
     val scrollState = rememberScrollState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchDashboardData()
+    LaunchedEffect(uiState) {
+        if (uiState !is DashboardState.Loading) {
+            isRefreshing = false
+        }
     }
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.fetchDashboardData(silent = true)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            val target = nextLocalHourMillis()
+            val sleep = (target - System.currentTimeMillis() + 1_000L).coerceAtLeast(1_000L)
+            delay(sleep)
+            viewModel.fetchDashboardData(silent = true)
+        }
+    }
+
+    CompositionLocalProvider(LocalBackgroundScrollState provides scrollState) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color.Transparent)
     ) {
-        // High-performance background with parallax tie-in
-        com.astranavi.app.ui.components.ParticleBackground(
-            scrollState = scrollState,
-            particleCount = 150
-        )
 
-        when (uiState) {
-            is DashboardState.Loading -> {
-                DashboardSkeleton()
-            }
-            is DashboardState.Success -> {
-                DashboardContent(
-                    uiState = uiState,
-                    viewModel = viewModel,
-                    scrollState = scrollState,
-                    onNavigateToExperts = onNavigateToExperts,
-                    onNavigateToChat = onNavigateToChat,
-                    onNavigateToKundli = onNavigateToKundli,
-                    onNavigateToRashis = onNavigateToRashis,
-                    onNavigateToMatch = onNavigateToMatch,
-                    onNavigateToMatchHistory = onNavigateToMatchHistory,
-                    onNavigateToNakshatras = onNavigateToNakshatras,
-                    onNavigateToPlanets = onNavigateToPlanets,
-                    onNavigateToConsult = onNavigateToConsult,
-                    onNavigateToForecast = onNavigateToForecast
-                )
-            }
-            is DashboardState.Error -> {
-                ErrorView(message = uiState.message, onRetry = { viewModel.fetchDashboardData() })
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                viewModel.fetchDashboardData(forceRefresh = true)
+            },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Note: Box is needed as a direct child of PullToRefreshBox to anchor scrollable content
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (uiState) {
+                    is DashboardState.Loading -> {
+                        DashboardSkeleton()
+                    }
+                    is DashboardState.Success -> {
+                        androidx.compose.foundation.layout.Column(modifier = Modifier.fillMaxSize()) {
+                            DashboardContent(
+                                uiState = uiState,
+                                viewModel = viewModel,
+                                scrollState = scrollState,
+                                onNavigateToExperts = onNavigateToExperts,
+                                onNavigateToChat = onNavigateToChat,
+                                onNavigateToKundli = onNavigateToKundli,
+                                onNavigateToRashis = onNavigateToRashis,
+                                onNavigateToMatch = onNavigateToMatch,
+                                onNavigateToMatchHistory = onNavigateToMatchHistory,
+                                onNavigateToNakshatras = onNavigateToNakshatras,
+                                onNavigateToPlanets = onNavigateToPlanets,
+                                onNavigateToConsult = onNavigateToConsult,
+                                onNavigateToForecast = onNavigateToForecast
+                            )
+                        }
+                    }
+                    is DashboardState.Error -> {
+                        ErrorView(message = uiState.message, onRetry = { viewModel.fetchDashboardData(forceRefresh = true) })
+                    }
+                }
             }
         }
     }
+    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardContent(
     uiState: DashboardState.Success,
     viewModel: DashboardViewModel,
     scrollState: ScrollState,
-    onNavigateToExperts: () -> Unit,
-    onNavigateToChat: (String?) -> Unit,
-    onNavigateToKundli: () -> Unit,
-    onNavigateToRashis: (String?) -> Unit,
-    onNavigateToMatch: () -> Unit,
-    onNavigateToMatchHistory: () -> Unit,
-    onNavigateToNakshatras: () -> Unit,
-    onNavigateToPlanets: () -> Unit,
-    onNavigateToConsult: () -> Unit,
-    onNavigateToForecast: (String?) -> Unit
+    onNavigateToExperts: () -> Unit = {},
+    onNavigateToChat: (String?, String?) -> Unit = { _, _ -> },
+    onNavigateToKundli: () -> Unit = {},
+    onNavigateToRashis: (String?) -> Unit = {},
+    onNavigateToMatch: () -> Unit = {},
+    onNavigateToMatchHistory: () -> Unit = {},
+    onNavigateToNakshatras: () -> Unit = {},
+    onNavigateToPlanets: () -> Unit = {},
+    onNavigateToConsult: () -> Unit = {},
+    onNavigateToForecast: (String?) -> Unit = {}
 ) {
     val horoscope = uiState.horoscope
+    val isLightMode = MaterialTheme.colorScheme.background.luminance() > 0.5f
 
-    // --- ANIMATION STATE FOR ENTRY SEQUENCE ---
-    val headerAlpha = remember { Animatable(0f) }
-    val headerSlide = remember { Animatable(30f) }
-    val zodiacScale = remember { Animatable(0.92f) }
-    val orbitExpansion = remember { Animatable(0.85f) }
-    val contentAlpha = remember { Animatable(0f) }
-
-    LaunchedEffect(Unit) {
-        // Staggered cinematic sequence - Expedited
-        launch {
-            delay(100)
-            headerAlpha.animateTo(1f, tween(400, easing = EaseOutCubic))
-        }
-        launch {
-            delay(100)
-            headerSlide.animateTo(0f, tween(500, easing = EaseOutCubic))
-        }
-        launch {
-            delay(200)
-            zodiacScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
-        }
-        launch {
-            delay(300)
-            orbitExpansion.animateTo(1f, tween(600, easing = EaseInOutQuart))
-        }
-        launch {
-            delay(100)
-            contentAlpha.animateTo(1f, tween(400))
-        }
+    val context = LocalContext.current
+    val homeUiState = remember(uiState, isLightMode, context) {
+        DailyHomeUiMapper.map(
+            horoscope = horoscope,
+            moonSign = uiState.moonSign,
+            sunSign = uiState.sunSign,
+            lagnaSign = uiState.lagnaSign,
+            userName = uiState.userName,
+            isDarkTheme = !isLightMode,
+            context = context
+        )
     }
 
-    val isLightMode = MaterialTheme.colorScheme.background.luminance() > 0.5f
     val generalPalette = remember(horoscope.score.overall, isLightMode) {
         ScoreColors.paletteFor("general", horoscope.score.overall, isDarkTheme = !isLightMode)
     }
     val themeColor = if (isLightMode) generalPalette.main else generalPalette.glow
     val weeklyForecastColor = remember(uiState.forecast, isLightMode) {
-        val forecast = uiState.forecast
-        val todayAreaScore = forecast?.today_scores?.get(forecast.area)
-        if (forecast != null && todayAreaScore != null) {
-            val palette = ScoreColors.paletteFor(forecast.area, todayAreaScore, isDarkTheme = !isLightMode)
-            if (isLightMode) palette.main else palette.glow
-        } else {
-            null
+        if (uiState.forecast != null) {
+            val pal = ScoreColors.paletteFor("forecast", 80, isDarkTheme = !isLightMode)
+            if (isLightMode) pal.main else pal.glow
+        } else themeColor
+    }
+
+    // Bottom Sheet / Side Drawer State
+    var activeBottomSheet by remember { mutableStateOf<DashboardBottomSheetState>(DashboardBottomSheetState.None) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val responsive = responsiveMetrics()
+
+    val familyMembers = remember(context) {
+        listOf(
+            FamilyMemberUiModel(
+                id = "mother",
+                name = context.getString(R.string.dashboard_relation_mother),
+                relation = context.getString(R.string.dashboard_relation_mother),
+                score = 85,
+                bondingStatus = context.getString(R.string.dashboard_relation_status_harmonious),
+                communicationLevel = context.getString(R.string.dashboard_relation_level_excellent),
+                emotionalConnection = context.getString(R.string.dashboard_relation_bond_strong),
+                advice = context.getString(R.string.dashboard_relation_advice_mother),
+                avatarId = 1
+            ),
+            FamilyMemberUiModel(
+                id = "father",
+                name = context.getString(R.string.dashboard_relation_father),
+                relation = context.getString(R.string.dashboard_relation_father),
+                score = 72,
+                bondingStatus = context.getString(R.string.dashboard_relation_status_stable),
+                communicationLevel = context.getString(R.string.dashboard_relation_level_moderate),
+                emotionalConnection = context.getString(R.string.dashboard_relation_bond_warm),
+                advice = context.getString(R.string.dashboard_relation_advice_father),
+                avatarId = 2
+            ),
+            FamilyMemberUiModel(
+                id = "partner",
+                name = context.getString(R.string.dashboard_relation_partner),
+                relation = context.getString(R.string.dashboard_relation_partner),
+                score = 91,
+                bondingStatus = context.getString(R.string.dashboard_relation_status_harmonious),
+                communicationLevel = context.getString(R.string.dashboard_relation_level_deep_intimate),
+                emotionalConnection = context.getString(R.string.dashboard_relation_bond_extremely_close),
+                advice = context.getString(R.string.dashboard_relation_advice_partner),
+                avatarId = 3
+            ),
+            FamilyMemberUiModel(
+                id = "children",
+                name = context.getString(R.string.dashboard_relation_children),
+                relation = context.getString(R.string.dashboard_relation_child),
+                score = 64,
+                bondingStatus = context.getString(R.string.dashboard_relation_status_needs_attention),
+                communicationLevel = context.getString(R.string.dashboard_relation_level_distracted),
+                emotionalConnection = context.getString(R.string.dashboard_relation_bond_affectionate),
+                advice = context.getString(R.string.dashboard_relation_advice_child),
+                avatarId = 4
+            ),
+            FamilyMemberUiModel(
+                id = "friends",
+                name = context.getString(R.string.dashboard_relation_best_friend),
+                relation = context.getString(R.string.dashboard_relation_friend),
+                score = 78,
+                bondingStatus = context.getString(R.string.dashboard_relation_status_stable),
+                communicationLevel = context.getString(R.string.dashboard_relation_level_good),
+                emotionalConnection = context.getString(R.string.dashboard_relation_bond_steady),
+                advice = context.getString(R.string.dashboard_relation_advice_friend),
+                avatarId = 5
+            )
+        )
+    }
+
+    // Alert surface intentionally hidden; data still produced by VM.
+    // Cosmic Hour content now lives inside DailyHeroCard.
+    // Restore as in-app notification surface when notifications land. See next steps.md.
+    val showAlertRow = false
+
+    // Renders the main dashboard scrollable content
+    val mainContent: @Composable () -> Unit = {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = responsive.pagePadding)
+                .padding(top = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // 1. Greeting + Daily Chips (with inline compact weekly forecast on fold/tablet)
+            if (responsive.isMediumWidth && uiState.forecast != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        GreetingAndChips(
+                            header = homeUiState.header,
+                            chips = homeUiState.chips,
+                            onChipClick = { activeBottomSheet = DashboardBottomSheetState.AstroDetails }
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        WeeklyForecastCompact(
+                            forecast = uiState.forecast,
+                            themeColor = weeklyForecastColor,
+                            onNavigateToForecast = onNavigateToForecast
+                        )
+                    }
+                }
+            } else {
+                GreetingAndChips(
+                    header = homeUiState.header,
+                    chips = homeUiState.chips,
+                    onChipClick = { activeBottomSheet = DashboardBottomSheetState.AstroDetails }
+                )
+            }
+
+            // 2. Daily Hero Card (now hosts Cosmic Hour content + dominant-planet visual)
+            DailyHeroCard(
+                hero = homeUiState.hero,
+                cosmicHour = homeUiState.cosmicHour,
+                themeColor = themeColor,
+                onScoreClick = { activeBottomSheet = DashboardBottomSheetState.FullEnergy },
+                onCosmicHourClick = { activeBottomSheet = DashboardBottomSheetState.CosmicHourDetails }
+            )
+
+            // 3. Today's Life Areas Carousel
+            SectionHeader(title = stringResource(R.string.dashboard_header_life_areas))
+            LifeAreasCarousel(
+                areas = homeUiState.lifeAreas,
+                onAreaClick = { area -> activeBottomSheet = DashboardBottomSheetState.LifeAreaDetails(area.id) }
+            )
+
+            // 4. Weekly Forecast (mobile only — fold/tablet shows compact variant in top row)
+            if (uiState.forecast != null && !responsive.isMediumWidth) {
+                SectionHeader(stringResource(R.string.dashboard_header_current_week))
+                WeeklyForecastSection(uiState.forecast, weeklyForecastColor, onNavigateToForecast)
+            }
+
+            // 5. Kundli Quick Peek
+            if (uiState.kundliPreview != null) {
+                SectionHeader(stringResource(R.string.dashboard_header_kundli))
+                KundliPeekCard(
+                    data = uiState.kundliPreview,
+                    userEmail = uiState.userEmail,
+                    accessToken = uiState.accessToken,
+                    onClick = onNavigateToKundli
+                )
+            }
+
+            // 6. Family & Relationships
+            SectionHeader(title = stringResource(R.string.dashboard_header_family))
+            FamilyRelationshipsSection(
+                members = familyMembers,
+                isTablet = responsive.isTabletWidth,
+                onMemberClick = { member -> activeBottomSheet = DashboardBottomSheetState.FamilyMemberDetails(member.id) }
+            )
+
+            // 7. Alert (gated off; data preserved)
+            if (showAlertRow) {
+                SectionHeader(title = stringResource(R.string.dashboard_header_astro_focus))
+                AlertAndCosmicHourRow(
+                    alert = homeUiState.alert,
+                    cosmicHour = homeUiState.cosmicHour,
+                    onAlertClick = { activeBottomSheet = DashboardBottomSheetState.AlertDetails },
+                    onCosmicClick = { activeBottomSheet = DashboardBottomSheetState.CosmicHourDetails }
+                )
+            }
+
+            // 8. Consult Teaser
+            if (!uiState.recentConsultations.isNullOrEmpty()) {
+                SectionHeader(stringResource(R.string.dashboard_header_recent_consultation))
+                ConsultTeaserCard(uiState.recentConsultations.first(), onNavigateToConsult)
+            }
+
+            Spacer(modifier = Modifier.height(LocalBottomBarHeight.current + 24.dp))
         }
-    } ?: themeColor
+    }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        if (horoscope.engagement?.streak != null) {
-            StreakBar(streak = horoscope.engagement.streak)
-        }
-
-        var overlayState by remember { mutableStateOf<HomeOverlayState>(HomeOverlayState.None) }
-        val isExpanded = overlayState is HomeOverlayState.Expanded
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
+    // Determine Layout Structure based on Screen Class
+    if (responsive.isTabletWidth) {
+        // Tablet Side-by-Side Split View
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
+                    .fillMaxHeight()
                     .verticalScroll(scrollState)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 1. Header Section with Entry & Parallax
-                Box(
-                    modifier = Modifier
-                        .graphicsLayer {
-                            val scrollValue = scrollState.value.toFloat()
-                            // Fade out and scale down as it exits top
-                            alpha = (headerAlpha.value * (1f - (scrollValue / 600f))).coerceIn(0f, 1f)
-                            scaleX = (1f - (scrollValue / 5000f)).coerceIn(0.95f, 1f)
-                            scaleY = (1f - (scrollValue / 5000f)).coerceIn(0.95f, 1f)
-                            translationY = headerSlide.value + (scrollValue * 0.15f) // Parallax
-                        }
-                ) {
-                    HeaderSection(
-                        metaDate = horoscope.meta?.date_display,
-                        userName = horoscope.user?.name ?: uiState.userName,
-                        moonSign = uiState.moonSign,
-                        sunSign = uiState.sunSign,
-                        planetary = horoscope.planetary,
-                        isPersonalized = horoscope.system?.is_personalized == true,
-                        themeColor = themeColor,
-                        zodiacScale = zodiacScale.value,
-                        selectedBadgeLabel = (overlayState as? HomeOverlayState.RashiDetail)?.label,
-                        onBadgeClick = { signId, signName, label, color ->
-                            overlayState = if ((overlayState as? HomeOverlayState.RashiDetail)?.label == label) {
-                                HomeOverlayState.None
-                            } else {
-                                HomeOverlayState.RashiDetail(signId, signName, label, color)
-                            }
-                        },
-                        onReadMoreClick = { onNavigateToRashis(it) }
-                    )
-                }
-
-                // Main body wrapper for remaining elements with entrance fade
-                Column(
-                    modifier = Modifier
-                        .graphicsLayer { alpha = contentAlpha.value }
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // 2. TOP HIGHLIGHTS (Transit + Lucky)
-                    TopHighlightsRow(horoscope = horoscope)
-
-                    // 3. YOUR DAY TODAY (Centered)
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "YOUR DAY TODAY",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 13.sp),
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 2.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
-                    }
-
-                    // 4. TIP & NAVI (Golden Action)
-                    TipNaviRow(horoscope = horoscope, onChat = onNavigateToChat)
-
-                    // 5. INTERACTION HINT (Text only)
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "Tap an orbit to explore today's energy",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                            letterSpacing = 0.5.sp
-                        )
-                    }
-
-                    // 6. YOUR COSMIC ORBIT with expansion animation
-                    Box(
-                        modifier = Modifier
-                            .graphicsLayer {
-                                scaleX = orbitExpansion.value
-                                scaleY = orbitExpansion.value
-                                alpha = orbitExpansion.value
-                            }
-                    ) {
-                        OrbitSystem(
-                            horoscope = horoscope,
-                            themeColor = themeColor,
-                            overlayState = overlayState,
-                            onOverlayStateChange = { overlayState = it },
-                            onActionClick = { action, data ->
-                                when (action) {
-                                    "chat" -> onNavigateToChat(data as? String)
-                                    "forecast" -> onNavigateToForecast(data as? String)
-                                }
-                            }
-                        )
-                    }
-
-                    // --- NEW SECTIONS BELOW ---
-
-                    // 7. Weekly Forecast
-                    if (uiState.forecast != null) {
-                        Column(
-                            modifier = Modifier.graphicsLayer {
-                                val scrollValue = scrollState.value.toFloat()
-                                val triggerPos = 500f
-                                alpha = if (scrollValue > triggerPos) ((scrollValue - triggerPos) / 200f).coerceIn(0f, 1f) else 0f
-                                translationY = (15f * (1f - alpha)).coerceAtLeast(0f)
-                            }
-                        ) {
-                            SectionHeader("WEEK AHEAD")
-                            WeeklyForecastSection(uiState.forecast, weeklyForecastColor, onNavigateToForecast)
-                        }
-                    }
-
-                    // 8. Kundli Quick Peek
-                    if (uiState.kundliPreview != null) {
-                        Column(
-                            modifier = Modifier.graphicsLayer {
-                                val scrollValue = scrollState.value.toFloat()
-                                val triggerPos = 900f
-                                alpha = if (scrollValue > triggerPos) ((scrollValue - triggerPos) / 200f).coerceIn(0f, 1f) else 0f
-                                translationY = (15f * (1f - alpha)).coerceAtLeast(0f)
-                            }
-                        ) {
-                            KundliPeekCard(
-                                data = uiState.kundliPreview, 
-                                userEmail = uiState.userEmail,
-                                accessToken = uiState.accessToken,
-                                onClick = onNavigateToKundli
-                            )
-                        }
-                    }
-
-                    // 11. Consult Teaser
-                    if (!uiState.recentConsultations.isNullOrEmpty()) {
-                        Column(
-                            modifier = Modifier.graphicsLayer {
-                                val scrollValue = scrollState.value.toFloat()
-                                val triggerPos = 1600f
-                                alpha = if (scrollValue > triggerPos) ((scrollValue - triggerPos) / 200f).coerceIn(0f, 1f) else 0f
-                                translationY = (15f * (1f - alpha)).coerceAtLeast(0f)
-                            }
-                        ) {
-                            ConsultTeaserCard(uiState.recentConsultations.first(), onNavigateToConsult)
-                        }
-                    }
-
-                    if (horoscope.engagement?.streak != null) {
-                        StreakCard(streak = horoscope.engagement.streak)
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-                }
+                mainContent()
             }
 
-            // 5. POPUP OVERLAY (Top Layer - NO BLUR)
-            HomePopupOverlay(
-                overlayState = overlayState,
-                horoscope = horoscope,
-                onDismiss = { overlayState = HomeOverlayState.None },
-                onChatClick = onNavigateToChat,
-                onForecastClick = onNavigateToForecast,
-                onNavigateToRashis = onNavigateToRashis
-            )
+            // Right-side Slide-in Detail Drawer
+            AnimatedVisibility(
+                visible = activeBottomSheet != DashboardBottomSheetState.None,
+                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+            ) {
+                TabletDetailDrawer(
+                    state = activeBottomSheet,
+                    homeUiState = homeUiState,
+                    familyMembers = familyMembers,
+                    onNavigateToChat = onNavigateToChat,
+                    onDismiss = { activeBottomSheet = DashboardBottomSheetState.None }
+                )
+            }
+        }
+    } else {
+        // Mobile Single Column View
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .navigationBarsPadding()
+        ) {
+            mainContent()
+        }
+
+        // Native Modal Bottom Sheet
+        if (activeBottomSheet != DashboardBottomSheetState.None) {
+            ModalBottomSheet(
+                onDismissRequest = { activeBottomSheet = DashboardBottomSheetState.None },
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.surface,
+                dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)) }
+            ) {
+                BottomSheetContentSelector(
+                    state = activeBottomSheet,
+                    homeUiState = homeUiState,
+                    familyMembers = familyMembers,
+                    onNavigateToChat = onNavigateToChat,
+                    onDismiss = { activeBottomSheet = DashboardBottomSheetState.None }
+                )
+            }
         }
     }
 }
 
+// --- TABLET DETAIL DRAWER COMPONENT ---
 @Composable
-fun HeaderSection(
-    metaDate: String?,
-    userName: String?,
-    moonSign: String?,
-    sunSign: String?,
-    planetary: PlanetaryData?,
-    isPersonalized: Boolean,
-    themeColor: Color,
-    zodiacScale: Float = 1f,
-    selectedBadgeLabel: String? = null,
-    onBadgeClick: (String, String, String, Color) -> Unit = { _, _, _, _ -> },
-    onReadMoreClick: (String) -> Unit = {}
+fun TabletDetailDrawer(
+    state: DashboardBottomSheetState,
+    homeUiState: DailyHomeUiState,
+    familyMembers: List<FamilyMemberUiModel>,
+    onNavigateToChat: (String?, String?) -> Unit,
+    onDismiss: () -> Unit
 ) {
-    val calendar = Calendar.getInstance()
-    val hour = calendar.get(Calendar.HOUR_OF_DAY)
-    val greeting = when (hour) {
-        in 5..11 -> "Good Morning"
-        in 12..16 -> "Good Afternoon"
-        in 17..20 -> "Good Evening"
-        else -> "Good Night"
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top
+    Card(
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(420.dp)
+            .padding(16.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.width(16.dp).height(2.dp).background(themeColor))
-                Spacer(modifier = Modifier.width(6.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = (metaDate ?: "TODAY").uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, letterSpacing = 2.sp),
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                    fontWeight = FontWeight.Bold
+                    text = stringResource(R.string.dashboard_btn_cosmic_detail),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "$greeting,",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
-            )
-            val nameGradientBrush = Brush.horizontalGradient(
-                colors = listOf(
-                    themeColor,
-                    lerp(themeColor, Color.White, 0.35f)
-                )
-            )
-            Text(
-                text = userName ?: "Seeker",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    brush = nameGradientBrush
-                )
-            )
-            if (isPersonalized) {
-                Surface(
-                    color = themeColor.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Text(
-                        "✨ PERSONALIZED",
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        fontSize = 10.sp,
-                        color = themeColor,
-                        fontWeight = FontWeight.Black
-                    )
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.dashboard_btn_close_detail))
                 }
             }
-        }
-
-        Box(modifier = Modifier.graphicsLayer { 
-            scaleX = zodiacScale
-            scaleY = zodiacScale
-        }) {
-            IdentityBadges(moonSign, sunSign, planetary, selectedBadgeLabel, onBadgeClick, onReadMoreClick)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+            Box(modifier = Modifier.weight(1f)) {
+                BottomSheetContentSelector(
+                    state = state,
+                    homeUiState = homeUiState,
+                    familyMembers = familyMembers,
+                    onNavigateToChat = onNavigateToChat,
+                    onDismiss = onDismiss
+                )
+            }
         }
     }
 }
 
+// --- BOTTOM SHEET SELECTOR ---
+@Composable
+fun BottomSheetContentSelector(
+    state: DashboardBottomSheetState,
+    homeUiState: DailyHomeUiState,
+    familyMembers: List<FamilyMemberUiModel>,
+    onNavigateToChat: (String?, String?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    when (state) {
+        is DashboardBottomSheetState.AstroDetails -> {
+            AstroDetailsBottomSheetContent(panchanga = homeUiState.panchanga, onAskNavi = { prompt -> onNavigateToChat(prompt, null) }, onDismiss = onDismiss)
+        }
+        is DashboardBottomSheetState.FullEnergy -> {
+            FullEnergyBottomSheetContent(hero = homeUiState.hero, alert = homeUiState.alert, onAskNavi = { prompt -> onNavigateToChat(prompt, null) }, onDismiss = onDismiss)
+        }
+        is DashboardBottomSheetState.LifeAreaDetails -> {
+            val area = homeUiState.lifeAreas.find { it.id == state.areaId }
+            if (area != null) {
+                LifeAreaBottomSheetContent(area = area, hero = homeUiState.hero, onAskNavi = { prompt -> onNavigateToChat(prompt, area.id) }, onDismiss = onDismiss)
+            }
+        }
+        is DashboardBottomSheetState.AlertDetails -> {
+            AlertBottomSheetContent(alert = homeUiState.alert, onAskNavi = { prompt -> onNavigateToChat(prompt, null) }, onDismiss = onDismiss)
+        }
+        is DashboardBottomSheetState.CosmicHourDetails -> {
+            CosmicHourBottomSheetContent(cosmicHour = homeUiState.cosmicHour, onDismiss = onDismiss)
+        }
+        is DashboardBottomSheetState.FamilyMemberDetails -> {
+            val member = familyMembers.find { it.id == state.memberId }
+            if (member != null) {
+                FamilyMemberBottomSheetContent(member = member, onAskNavi = { prompt -> onNavigateToChat(prompt, null) }, onDismiss = onDismiss)
+            }
+        }
+        else -> {}
+    }
+}
+
+// ─── DASHBOARD SUB-COMPONENTS ───────────────────────────────────────────────
 
 @Composable
 fun IdentityBadges(
@@ -473,10 +585,11 @@ fun IdentityBadges(
     onBadgeClick: (String, String, String, Color) -> Unit,
     onReadMoreClick: (String) -> Unit
 ) {
+    val responsive = responsiveMetrics()
     val dominantColor = planetary?.dominant_planet?.let { AstroColors.getPlanetaryColor(it) } ?: AstroColors.Moon
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    val moonBadge: @Composable () -> Unit = {
         BadgeCircle(
-            label = "Moon", 
+            label = stringResource(R.string.dashboard_moon), 
             sign = moonSign, 
             textColor = AstroColors.Moon, 
             ringColor = dominantColor,
@@ -485,8 +598,10 @@ fun IdentityBadges(
         ) {
             if (moonSign != null) onBadgeClick(moonSign, ZodiacMapper.getDisplayName(moonSign), "Moon", AstroColors.Moon)
         }
+    }
+    val sunBadge: @Composable () -> Unit = {
         BadgeCircle(
-            label = "Sun", 
+            label = stringResource(R.string.dashboard_sun), 
             sign = sunSign, 
             textColor = AstroColors.Sun, 
             ringColor = AstroColors.Sun,
@@ -494,6 +609,22 @@ fun IdentityBadges(
             onReadMoreClick = { sunSign?.let { onReadMoreClick(it) } }
         ) {
             if (sunSign != null) onBadgeClick(sunSign, ZodiacMapper.getDisplayName(sunSign), "Sun", AstroColors.Sun)
+        }
+    }
+
+    if (responsive.isCompactWidth || responsive.isLargeFont) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            moonBadge()
+            sunBadge()
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.End) {
+            moonBadge()
+            sunBadge()
         }
     }
 }
@@ -508,87 +639,509 @@ fun BadgeCircle(
     onReadMoreClick: () -> Unit = {},
     onClick: () -> Unit = {}
 ) {
-    val context = LocalContext.current
+    val responsive = responsiveMetrics()
     val englishName = ZodiacMapper.getEnglishName(sign)
     val displayName = ZodiacMapper.getDisplayName(sign)
+    val engDisp = englishName?.replaceFirstChar { it.uppercase() } ?: ""
+    val fullDisplayName = if (engDisp.isNotEmpty() && engDisp != displayName) "$displayName ($engDisp)" else displayName
+    val badgeHeight = if (responsive.isVeryCompactWidth || responsive.isLargeFont) 44.dp else 48.dp
+    val zodiacIconSize = if (responsive.isVeryCompactWidth || responsive.isLargeFont) 21.dp else 24.dp
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Surface(
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+        shape = RoundedCornerShape(999.dp),
+        border = BorderStroke(
+            width = if (isSelected) 1.5.dp else 1.dp,
+            color = if (isSelected) ringColor.copy(alpha = 0.75f) else ringColor.copy(alpha = 0.28f)
+        ),
         modifier = Modifier
-            .width(64.dp)
+            .width(responsive.identityBadgeWidth)
+            .height(badgeHeight)
+            .shadow(
+                elevation = if (isSelected) 4.dp else 1.dp,
+                shape = RoundedCornerShape(999.dp),
+                ambientColor = Color.Transparent,
+                spotColor = ringColor.copy(alpha = 0.22f)
+            )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = if (isSelected) onReadMoreClick else onClick
             )
     ) {
-        // Label first — MOON / SUN
-        Text(label.uppercase(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
-        Spacer(modifier = Modifier.height(3.dp))
-        // Symbol circle
-        Box(
-            modifier = Modifier
-                .size(54.dp)
-                .background(MaterialTheme.colorScheme.surface, CircleShape)
-                .border(
-                    width = if (isSelected) 3.dp else 2.dp, 
-                    color = if (isSelected) ringColor else ringColor.copy(alpha = 0.5f), 
-                    shape = CircleShape
-                )
-                .clip(CircleShape),
-            contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.padding(horizontal = if (responsive.isVeryCompactWidth || responsive.isLargeFont) 10.dp else 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Background Image/Icon (blurred if selected)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
-                    .blur(if (isSelected) 6.dp else 0.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                if (englishName != null) {
-                    val resId = context.resources.getIdentifier(englishName, "drawable", context.packageName)
-                    if (resId != 0) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(context).data(resId).crossfade(true).build(),
-                            contentDescription = displayName,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        Text(displayName.take(1), fontWeight = FontWeight.Bold, color = textColor)
-                    }
-                } else {
-                    Icon(Icons.Default.Star, contentDescription = null, tint = ringColor.copy(alpha = 0.3f))
-                }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    fontSize = if (responsive.isVeryCompactWidth || responsive.isLargeFont) 9.sp else 10.sp,
+                    lineHeight = 12.sp,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    letterSpacing = 0.sp
+                )
+                Text(
+                    text = fullDisplayName,
+                    fontSize = if (responsive.isVeryCompactWidth || responsive.isLargeFont) 11.sp else if (responsive.isCompactWidth) 12.sp else 14.sp,
+                    lineHeight = if (responsive.isVeryCompactWidth || responsive.isLargeFont) 13.sp else if (responsive.isCompactWidth) 14.sp else 16.sp,
+                    fontWeight = FontWeight.Black,
+                    color = textColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    letterSpacing = 0.sp
+                )
             }
-            
-            // Selected Overlay (READ MORE)
-            androidx.compose.animation.AnimatedVisibility(
-                visible = isSelected,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
+
+            if (englishName != null) {
+                Spacer(modifier = Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f)),
+                        .size(zodiacIconSize)
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.62f), CircleShape)
+                        .clip(CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        "READ\nMORE",
-                        textAlign = TextAlign.Center,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black,
-                        color = Color.White,
-                        lineHeight = 13.sp
+                    AstroAssetImage(
+                        assetName = englishName,
+                        contentDescription = fullDisplayName,
+                        modifier = Modifier.fillMaxSize().padding(3.dp),
+                        fallbackTint = textColor
                     )
                 }
             }
         }
-        Spacer(modifier = Modifier.height(3.dp))
-        // Name last — e.g. "Mithun"
-        Text(displayName, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = textColor.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
+}
+
+private fun resolvePlanetDrawableName(planet: String?): String? {
+    return when (planet?.trim()?.lowercase()) {
+        "sun", "surya" -> "sun"
+        "moon", "chandra" -> "moon"
+        "mars", "mangal" -> "mars"
+        "mercury", "budh" -> "mercury"
+        "jupiter", "guru" -> "jupiter"
+        "venus", "shukra" -> "venus"
+        "saturn", "shani" -> "saturn"
+        else -> null
+    }
+}
+
+private fun normalizePlanetName(planet: String?): String? {
+    return when (planet?.trim()?.lowercase()) {
+        "ke", "ketu" -> "ketu"
+        "ra", "rahu" -> "rahu"
+        else -> planet
+    }
+}
+
+data class TriggerStyle(val color: Color, val asset: String?)
+
+@Composable
+fun triggerStyleFor(type: String): TriggerStyle {
+    return when (type.lowercase()) {
+        "social" -> TriggerStyle(AstroColors.Venus, "venus")
+        "emotional" -> TriggerStyle(AstroColors.Moon, "moon")
+        "energy" -> TriggerStyle(AstroColors.Mars, "mars")
+        else -> TriggerStyle(MaterialTheme.colorScheme.primary, null)
+    }
+}
+
+@Composable
+fun AstroAssetImage(
+    assetName: String?,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    fallbackTint: Color = Color.Unspecified
+) {
+    val context = LocalContext.current
+    val resolvedFallbackTint = if (fallbackTint == Color.Unspecified) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        fallbackTint
+    }
+    val resId = remember(assetName, context.packageName) {
+        assetName?.let { context.resources.getIdentifier(it, "drawable", context.packageName) } ?: 0
+    }
+
+    if (resId != 0) {
+        SubcomposeAsyncImage(
+            model = ImageRequest.Builder(context).data(resId).crossfade(true).build(),
+            contentDescription = contentDescription,
+            modifier = modifier,
+            contentScale = ContentScale.Fit
+        ) {
+            val state = painter.state
+            if (state is AsyncImagePainter.State.Loading || state is AsyncImagePainter.State.Empty) {
+                Box(modifier = modifier, contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        color = resolvedFallbackTint,
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                }
+            } else if (state is AsyncImagePainter.State.Error) {
+                Icon(
+                    Icons.Default.AutoAwesome,
+                    contentDescription = contentDescription,
+                    modifier = modifier,
+                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+                )
+            } else {
+                SubcomposeAsyncImageContent()
+            }
+        }
+    } else {
+        Icon(
+            Icons.Default.AutoAwesome,
+            contentDescription = contentDescription,
+            modifier = modifier,
+            tint = resolvedFallbackTint
+        )
+    }
+}
+
+internal fun dailyToneColor(type: String?, fallback: Color): Color {
+    return when (type?.lowercase()) {
+        "positive" -> Color(0xFF159957)
+        "warning", "challenging" -> Color(0xFFD97706)
+        "negative" -> Color(0xFFB91C1C)
+        else -> fallback
+    }
+}
+
+private fun firstSentence(text: String?, maxChars: Int = 118): String {
+    val resolved = resolveAreaLabels(text.orEmpty()).trim()
+    if (resolved.isEmpty()) return ""
+    val sentence = resolved.split(".").firstOrNull()?.trim().orEmpty()
+    val candidate = if (sentence.isNotEmpty()) "$sentence." else resolved
+    return if (candidate.length <= maxChars) {
+        candidate
+    } else {
+        candidate.take(maxChars).trimEnd('.', ',', ' ') + "..."
+    }
+}
+
+// ─── DAILY SNAPSHOT CARD (unified: Hero + Focus + Trigger + Lucky) ─────────
+@Composable
+fun DailySnapshotCard(
+    horoscope: HoroscopeResponse,
+    themeColor: Color,
+    onChat: (String?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val responsive = responsiveMetrics()
+    val compact = responsive.isCompactWidth || responsive.isLargeFont
+    val mood = horoscope.mood?.value?.trim().takeUnless { it.isNullOrBlank() } ?: "Aligned"
+    val moodColor = dailyToneColor(horoscope.mood?.type, themeColor)
+    val technical = resolveAreaLabels(horoscope.alerts?.primary?.technical.orEmpty()).trim()
+    val dominantPlanet = horoscope.planetary?.dominant_planet
+    val normalizedPlanet = normalizePlanetName(dominantPlanet)
+    val planetColor = AstroColors.getPlanetaryColor(normalizedPlanet)
+    val planetAsset = resolvePlanetDrawableName(dominantPlanet)
+    val heroPlanetLabel = normalizedPlanet?.replaceFirstChar { it.uppercase() }
+    val focusText = firstSentence(
+        horoscope.tip?.text ?: horoscope.current_state?.advice_now,
+        maxChars = if (compact) 74 else if (responsive.isMediumWidth) 118 else 90
+    )
+    val activeTrigger = remember(horoscope.time_triggers) {
+        findActiveOrUpcomingTrigger(horoscope.time_triggers)
+    }
+    val activeDashaText = horoscope.planetary?.active_dasha
+        ?.replace("Mahadasha", "MD", ignoreCase = true)
+        ?.replace("Antardasha", "AD", ignoreCase = true)
+        ?.replace("/", " / ")
+    val leadingColumnWidth = when {
+        compact -> 72.dp
+        responsive.isMediumWidth -> 104.dp
+        else -> 82.dp
+    }
+    val dominantIconSize = when {
+        compact -> 44.dp
+        responsive.isMediumWidth -> 60.dp
+        else -> 56.dp
+    }
+    val scoreFontSize = responsive.snapshotScoreFontSize
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(22.dp),
+                ambientColor = Color.Transparent,
+                spotColor = moodColor.copy(alpha = 0.18f)
+            ),
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = CARD_SURFACE_ALPHA),
+        border = BorderStroke(1.dp, moodColor.copy(alpha = 0.18f))
+    ) {
+        Column(modifier = Modifier.padding(responsive.cardPadding)) {
+            val leftContent = @Composable {
+                Column(
+                    modifier = Modifier.width(if (compact) 72.dp else leadingColumnWidth),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "DOMINANT",
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Black,
+                        color = planetColor.copy(alpha = 0.5f),
+                        letterSpacing = 0.5.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(responsive.snapshotImageSize)
+                            .background(planetColor.copy(alpha = 0.11f), CircleShape)
+                            .border(1.dp, planetColor.copy(alpha = 0.22f), CircleShape)
+                            .clip(CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AstroAssetImage(
+                            assetName = planetAsset,
+                            contentDescription = heroPlanetLabel ?: "Dominant planet",
+                            modifier = Modifier.fillMaxSize().padding(if (compact) 8.dp else 10.dp),
+                            fallbackTint = planetColor
+                        )
+                    }
+
+                    if (!heroPlanetLabel.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Surface(
+                            color = planetColor.copy(alpha = 0.08f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(0.5.dp, planetColor.copy(alpha = 0.18f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(planetColor, CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(5.dp))
+                                Text(
+                                    heroPlanetLabel,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = planetColor
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            val rightContent = @Composable {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${horoscope.score.overall}",
+                            fontSize = scoreFontSize,
+                            lineHeight = (scoreFontSize.value + 4).sp,
+                            fontWeight = FontWeight.Black,
+                            color = moodColor,
+                            letterSpacing = 0.sp
+                        )
+                        Spacer(modifier = Modifier.width(if (compact) 9.dp else 12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "${titleCase(mood)} Day",
+                                fontSize = responsive.snapshotTitleFontSize,
+                                lineHeight = if (compact) 16.sp else 18.sp,
+                                fontWeight = FontWeight.Black,
+                                color = moodColor,
+                                letterSpacing = 0.sp,
+                                maxLines = if (compact) 2 else 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (focusText.isNotEmpty()) {
+                                Text(
+                                    text = focusText,
+                                    fontSize = if (compact) 10.sp else 11.sp,
+                                    lineHeight = if (compact) 14.sp else 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f),
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            if (technical.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    AstroAssetImage(
+                                        assetName = resolveTransitPlanetAsset(technical),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(14.dp),
+                                        fallbackTint = moodColor
+                                    )
+                                    Spacer(modifier = Modifier.width(5.dp))
+                                    Text(
+                                        text = technical,
+                                        fontSize = 10.sp,
+                                        lineHeight = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = moodColor,
+                                        maxLines = if (compact) 2 else 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (!activeDashaText.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 10.dp),
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(
+                                    "DASHA",
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                    letterSpacing = 0.5.sp
+                                )
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Surface(
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f),
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+                                ) {
+                                    Text(
+                                        activeDashaText,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+
+                            Button(
+                                onClick = { onChat(context.getString(R.string.dashboard_prompt_cosmic_guidance)) },
+                                modifier = Modifier.height(if (compact) 32.dp else 30.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = AstroColors.Sun),
+                                contentPadding = PaddingValues(horizontal = if (compact) 8.dp else 10.dp)
+                            ) {
+                                Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurface)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(stringResource(R.string.dashboard_btn_ask_navi), fontSize = 9.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                leftContent()
+                Spacer(modifier = Modifier.width(if (compact) 12.dp else 16.dp))
+                rightContent()
+            }
+
+            // Transit / power hour section
+            if (activeTrigger != null) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    // RIGHT COLUMN: current/upcoming time trigger
+                    if (activeTrigger != null) {
+                        val style = triggerStyleFor(activeTrigger.type)
+                        val triggerColor = style.color
+                        val triggerAsset = style.asset
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Text(
+                                "TRANSIT",
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                letterSpacing = 0.5.sp
+                            )
+                            Spacer(modifier = Modifier.height(3.dp))
+                            Row(verticalAlignment = Alignment.Top) {
+                                AstroAssetImage(
+                                    assetName = triggerAsset,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp).padding(top = 1.dp),
+                                    fallbackTint = triggerColor.copy(alpha = 0.85f)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = activeTrigger.label,
+                                        fontSize = 12.sp,
+                                        lineHeight = 15.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = triggerColor,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = formatTimeRange(activeTrigger.start, activeTrigger.end),
+                                        fontSize = 11.sp,
+                                        lineHeight = 14.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(3.dp))
+                                    Text(
+                                        text = resolveAreaLabels(activeTrigger.advice),
+                                        fontSize = 10.sp,
+                                        lineHeight = 13.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.64f),
+                                        maxLines = if (compact) 3 else 4,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    if (!activeTrigger.reason.isNullOrBlank()) {
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = resolveAreaLabels(activeTrigger.reason),
+                                            fontSize = 9.sp,
+                                            lineHeight = 12.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.44f),
+                                            maxLines = if (compact) 2 else 3,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+private fun resolveTransitPlanetAsset(text: String): String? {
+    return listOf("sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn")
+        .firstOrNull { text.contains(it, ignoreCase = true) }
 }
 
 @Composable
@@ -606,141 +1159,10 @@ fun TipSection(tip: TipData) {
             Icon(Icons.Default.Lightbulb, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = tip.text,
+                text = resolveAreaLabels(tip.text),
                 style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, lineHeight = 18.sp),
                 color = MaterialTheme.colorScheme.onSurface
             )
-        }
-    }
-}
-
-@Composable
-fun TopHighlightsRow(horoscope: HoroscopeResponse) {
-    val activeTrigger = remember(horoscope.time_triggers) {
-        findActiveOrUpcomingTrigger(horoscope.time_triggers)
-    }
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        if (activeTrigger != null) {
-            ActiveGuidanceCard(trigger = activeTrigger)
-        }
-
-        if (horoscope.lucky != null) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Lucky Color Badge
-                Surface(
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("🎨", fontSize = 10.sp)
-                        Text(
-                            horoscope.lucky.color.uppercase(),
-                            modifier = Modifier.padding(start = 4.dp),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Black,
-                            color = AstroColors.Jupiter
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Lucky Number Badge
-                Surface(
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("🎲", fontSize = 10.sp)
-                        Text(
-                            "${horoscope.lucky.number}",
-                            modifier = Modifier.padding(start = 4.dp),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Black,
-                            color = AstroColors.Sun
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun TipNaviRow(horoscope: HoroscopeResponse, onChat: (String?) -> Unit) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (isPressed) 0.96f else 1f, label = "navi_button_scale")
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Box(modifier = Modifier.weight(2.2f)) {
-            if (horoscope.tip != null) {
-                Surface(
-                    modifier = Modifier
-                        .shadow(
-                            elevation = 1.dp,
-                            shape = RoundedCornerShape(12.dp),
-                            ambientColor = Color.Transparent,
-                            spotColor = Color.Black.copy(alpha = 0.18f)
-                        ),
-                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("💡", fontSize = 12.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            horoscope.tip.text,
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 4,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
-        }
-        
-        Button(
-            onClick = { onChat("Give me cosmic guidance for my day.") },
-            modifier = Modifier
-                .weight(1f)
-                .height(42.dp)
-                .align(Alignment.CenterVertically)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }
-                .shimmerSweepEffect(),
-            interactionSource = interactionSource,
-            shape = RoundedCornerShape(6.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AstroColors.Sun),
-            contentPadding = PaddingValues(horizontal = 8.dp)
-        ) {
-            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurface)
-            Spacer(modifier = Modifier.width(6.dp))
-            Text("ASK NAVI", fontSize = 11.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -770,130 +1192,257 @@ private fun findActiveOrUpcomingTrigger(triggers: List<TimeTrigger>?): TimeTrigg
                    .minByOrNull { parseToMinutes(it.start) }
 }
 
+private val AREA_LABEL_MAP = mapOf(
+    "vitality" to "Vitality",
+    "income" to "Income",
+    "home" to "Home",
+    "romance" to "Romance",
+    "wealth" to "Wealth",
+    "self" to "Self",
+    "health" to "Health",
+    "career" to "Career",
+    "love" to "Love",
+    "finance" to "Finance",
+    "communication" to "Communication",
+    "spirituality" to "Spirituality",
+    "family" to "Family"
+)
 
-
-@Composable
-fun LuckyStatsRow(lucky: LuckyData) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        // Lucky Color
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-        ) {
-            Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("🎨", fontSize = 14.sp)
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
-                    Text("COLOR", fontSize = 10.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(lucky.color, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = AstroColors.Jupiter)
-                }
-            }
-        }
-        
-        // Lucky Number
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-        ) {
-            Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("🎲", fontSize = 14.sp)
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
-                    Text("NUMBER", fontSize = 10.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("${lucky.number}", fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = AstroColors.Sun)
-                }
-            }
-        }
+private fun resolveAreaLabels(text: String): String {
+    var result = text
+    AREA_LABEL_MAP.forEach { (key, label) ->
+        result = result.replace("area_label.$key", label)
     }
+    result = result.replace(Regex("area_label\\.([A-Za-z_]+)")) { match ->
+        match.groupValues[1]
+            .replace("_", " ")
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    }
+    return result
+}
+
+private fun formatTimeRange(start: String, end: String): String {
+    fun format12h(time: String): String {
+        return try {
+            val parts = time.split(":")
+            val hour = parts[0].trim().toInt()
+            val minute = parts[1].trim().split(" ")[0].toInt()
+            val ampm = if (hour >= 12) "PM" else "AM"
+            val displayHour = if (hour == 0) 12 else if (hour > 12) hour - 12 else hour
+            "$displayHour:${if (minute < 10) "0$minute" else "$minute"} $ampm"
+        } catch (e: Exception) { time }
+    }
+    return "${format12h(start)} - ${format12h(end)}"
 }
 
 
+
 @Composable
-fun ActiveGuidanceCard(trigger: TimeTrigger) {
+fun ActiveGuidanceCard(
+    trigger: TimeTrigger,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
+) {
+    val style = triggerStyleFor(trigger.type)
+    val triggerColor = style.color
+    val triggerAsset = style.asset
+    val cleanLabel = trigger.label
+        .replace("✨", "")
+        .trim()
+
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
+            .heightIn(min = 138.dp)
             .shadow(
-                elevation = 1.dp,
-                shape = RoundedCornerShape(16.dp),
+                elevation = 3.dp,
+                shape = RoundedCornerShape(18.dp),
                 ambientColor = Color.Transparent,
-                spotColor = Color.Black.copy(alpha = 0.18f)
-            ),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                spotColor = triggerColor.copy(alpha = 0.16f)
+            )
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = CARD_SURFACE_ALPHA),
+        border = BorderStroke(1.dp, triggerColor.copy(alpha = 0.22f))
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                Column {
-                    Text(trigger.label.uppercase(), fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("${trigger.start} - ${trigger.end}", fontSize = 10.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .background(triggerColor.copy(alpha = 0.1f), CircleShape)
+                        .border(1.dp, triggerColor.copy(alpha = 0.22f), CircleShape)
+                        .clip(CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AstroAssetImage(
+                        assetName = triggerAsset,
+                        contentDescription = cleanLabel,
+                        modifier = Modifier.fillMaxSize().padding(8.dp),
+                        fallbackTint = triggerColor
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = titleCase(cleanLabel),
+                        fontSize = 10.sp,
+                        lineHeight = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        color = triggerColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        letterSpacing = 0.sp
+                    )
+                    Text(
+                        text = formatTimeRange(trigger.start, trigger.end),
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Black,
+                        maxLines = 2,
+                        overflow = TextOverflow.Visible
+                    )
+                }
+                if (onClick != null) {
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        contentDescription = "View all",
+                        tint = triggerColor.copy(alpha = 0.4f),
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
-            
+
             Text(
-                text = trigger.advice.uppercase(),
-                modifier = Modifier.weight(1.5f).padding(start = 8.dp),
-                fontSize = 11.sp,
-                lineHeight = 14.sp,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                textAlign = TextAlign.End,
+                text = trigger.advice.trim()
+                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() },
+                fontSize = 12.sp,
+                lineHeight = 17.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.74f),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
+
+            if (!trigger.reason.isNullOrBlank()) {
+                Text(
+                    text = trigger.reason,
+                    fontSize = 10.sp,
+                    lineHeight = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f),
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InsightList(horoscope: HoroscopeResponse) {
-    val explanations = horoscope.astro_explanations?.items?.take(2)
-    val secondaryAlerts = horoscope.alerts?.secondary?.take(2)
-    
-    if (explanations == null && secondaryAlerts == null) return
+fun AllTriggersBottomSheet(
+    triggers: List<TimeTrigger>,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        SectionHeader("TRANSITS & TRENDS")
-        
-        explanations?.forEach { item ->
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-            ) {
-                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
-                    Text("🔭", fontSize = 18.sp)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(item.importance.uppercase(), fontSize = 11.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
-                        Text(item.technical, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        Text(item.simple, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        tonalElevation = 0.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                stringResource(R.string.dashboard_label_time_triggers),
+                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp),
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            triggers.forEach { trigger ->
+                val style = triggerStyleFor(trigger.type)
+                val triggerColor = style.color
+                val triggerAsset = style.asset
+
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = triggerColor.copy(alpha = 0.06f),
+                    border = BorderStroke(1.dp, triggerColor.copy(alpha = 0.18f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(triggerColor.copy(alpha = 0.1f), CircleShape)
+                                .clip(CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AstroAssetImage(
+                                assetName = triggerAsset,
+                                contentDescription = trigger.label,
+                                modifier = Modifier.fillMaxSize().padding(8.dp),
+                                fallbackTint = triggerColor
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                trigger.label.replace("\u2728", "").trim(),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                trigger.advice.trim()
+                                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() },
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (!trigger.reason.isNullOrBlank()) {
+                                Text(
+                                    trigger.reason,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                        Surface(
+                            color = triggerColor.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                formatTimeRange(trigger.start, trigger.end),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                                color = triggerColor
+                            )
+                        }
                     }
-                }
-            }
-        }
-        
-        secondaryAlerts?.forEach { alert ->
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-            ) {
-                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(alert.simple, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 }
             }
         }
@@ -1002,840 +1551,22 @@ fun StreakCard(streak: StreakData) {
     }
 }
 
-data class OrbitItem(
-    val id: String,
-    val label: String,
-    val icon: String,
-    val color: Color,
-    val size: Dp = 70.dp,
-    val glowColor: Color = color,
-    val pulse: Boolean = false,
-    val score: Int? = null,
-    val subtitle: String? = null, // short descriptor shown in bubble
-    val data: Any? = null
-)
-
-sealed class HomeOverlayState {
-    object None : HomeOverlayState()
-    data class Expanded(
-        val item: OrbitItem,
-        val origin: Offset
-    ) : HomeOverlayState()
-    data class RashiDetail(
-        val signId: String,
-        val signName: String,
-        val label: String,
-        val color: Color
-    ) : HomeOverlayState()
-}
-
-@Composable
-fun OrbitBubble(item: OrbitItem, isSelected: Boolean = false, isFaded: Boolean = false, onClick: () -> Unit) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    
-    // 1. FAST SCALE FEEDBACK (120ms)
-    val targetScale = when {
-        isSelected -> 1.05f
-        isPressed -> 0.94f
-        isFaded -> 0.96f
-        else -> 1f
-    }
-    val scale by animateFloatAsState(targetScale, animationSpec = tween(120), label = "bubble_scale")
-    val fadeAlpha by animateFloatAsState(if (isFaded) 0.4f else 1f, animationSpec = tween(250), label = "bubble_fade")
-
-    // 2. MICRO-FLOATING MOTION (Staggered by ID)
-    val floatDuration = remember(item.id) { 
-        when(item.id) {
-            "love" -> 2600
-            "health" -> 2900
-            "career" -> 3200
-            "finance" -> 2750
-            else -> 3000
-        }
-    }
-    val infiniteTransition = rememberInfiniteTransition(label = "bubble_motion")
-    val translationY by infiniteTransition.animateFloat(
-        initialValue = -2f,
-        targetValue = 2f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(floatDuration, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "floating"
-    )
-
-    // Pulse for specific items (Alerts)
-    val pulseAlpha by if (item.pulse) {
-        infiniteTransition.animateFloat(
-            initialValue = 0.2f,
-            targetValue = 0.6f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(2000, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "pulse"
-        )
-    } else {
-        remember { mutableStateOf(1f) }
-    }
-
-    val orbitColor = item.color
-    val orbitGlow = item.glowColor
-    
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(item.size)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                alpha = fadeAlpha
-                this.translationY = translationY
-            }
-            .drawBehind {
-                // Radial glow around bubble
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            orbitGlow.copy(alpha = 0.28f),
-                            Color.Transparent
-                        )
-                    )
-                )
-            }
-            // OPAQUE FILL
-            .background(orbitColor, CircleShape)
-            // SHADOW UNDER ORBIT — bottom-right only
-            .shadow(
-                elevation = 2.dp,
-                shape = CircleShape,
-                ambientColor = Color.Transparent,
-                spotColor = orbitGlow.copy(alpha = 0.35f)
-            )
-            // INNER MAIN RING
-            .border(
-                width = 1.5.dp,
-                color = Color.White.copy(alpha = if (item.pulse) pulseAlpha else 0.25f),
-                shape = CircleShape
-            )
-            // OUTER FAINT RING
-            .padding(2.dp)
-            .border(
-                width = 0.5.dp,
-                color = Color.White.copy(alpha = 0.08f),
-                shape = CircleShape
-            )
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            )
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(6.dp)
-        ) {
-            // Icon - Hidden for life areas (Career, Love, Health, Finance) per request
-            val showIcon = item.id !in listOf("career", "love", "health", "finance")
-            if (showIcon && item.icon.isNotEmpty()) {
-                Text(
-                    text = item.icon,
-                    fontSize = (item.size.value * 0.28f).sp,
-                    modifier = Modifier.padding(bottom = 2.dp)
-                )
-            }
-            
-            // Label — white on opaque fill
-            Text(
-                text = item.label.uppercase(),
-                fontSize = (item.size.value * 0.11f).sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 0.5.sp,
-                color = Color.White.copy(alpha = 0.9f)
-            )
-            
-            // Score — white on opaque fill
-            if (item.score != null) {
-                Text(
-                    text = "${item.score}",
-                    fontSize = (item.size.value * 0.22f).sp,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White
-                )
-            } else if (item.subtitle != null) {
-                Text(
-                    text = item.subtitle,
-                    fontSize = (item.size.value * 0.11f).sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-// ─── ORBIT RING ──────────────────────────────────────────────────────────────
-@SuppressLint("UnusedBoxWithConstraintsScope")
-@Composable
-fun OrbitRing(
-    items: List<OrbitItem>,
-    radius: Dp,
-    rotation: Float,
-    selectedId: String? = null,
-    onClick: (OrbitItem, Offset) -> Unit
-) {
-    val density = androidx.compose.ui.platform.LocalDensity.current
-    val radiusPx = with(density) { radius.toPx() }
-
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val centerX = with(density) { maxWidth.toPx() } / 2f
-        val centerY = with(density) { maxHeight.toPx() } / 2f
-
-        items.forEachIndexed { index, item ->
-            val bubbleSizePx = with(density) { item.size.toPx() }
-            val offset = getOrbitOffset(index, items.size, radiusPx, centerX, centerY, rotation)
-
-            Box(
-                modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            (offset.x - bubbleSizePx / 2f).toInt(),
-                            (offset.y - bubbleSizePx / 2f).toInt()
-                        )
-                    }
-                    .size(item.size)
-            ) {
-                OrbitBubble(
-                    item = item,
-                    isSelected = selectedId == item.id,
-                    isFaded = selectedId != null && selectedId != item.id,
-                    onClick = { onClick(item, offset) }
-                )
-            }
-        }
-    }
-}
-
-fun getOrbitOffset(
-    index: Int,
-    total: Int,
-    radiusPx: Float,
-    centerX: Float,
-    centerY: Float,
-    rotation: Float
-): Offset {
-    val angle = (360f / total) * index + rotation
-    val rad = Math.toRadians(angle.toDouble())
-    val x = centerX + radiusPx * cos(rad)
-    val y = centerY + radiusPx * sin(rad)
-    return Offset(x.toFloat(), y.toFloat())
-}
-
-// ─── SCORE CORE ──────────────────────────────────────────────────────────────
-@Composable
-fun ScoreCore(score: Int, mood: String, energy: String, themeColor: Color, onClick: () -> Unit) {
-    val infiniteTransition = rememberInfiniteTransition(label = "core_pulse")
-    
-    // Animated score number (0 to actual)
-    val animatedScore = remember { Animatable(0f) }
-    LaunchedEffect(score) {
-        delay(1000) // Start after orbit expansion begins
-        animatedScore.animateTo(
-            targetValue = score.toFloat(),
-            animationSpec = tween(durationMillis = 2000, easing = EaseOutCubic)
-        )
-    }
-
-    // 1. BREATHING: scale 0.97 ↔ 1.03 (2000ms)
-    val breatheScale by infiniteTransition.animateFloat(
-        initialValue = 0.97f,
-        targetValue = 1.03f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "breathing"
-    )
-
-    // 2. ENERGY-BASED PULSE
-    // high: sharp (800ms), medium: soft (1500ms), low: slow (3000ms)
-    val pulseDuration = when(energy.lowercase()) {
-        "high" -> 800
-        "low" -> 3000
-        else -> 1500
-    }
-    
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.8f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(pulseDuration, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "energy_pulse"
-    )
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(160.dp)
-            .graphicsLayer { 
-                scaleX = breatheScale
-                scaleY = breatheScale
-            }
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            )
-    ) {
-        // Outer glow ring
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .border(1.5.dp, themeColor.copy(alpha = glowAlpha), CircleShape)
-        )
-        
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxSize(0.92f)
-                .background(themeColor.copy(alpha = 0.08f), CircleShape)
-                .border(1.dp, themeColor.copy(alpha = 0.4f), CircleShape)
-        ) {
-            Text(
-                text = "${animatedScore.value.toInt()}",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Black, 
-                    fontSize = 52.sp,
-                    letterSpacing = (-2).sp
-                ),
-                color = themeColor
-            )
-            Text(
-                text = mood.uppercase(),
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, letterSpacing = 1.sp),
-                color = themeColor
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Surface(
-                color = themeColor.copy(alpha = 0.15f),
-                shape = RoundedCornerShape(4.dp)
-            ) {
-                Text(
-                    text = energy.uppercase(),
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
-                    color = themeColor
-                )
-            }
-        }
-    }
-}
-
-// ─── ORBIT RING PATH (Clean animated ring) ──────────────────────────────────
-@Composable
-fun OrbitRingPath(
-    radius: Dp,
-    themeColor: Color,
-    rotationFraction: Float
-) {
-    val density = androidx.compose.ui.platform.LocalDensity.current
-    val radiusPx = with(density) { radius.toPx() }
-    val glowStrokePx = with(density) { 8.dp.toPx() }
-    val ringStrokePx = with(density) { 1.5.dp.toPx() }
-    val arcStrokePx = with(density) { 2.5.dp.toPx() }
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val center = Offset(size.width / 2f, size.height / 2f)
-
-        // 1. Soft outer glow — wide faint halo
-        drawCircle(
-            color = themeColor.copy(alpha = 0.07f),
-            radius = radiusPx,
-            center = center,
-            style = Stroke(width = glowStrokePx)
-        )
-
-        // 2. Solid orbit ring — thin, clean line
-        drawCircle(
-            color = themeColor.copy(alpha = 0.25f),
-            radius = radiusPx,
-            center = center,
-            style = Stroke(width = ringStrokePx)
-        )
-
-        // 3. Bright leading arc — 60° that follows the orbit rotation
-        val sweepStart = rotationFraction * 360f
-        val arcPath = Path().apply {
-            arcTo(
-                rect = androidx.compose.ui.geometry.Rect(
-                    center.x - radiusPx, center.y - radiusPx,
-                    center.x + radiusPx, center.y + radiusPx
-                ),
-                startAngleDegrees = sweepStart - 90f,
-                sweepAngleDegrees = 60f,
-                forceMoveTo = true
-            )
-        }
-        drawPath(
-            path = arcPath,
-            color = themeColor.copy(alpha = 0.6f),
-            style = Stroke(width = arcStrokePx, cap = StrokeCap.Round)
-        )
-    }
-}
-
-// ─── ORBIT SYSTEM ─────────────────────────────────────────────────────────────
-@SuppressLint("UnusedBoxWithConstraintsScope")
-@Composable
-fun OrbitSystem(
-    horoscope: HoroscopeResponse,
-    themeColor: Color,
-    overlayState: HomeOverlayState,
-    onOverlayStateChange: (HomeOverlayState) -> Unit,
-    onActionClick: (String, Any?) -> Unit
-) {
-    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
-
-    // 1. Life areas use category-specific score ramps.
-    val innerItems = remember(horoscope, isDarkTheme) {
-        val areas = mutableListOf<OrbitItem>()
-        horoscope.areas_text?.love?.let {
-            val score = horoscope.score.areas?.get("love")?.value
-            val palette = ScoreColors.paletteFor("love", score ?: horoscope.score.overall, isDarkTheme)
-            areas.add(OrbitItem("love", "Love", "❤️", palette.main, 84.dp, glowColor = palette.glow, score = score, data = it))
-        }
-        horoscope.areas_text?.health?.let {
-            val score = horoscope.score.areas?.get("health")?.value
-            val palette = ScoreColors.paletteFor("health", score ?: horoscope.score.overall, isDarkTheme)
-            areas.add(OrbitItem("health", "Health", "🌿", palette.main, 84.dp, glowColor = palette.glow, score = score, data = it))
-        }
-        horoscope.areas_text?.career?.let {
-            val score = horoscope.score.areas?.get("career")?.value
-            val palette = ScoreColors.paletteFor("career", score ?: horoscope.score.overall, isDarkTheme)
-            areas.add(OrbitItem("career", "Career", "💼", palette.main, 84.dp, glowColor = palette.glow, score = score, data = it))
-        }
-        horoscope.areas_text?.finance?.let {
-            val score = horoscope.score.areas?.get("finance")?.value
-            val palette = ScoreColors.paletteFor("finance", score ?: horoscope.score.overall, isDarkTheme)
-            areas.add(OrbitItem("finance", "Finance", "💰", palette.main, 84.dp, glowColor = palette.glow, score = score, data = it))
-        }
-        areas
-    }
-
-    val infinite = rememberInfiniteTransition(label = "orbit_rotation")
-    
-    // 25s rotation — fast enough to be perceptible on 60fps/battery-saver devices
-    // (45s was too slow; at 60fps that's only 0.48°/frame — invisible)
-    val rotationInner by infinite.animateFloat(
-        initialValue = 0f, targetValue = 360f,
-        animationSpec = infiniteRepeatable(animation = tween(25000, easing = LinearEasing)),
-        label = "inner_rot"
-    )
-
-    val effectiveRotationInner = rotationInner
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxWidth().height(340.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            val systemWidth = maxWidth
-            
-            // Responsive Radii optimized for 4 items
-            val orbitRadius = (systemWidth * 0.32f).coerceAtMost(140.dp)
-
-            // Orbit canvas
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                val expandedItemId = (overlayState as? HomeOverlayState.Expanded)?.item?.id
-
-                // Visible glowing orbit ring path
-                OrbitRingPath(
-                    radius = orbitRadius,
-                    themeColor = themeColor,
-                    rotationFraction = effectiveRotationInner / 360f
-                )
-
-                OrbitRing(
-                    items = innerItems,
-                    radius = orbitRadius,
-                    rotation = effectiveRotationInner,
-                    selectedId = expandedItemId,
-                    onClick = { item, offset -> onOverlayStateChange(HomeOverlayState.Expanded(item, offset)) }
-                )
-                ScoreCore(
-                    score = horoscope.score.overall,
-                    mood = horoscope.mood?.value ?: "Social",
-                    energy = horoscope.current_state?.energy ?: "Medium",
-                    themeColor = themeColor,
-                    onClick = {
-                        val scoreItem = OrbitItem("score", "Intelligence", "✨", themeColor, 160.dp, glowColor = themeColor, score = horoscope.score.overall, data = horoscope)
-                        onOverlayStateChange(HomeOverlayState.Expanded(scoreItem, Offset.Zero))
-                    }
-                )
-            }
-        }
-    }
-}
-
-// ─── POPUP OVERLAY LAYER ───────────────────────────────────────────────────
-@Composable
-fun HomePopupOverlay(
-    overlayState: HomeOverlayState,
-    horoscope: HoroscopeResponse,
-    onDismiss: () -> Unit,
-    onChatClick: (String?) -> Unit,
-    onForecastClick: (String?) -> Unit,
-    onNavigateToRashis: (String?) -> Unit = {}
-) {
-    val expandedState = overlayState as? HomeOverlayState.Expanded
-    val scrollState = rememberScrollState()
-
-    // 1. LIGHTWEIGHT PREMIUM TRANSITION (Scale + Fade + Slide)
-    AnimatedVisibility(
-        visible = overlayState is HomeOverlayState.Expanded,
-        enter = fadeIn(animationSpec = tween(250)) + 
-                scaleIn(initialScale = 0.92f, animationSpec = tween(250)) +
-                slideInVertically(initialOffsetY = { it / 12 }),
-        exit = fadeOut(animationSpec = tween(200)) + 
-               scaleOut(targetScale = 0.95f, animationSpec = tween(200))
-    ) {
-        val state = overlayState as? HomeOverlayState.Expanded
-        if (state != null) {
-            val naviPrompt: String = when (state.item.id) {
-                "ai"    -> "Explain my mood ${horoscope.mood?.value} and score ${horoscope.score.overall}. Guide me for today."
-                "score" -> "Give me a deep reading about my score ${horoscope.score.overall} and current mood."
-                else    -> "Ask Navi about ${state.item.label}"
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.22f))
-                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onDismiss() }
-                    .statusBarsPadding()
-                    .navigationBarsPadding(),
-                contentAlignment = Alignment.Center
-            ) {
-                // 3. FLOATING GLASS CARD
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth(0.86f) // Floating feel (not full width)
-                        .padding(bottom = 20.dp)
-                        .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { },
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)
-                    ),
-                    border = BorderStroke(1.dp, state.item.color.copy(alpha = 0.2f)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(20.dp)
-                            .verticalScroll(scrollState),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Header
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .background(state.item.color.copy(alpha = 0.12f), CircleShape)
-                                    .border(1.dp, state.item.color.copy(alpha = 0.3f), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) { Text(state.item.icon, fontSize = 22.sp) }
-                            
-                            Spacer(modifier = Modifier.width(16.dp))
-                            
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = state.item.label.uppercase(), 
-                                    style = MaterialTheme.typography.labelSmall, 
-                                    fontWeight = FontWeight.Black, 
-                                    color = state.item.color,
-                                    letterSpacing = 1.sp
-                                )
-                                if (state.item.score != null) {
-                                    Text(
-                                        text = "${state.item.score}", 
-                                        style = MaterialTheme.typography.headlineSmall, 
-                                        fontWeight = FontWeight.Black, 
-                                        color = state.item.color
-                                    )
-                                }
-                            }
-                            
-                            IconButton(onClick = onDismiss) {
-                                Icon(Icons.Default.Close, contentDescription = "Close", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        OrbitItemDetailContent(state.item) { action: String, data: Any? ->
-                            when (action) {
-                                "forecast" -> {
-                                    onForecastClick(data as? String)
-                                    onDismiss()
-                                }
-                                "chat" -> {
-                                    onChatClick(data as? String)
-                                    onDismiss()
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(28.dp))
-
-                        Button(
-                            onClick = { onChatClick(naviPrompt); onDismiss() },
-                            modifier = Modifier.fillMaxWidth().height(54.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = state.item.color),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-                        ) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                "ASK NAVI ABOUT ${state.item.label.uppercase()}", 
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ─── POPUP DETAIL CONTENT (icons shown here, not in bubbles) ──────────────────
-@Composable
-fun OrbitItemDetailContent(item: OrbitItem, onActionClick: (String, Any?) -> Unit) {
-    when (item.id) {
-        "score" -> {
-            val horoscope = item.data as? HoroscopeResponse
-            if (horoscope != null) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        "COSMIC SCORE",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    
-                    // Large Score Percentage
-                    Text(
-                        text = "${horoscope.score?.overall ?: 0}%",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        "WHY TODAY FEELS THIS WAY",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    // Main Advice
-                    Text(
-                        horoscope.alerts?.primary?.simple
-                            ?: horoscope.current_state?.advice_now
-                            ?: "A steady day for alignment.",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    
-                    Spacer(modifier = Modifier.height(20.dp))
-                    
-                    // Detailed Transits
-                    horoscope.astro_explanations?.items?.forEach { item ->
-                        Surface(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(item.importance.uppercase(), fontSize = 8.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
-                                Text(item.technical, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                Text(item.simple, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        "career", "love", "health", "finance" -> {
-            val insight = item.data as? AreaInsight
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    insight?.insight ?: "",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedButton(
-                    onClick = { onActionClick("forecast", item.id) },
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("WEEKLY FORECAST")
-                }
-            }
-        }
-
-        "lucky" -> {
-            val lucky = item.data as? LuckyData
-            if (lucky != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier.size(56.dp).background(AstroColors.Jupiter.copy(alpha = 0.15f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) { Text("🎨", fontSize = 28.sp) }
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text("COLOR", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(lucky.color, fontWeight = FontWeight.ExtraBold, color = AstroColors.Jupiter)
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier.size(56.dp).background(AstroColors.Sun.copy(alpha = 0.15f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) { Text("🎲", fontSize = 28.sp) }
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text("NUMBER", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("${lucky.number}", fontWeight = FontWeight.ExtraBold, color = AstroColors.Sun)
-                    }
-                }
-            }
-        }
-
-        "why" -> {
-            val explanations = item.data as? AstroExplanationsData
-            val items = explanations?.items?.take(3)
-            if (items != null) {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    for (astroItem in items) {
-                        Row(verticalAlignment = Alignment.Top) {
-                            Text("✨", modifier = Modifier.padding(top = 2.dp), fontSize = 18.sp)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text(astroItem.technical, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
-                                Text(astroItem.simple, style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        "time" -> {
-            val triggers = item.data as? List<TimeTrigger>
-            if (triggers != null) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    triggers.forEachIndexed { index, trigger ->
-                        val isActive = index == 0
-                        val statusColor = if (isActive) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(statusColor.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-                                .border(1.dp, statusColor.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(if (trigger.type == "communication") "💬" else "🤝", fontSize = 22.sp)
-                            Spacer(modifier = Modifier.width(14.dp))
-                            Column {
-                                Text(if (isActive) "NOW ACTIVE" else "UPCOMING", fontSize = 9.sp, fontWeight = FontWeight.Black, color = statusColor)
-                                Text(trigger.label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Text("${trigger.start} – ${trigger.end}", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        "alerts" -> {
-            val alerts = item.data as? AlertsData
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                alerts?.primary?.let { alert ->
-                    val color = if (alert.type == "warning") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(color.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
-                            .padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(if (alert.type == "warning") "⚠️" else "✨", fontSize = 32.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(alert.simple, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-                        if (alert.technical != null) {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(alert.technical, fontSize = 11.sp, color = color.copy(alpha = 0.7f), textAlign = TextAlign.Center)
-                        }
-                    }
-                }
-                alerts?.secondary?.take(2)?.forEach { alert ->
-                    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)) {
-                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("•", fontWeight = FontWeight.Black)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(alert.simple, fontSize = 12.sp)
-                        }
-                    }
-                }
-            }
-        }
-
-        "ai" -> {
-            Text(
-                item.data as String,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
-}
-
 @Composable
 fun ErrorView(message: String, onRetry: () -> Unit) {
+    val metrics = responsiveMetrics()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(metrics.pagePadding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
             imageVector = Icons.Default.CloudOff,
             contentDescription = null,
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(if (metrics.isCompactHeight || metrics.isLargeFont) 52.dp else 64.dp),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -1858,13 +1589,15 @@ fun ErrorView(message: String, onRetry: () -> Unit) {
 @Composable
 fun DashboardSkeleton() {
     val scrollState = rememberScrollState()
+    val metrics = responsiveMetrics()
+    val gap = if (metrics.isCompactHeight || metrics.isLargeFont) 16.dp else 24.dp
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+            .padding(metrics.pagePadding),
+        verticalArrangement = Arrangement.spacedBy(gap)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1880,36 +1613,45 @@ fun DashboardSkeleton() {
             }
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 repeat(2) {
-                    Box(modifier = Modifier.size(64.dp).clip(CircleShape).shimmerEffect())
+                    Box(modifier = Modifier.size(if (metrics.isCompactHeight || metrics.isLargeFont) 52.dp else 64.dp).clip(CircleShape).shimmerEffect())
                 }
             }
         }
 
-        Column(modifier = Modifier.fillMaxWidth().height(120.dp).clip(RoundedCornerShape(24.dp)).shimmerEffect()) {}
-        Column(modifier = Modifier.fillMaxWidth().height(80.dp).clip(RoundedCornerShape(24.dp)).shimmerEffect()) {}
-        Spacer(modifier = Modifier.height(32.dp))
-        }
+        ShimmerBlock(height = 200.dp, cornerRadius = 24.dp)
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(3) { ShimmerBlock(height = 200.dp, modifier = Modifier.width(168.dp), cornerRadius = 20.dp) }
         }
 
-        // ─── NEW DASHBOARD SECTIONS ──────────────────────────────────────────────────
+        ShimmerBlock(height = 220.dp, cornerRadius = 24.dp)
 
-        @Composable
-fun WeeklyForecastSection(forecast: ForecastResponse, themeColor: Color, onNavigateToForecast: (String?) -> Unit) {
-    Card(
+        ShimmerBlock(height = 300.dp, cornerRadius = 24.dp)
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(4) { ShimmerBlock(height = 160.dp, modifier = Modifier.width(120.dp), cornerRadius = 16.dp) }
+        }
+
+        ShimmerBlock(height = 70.dp, cornerRadius = 16.dp)
+
+        Spacer(modifier = Modifier.height(LocalBottomBarHeight.current + 24.dp))
+    }
+}
+
+@Composable
+fun WeeklyForecastSection(forecast: WeeklyForecastResponse, themeColor: Color, onNavigateToForecast: (String?) -> Unit) {
+    val metrics = responsiveMetrics()
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onNavigateToForecast(forecast.area) },
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, themeColor.copy(alpha = 0.15f))
+            .floatingCard(accent = themeColor, cornerRadius = 24.dp, elevation = 6.dp)
+            .clickable { onNavigateToForecast(forecast.area) }
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(metrics.cardPadding)) {
             val bestDayLabel = remember(forecast.summary.best_day) {
                 try {
-                    val sdfIn = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
-                    val sdfOut = java.text.SimpleDateFormat("EEE", java.util.Locale.getDefault())
-                    val date = sdfIn.parse(forecast.summary.best_day)
-                    date?.let { sdfOut.format(it).uppercase() } ?: "---"
+                    LocaleFormatter.displayDayOfWeek(forecast.summary.best_day, Locale.US, full = false).uppercase()
                 } catch (e: Exception) {
                     forecast.summary.best_day.take(3).uppercase()
                 }
@@ -1924,7 +1666,7 @@ fun WeeklyForecastSection(forecast: ForecastResponse, themeColor: Color, onNavig
                     Text("📈", fontSize = 14.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "WEEK AHEAD • BEST: $bestDayLabel",
+                        "CURRENT WEEK • BEST: $bestDayLabel",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
                         color = themeColor,
@@ -1947,12 +1689,12 @@ fun WeeklyForecastSection(forecast: ForecastResponse, themeColor: Color, onNavig
                 area = forecast.area,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp),
+                    .height(if (metrics.isCompactHeight || metrics.isLargeFont) 88.dp else 100.dp),
                 showLabels = true
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
             Spacer(modifier = Modifier.height(12.dp))
 
             val today = forecast.days.find { it.is_today }
@@ -1962,7 +1704,7 @@ fun WeeklyForecastSection(forecast: ForecastResponse, themeColor: Color, onNavig
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "☀ TODAY ${today?.score ?: "--"}",
+                    text = "☀️ TODAY ${today?.score ?: "--"}",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
                     color = themeColor
@@ -1972,7 +1714,7 @@ fun WeeklyForecastSection(forecast: ForecastResponse, themeColor: Color, onNavig
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                 )
                 Text(
-                    text = "MOOD: ${today?.mood?.value?.uppercase() ?: "BALANCED"}",
+                    text = "Mood: ${titleCase(today?.mood?.value ?: "Balanced")}",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1988,6 +1730,65 @@ fun WeeklyForecastSection(forecast: ForecastResponse, themeColor: Color, onNavig
                     color = themeColor
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun WeeklyForecastCompact(
+    forecast: WeeklyForecastResponse,
+    themeColor: Color,
+    onNavigateToForecast: (String?) -> Unit
+) {
+    val today = forecast.days.find { it.is_today }
+    val bestDayLabel = remember(forecast.summary.best_day) {
+        try {
+            LocaleFormatter.displayDayOfWeek(forecast.summary.best_day, Locale.US, full = false).uppercase()
+        } catch (e: Exception) {
+            forecast.summary.best_day.take(3).uppercase()
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .floatingCard(accent = themeColor, cornerRadius = 14.dp, elevation = 4.dp)
+            .clickable { onNavigateToForecast(forecast.area) }
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "WEEK • BEST $bestDayLabel",
+                    fontSize = 9.sp,
+                    lineHeight = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    color = themeColor,
+                    letterSpacing = 0.8.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${today?.score ?: "--"}",
+                    fontSize = 13.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Black,
+                    color = themeColor
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            WeeklyForecastGraph(
+                days = forecast.days,
+                themeColor = themeColor,
+                area = forecast.area,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                showLabels = false
+            )
         }
     }
 }
@@ -2021,6 +1822,9 @@ fun WeeklyForecastGraph(
         animationSpec = infiniteRepeatable(tween(2000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "today_dot"
     )
+
+    val peakSuffix = stringResource(R.string.dashboard_label_peak)
+    val reflectiveSuffix = stringResource(R.string.dashboard_label_reflective)
 
     Canvas(
         modifier = modifier
@@ -2103,6 +1907,7 @@ fun WeeklyForecastGraph(
         // --- 3. DATA DOTS & LABELS ---
         if (entranceProgress.value > 0.8f) {
             val maxScoreDay = days.maxByOrNull { it.score }
+            val minScoreDay = days.minByOrNull { it.score }
             
             days.forEachIndexed { index, day ->
                 val point = points[index]
@@ -2134,14 +1939,22 @@ fun WeeklyForecastGraph(
                 }
 
                 // Labels for Today, Selected, and Best Day (or all if showLabels)
-                if (isToday || isSelected || isBest || showLabels) {
-                    val scoreText = day.score.toString()
+                if (isToday || isSelected || isBest || day == minScoreDay || showLabels) {
+                    var scoreText = day.score.toString()
+                    if (day == maxScoreDay && day.score >= 75) scoreText += peakSuffix
+                    else if (day == minScoreDay && day.score <= 65) scoreText += reflectiveSuffix
                     val textPaint = android.graphics.Paint().apply {
                         color = dotColor.toArgb()
                         textSize = 11.sp.toPx()
                         typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
                         textAlign = android.graphics.Paint.Align.CENTER
                         isAntiAlias = true
+                    }
+                    
+                    // For semantic labels, we need slightly more width, so adjust text position slightly if it goes out of bounds
+                    // But usually it's fine. We use a smaller text size if it's not just the number.
+                    if (scoreText != day.score.toString()) {
+                        textPaint.textSize = 9.sp.toPx()
                     }
                     
                     drawContext.canvas.nativeCanvas.drawText(
@@ -2153,10 +1966,7 @@ fun WeeklyForecastGraph(
 
                     if (showLabels) {
                         val dayLabel = try {
-                            val sdfIn = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
-                            val sdfOut = java.text.SimpleDateFormat("EEE", java.util.Locale.US)
-                            val date = sdfIn.parse(day.date)
-                            date?.let { sdfOut.format(it).uppercase() } ?: day.date.take(3).uppercase()
+                            LocaleFormatter.displayDayOfWeek(day.date, Locale.US, full = false).uppercase()
                         } catch (e: Exception) {
                             day.date.take(3).uppercase()
                         }
@@ -2177,7 +1987,7 @@ fun WeeklyForecastGraph(
     }
 }
 
-        @Composable
+@Composable
 fun KundliPeekCard(
     data: AnalyzeFullResponse, 
     userEmail: String?, 
@@ -2194,7 +2004,6 @@ fun KundliPeekCard(
     val themeColor = AstroColors.getPlanetaryColor(planetName)
     
     val lagna = data.ascendant?.sign ?: "Unknown"
-    val dashaLabel = "$planetName MD"
 
     // --- ANIMATIONS ---
     val revealScale = remember { Animatable(0.9f) }
@@ -2202,17 +2011,15 @@ fun KundliPeekCard(
         revealScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
     }
 
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer {
                 scaleX = scale * revealScale.value
                 scaleY = scale * revealScale.value
             }
-            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = themeColor.copy(alpha = 0.05f)),
-        border = BorderStroke(1.5.dp, themeColor.copy(alpha = 0.2f))
+            .floatingCard(accent = themeColor, cornerRadius = 28.dp, elevation = 8.dp)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             // Header Row: SVG + Identity
@@ -2221,12 +2028,12 @@ fun KundliPeekCard(
                 Surface(
                     modifier = Modifier.size(70.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = CARD_SURFACE_LIGHT_ALPHA),
                     border = BorderStroke(1.dp, themeColor.copy(alpha = 0.2f))
                 ) {
                     val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
                     if (!userEmail.isNullOrBlank() && !accessToken.isNullOrBlank()) {
-                        AsyncImage(
+                        SubcomposeAsyncImage(
                             model = ImageRequest.Builder(context)
                                 .data("https://api.veriscribeanalytics.com/api/profile/svg?style=north&theme=${if (isDarkTheme) "dark" else "light"}")
                                 .decoderFactory(SvgDecoder.Factory())
@@ -2238,19 +2045,42 @@ fun KundliPeekCard(
                             contentDescription = "Vedic Birth Chart",
                             modifier = Modifier.fillMaxSize().padding(4.dp),
                             contentScale = ContentScale.Fit
-                        )
+                        ) {
+                            val state = painter.state
+                            if (state is AsyncImagePainter.State.Loading || state is AsyncImagePainter.State.Empty) {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator(
+                                        color = themeColor,
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            } else if (state is AsyncImagePainter.State.Error) {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Default.BrokenImage,
+                                        contentDescription = "Chart loading failed",
+                                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            } else {
+                                SubcomposeAsyncImageContent()
+                            }
+                        }
                     } else {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(
-                                color = themeColor,
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = "Sign in to view chart",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(14.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -2260,55 +2090,59 @@ fun KundliPeekCard(
                         color = themeColor,
                         letterSpacing = 1.sp
                     )
-                    Text(
-                        "$lagna Lagna • $dashaLabel",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val rashiAsset = rashiAssetFor(lagna)
+                        if (rashiAsset != null) {
+                            AstroAssetImage(
+                                assetName = rashiAsset,
+                                contentDescription = "$lagna sign",
+                                modifier = Modifier.size(22.dp).clip(CircleShape),
+                                fallbackTint = themeColor
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                        }
+                        Text(
+                            "$lagna Lagna",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
 
                 Icon(Icons.Default.ChevronRight, contentDescription = null, tint = themeColor.copy(alpha = 0.4f))
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Strongest Planet Insight
-            val strongestPlanet = data.planet_strength_ranking?.minByOrNull { it.rank }
-            if (strongestPlanet != null) {
-                val planetData = data.planets?.find { it.planet == strongestPlanet.planet }
-                Text(
-                    text = "Your strongest planet is ${strongestPlanet.planet} in the ${planetData?.house ?: "?"} house.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Dasha Timelines (Mahadasha & Antardasha)
-            data.dasha?.current?.mahadasha?.let { md ->
-                DashaTimelineItem(
-                    title = "Mahadasha: ${md.planet}",
-                    planetName = md.planet,
-                    startDate = md.start,
-                    endDate = md.end,
-                    interpretation = "",
-                    isPrimary = true
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(10.dp))
-            
-            data.dasha?.current?.antardasha?.let { ad ->
-                DashaTimelineItem(
-                    title = "Antardasha: ${ad.planet}",
-                    planetName = ad.planet,
-                    startDate = ad.start,
-                    endDate = ad.end,
-                    interpretation = "",
-                    modifier = Modifier.padding(start = 12.dp)
-                )
+            val mahadasha = data.dasha?.current?.mahadasha
+            val antardasha = data.dasha?.current?.antardasha
+            if (mahadasha != null || antardasha != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    if (mahadasha != null) {
+                        MiniDashaChip(
+                            label = "Mahadasha",
+                            planetName = mahadasha.planet,
+                            startDate = mahadasha.start,
+                            endDate = mahadasha.end,
+                            isPrimary = true,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    if (antardasha != null) {
+                        MiniDashaChip(
+                            label = "Antardasha",
+                            planetName = antardasha.planet,
+                            startDate = antardasha.start,
+                            endDate = antardasha.end,
+                            isPrimary = false,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -2320,170 +2154,99 @@ fun KundliPeekCard(
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = themeColor)
             ) {
-                Text("EXPLORE FULL ANALYSIS", fontWeight = FontWeight.Black, fontSize = 12.sp, color = Color.White)
+                Text("EXPLORE FULL ANALYSIS", fontWeight = FontWeight.Black, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSecondary)
             }
         }
     }
 }
 
-        @Composable
-fun CosmicAlertBanner(alerts: AlertsData, themeColor: Color, onClick: () -> Unit) {
-    val allAlerts = remember(alerts) {
-        val list = mutableListOf<AlertItem>()
-        alerts.primary?.let { list.add(it) }
-        alerts.secondary?.let { list.addAll(it) }
-        list
-    }
-    if (allAlerts.isEmpty()) return
-
-    var currentIndex by remember { mutableIntStateOf(0) }
-    LaunchedEffect(allAlerts.size) {
-        while (true) {
-            delay(5000)
-            currentIndex = (currentIndex + 1) % allAlerts.size
-        }
-    }
-
-    val alert = allAlerts[currentIndex]
-    val isWarning = alert.type == "warning"
-    val color = if (isWarning) MaterialTheme.colorScheme.error else themeColor
-
-    val infiniteTransition = rememberInfiniteTransition(label = "alert_pulse")
-    val iconScale by infiniteTransition.animateFloat(
-        initialValue = 1.0f,
-        targetValue = 1.15f,
-        animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "icon_scale"
-    )
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        color = color.copy(alpha = 0.08f),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.25f))
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            AnimatedContent(
-                targetState = alert,
-                transitionSpec = {
-                    (slideInVertically { height -> height } + fadeIn()).togetherWith(slideOutVertically { height -> -height } + fadeOut())
-                },
-                label = "alert_cycle"
-            ) { currentAlert ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.graphicsLayer { scaleX = iconScale; scaleY = iconScale }) {
-                        Text(if (currentAlert.type == "warning") "⚠️" else "✨", fontSize = 24.sp)
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            currentAlert.simple,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            "LEARN MORE →",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            color = color,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-                }
-            }
-            
-            if (allAlerts.size > 1) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    repeat(allAlerts.size) { index ->
-                        val isActive = index == currentIndex
-                        Box(
-                            modifier = Modifier
-                                .padding(horizontal = 2.dp)
-                                .size(if (isActive) 6.dp else 4.dp)
-                                .background(
-                                    if (isActive) color else color.copy(alpha = 0.2f),
-                                    CircleShape
-                                )
-                        )
-                    }
-                }
-            }
-        }
+private fun rashiAssetFor(sign: String?): String? {
+    val key = sign?.trim()?.lowercase()?.takeIf { it.isNotEmpty() && it != "unknown" } ?: return null
+    return when (key) {
+        "aries", "taurus", "gemini", "cancer", "leo", "virgo",
+        "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces" -> key
+        else -> null
     }
 }
 
-        @Composable
-fun DeeperWisdomSection(dominantPlanet: String?, onNavigateToPlanets: () -> Unit, onNavigateToNakshatras: () -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        KnowledgeMicroCard(
-            title = "${dominantPlanet ?: "Sun"} Wisdom",
-            subtitle = "Planetary insights",
-            emoji = "🪐",
-            color = dominantPlanet?.let { AstroColors.getPlanetaryColor(it) } ?: AstroColors.Jupiter,
-            modifier = Modifier.weight(1f),
-            index = 0,
-            onClick = onNavigateToPlanets
-        )
-        KnowledgeMicroCard(
-            title = "Lunar Mansions",
-            subtitle = "Your Nakshatra",
-            emoji = "☾",
-            color = AstroColors.Moon,
-            modifier = Modifier.weight(1f),
-            index = 1,
-            onClick = onNavigateToNakshatras
-        )
+private fun planetAssetFor(planet: String?): String? {
+    val key = planet?.trim()?.lowercase() ?: return null
+    return when (key) {
+        "sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn" -> key
+        else -> null
     }
 }
 
 @Composable
-fun KnowledgeMicroCard(title: String, subtitle: String, emoji: String, color: Color, modifier: Modifier, index: Int = 0, onClick: () -> Unit) {
-    val entranceAlpha = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        delay(index * 150L)
-        entranceAlpha.animateTo(1f, tween(600))
+private fun MiniDashaChip(
+    label: String,
+    planetName: String,
+    startDate: String?,
+    endDate: String?,
+    isPrimary: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val planetColor = AstroColors.getPlanetaryColor(planetName)
+    val containerColor = if (isPrimary) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    }
+    val contentColor = if (isPrimary) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    val asset = planetAssetFor(planetName)
+    val dateRange = remember(startDate, endDate) {
+        val s = startDate?.take(10)?.takeIf { it.isNotBlank() }
+        val e = endDate?.take(10)?.takeIf { it.isNotBlank() }
+        when {
+            s != null && e != null -> "$s → $e"
+            s != null -> s
+            e != null -> "→ $e"
+            else -> ""
+        }
     }
 
-    val floatDuration = if (index == 0) 2600 else 2900
-    val infiniteTransition = rememberInfiniteTransition(label = "micro_card_idle")
-    val idleFloat by infiniteTransition.animateFloat(
-        initialValue = -2f,
-        targetValue = 2f,
-        animationSpec = infiniteRepeatable(tween(floatDuration, easing = LinearEasing), RepeatMode.Reverse),
-        label = "idle"
-    )
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (isPressed) 0.94f else 1f, label = "micro_card_scale")
-
-    Card(
-        modifier = modifier
-            .graphicsLayer {
-                alpha = entranceAlpha.value
-                translationY = idleFloat
-                scaleX = scale
-                scaleY = scale
-            }
-            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.5.dp, color.copy(alpha = 0.3f))
+    Surface(
+        modifier = modifier,
+        color = containerColor,
+        shape = RoundedCornerShape(14.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(emoji, fontSize = 20.sp)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(title, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(subtitle, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Column(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AstroAssetImage(
+                assetName = asset,
+                contentDescription = planetName,
+                modifier = Modifier.size(64.dp),
+                fallbackTint = planetColor
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                label.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = planetColor,
+                letterSpacing = 0.8.sp
+            )
+            Text(
+                planetName,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = contentColor
+            )
+            if (dateRange.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    dateRange,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = contentColor.copy(alpha = 0.6f),
+                    fontSize = 10.sp
+                )
+            }
         }
     }
 }
@@ -2502,17 +2265,15 @@ fun ConsultTeaserCard(record: ConsultRecord, onClick: () -> Unit) {
         label = "ball"
     )
 
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
-            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+            .floatingCard(accent = MaterialTheme.colorScheme.primary, cornerRadius = 20.dp, elevation = 6.dp)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(

@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.astranavi.app.data.model.ChatAvatar
 import com.astranavi.app.data.model.ChatMessage
 import com.astranavi.app.data.model.ChatSummary
 import com.astranavi.app.data.model.PaywallCardData
@@ -56,19 +57,44 @@ class ChatViewModel(
     private val _showHistory = mutableStateOf(false)
     val showHistory: State<Boolean> = _showHistory
 
+    private val _activeAvatar = mutableStateOf<ChatAvatar?>(null)
+    val activeAvatar: State<ChatAvatar?> = _activeAvatar
+
+    private val _suggestedQuestions = mutableStateOf<List<String>>(emptyList())
+    val suggestedQuestions: State<List<String>> = _suggestedQuestions
+
+    private val _userName = mutableStateOf<String>("")
+    val userName: State<String> = _userName
+
+    fun setActiveAvatar(avatar: ChatAvatar?) {
+        val previousId = _activeAvatar.value?.avatarId
+        _activeAvatar.value = avatar
+        if (previousId != avatar?.avatarId) {
+            initializeWelcomeChat()
+        }
+    }
+
+    fun switchActiveAvatar(avatar: ChatAvatar) {
+        _activeAvatar.value = avatar
+    }
+
     init {
         initializeWelcomeChat()
         loadHistory()
+        loadUserName()
+    }
+
+    private fun loadUserName() {
+        viewModelScope.launch {
+            _userName.value = sessionManager.userName.first()?.trim().orEmpty()
+        }
     }
 
     private fun initializeWelcomeChat() {
-        viewModelScope.launch {
-            val name = sessionManager.userName.first() ?: ""
-            val greeting = if (name.isNotBlank()) "Namaste, $name! ✦" else "Namaste ✦"
-            val msg1 = ChatMessage(UUID.randomUUID().toString(), "assistant", greeting)
-            val msg2 = ChatMessage(UUID.randomUUID().toString(), "assistant", "I am Navi, your cosmic guide. Ask me about your career, relationships, or health based on your Vedic chart.")
-            _uiState.value = ChatUiState.ActiveChat(TEMP_INITIAL_CHAT_ID, listOf(msg1, msg2))
-        }
+        // Empty active chat — the chat screen renders a hero empty state instead
+        // of auto-injecting assistant bubbles, so the page doesn't feel sparse.
+        _suggestedQuestions.value = emptyList()
+        _uiState.value = ChatUiState.ActiveChat(TEMP_INITIAL_CHAT_ID, emptyList())
     }
 
     fun loadHistory() {
@@ -119,12 +145,20 @@ class ChatViewModel(
 
     fun selectChat(chatId: String) {
         _showHistory.value = false
+        _suggestedQuestions.value = emptyList()
         viewModelScope.launch {
             _uiState.value = ChatUiState.LoadingMessages
             try {
                 val response = repository.getChatHistory(chatId)
                 if (response.isSuccessful && response.body()?.chat != null) {
                     val chat = response.body()!!.chat!!
+                    val lastAvatarId = chat.messages.lastOrNull { !it.avatarId.isNullOrEmpty() }?.avatarId
+                    if (lastAvatarId != null) {
+                        val foundAvatar = FallbackChatAvatarCatalog.avatars.find { it.avatarId == lastAvatarId }
+                        if (foundAvatar != null) {
+                            _activeAvatar.value = foundAvatar
+                        }
+                    }
                     _uiState.value = ChatUiState.ActiveChat(chat.id, chat.messages)
                 } else {
                     _uiState.value = ChatUiState.Error("Failed to load chat") { selectChat(chatId) }
@@ -175,6 +209,7 @@ class ChatViewModel(
         if (text.isBlank()) return
 
         if (currentState is ChatUiState.ActiveChat) {
+            _suggestedQuestions.value = emptyList()
             val chatId = currentState.chatId
             val userMsg = ChatMessage(UUID.randomUUID().toString(), "user", text)
             val messagesWithUser = currentState.messages + userMsg
@@ -217,37 +252,48 @@ class ChatViewModel(
             val aiMsgId = UUID.randomUUID().toString()
 
             try {
-                val responseBody = repository.sendMessage(chatId, text)
-
-                val contentType = responseBody.contentType()
-                if (contentType != null && contentType.subtype == "json") {
-                    val errorBody = responseBody.string()
-                    val paywallData = entitlementRepository?.parsePaywallFrom402Body(errorBody)
-                    if (paywallData != null) {
-                        _uiState.value = ChatUiState.PaywallBlocked(paywallData)
-                        _isSending.value = false
-                    } else {
-                        val errorMsg = ChatMessage(UUID.randomUUID().toString(), "assistant", "I'm having trouble connecting. Please try again.")
-                        _uiState.value = ChatUiState.ActiveChat(chatId, messagesWithUser + errorMsg)
-                        _isSending.value = false
+                val responseBody = repository.sendMessage(chatId, text, avatarId = _activeAvatar.value?.avatarId)
+                responseBody.use { body ->
+                    val contentType = body.contentType()
+                    if (contentType != null && contentType.subtype == "json") {
+                        val errorBody = body.string()
+                        val paywallData = entitlementRepository?.parsePaywallFrom402Body(errorBody)
+                        if (paywallData != null) {
+                            _uiState.value = ChatUiState.PaywallBlocked(paywallData)
+                            _isSending.value = false
+                            return@launch
+                        } else {
+                            val errorMsg = ChatMessage(UUID.randomUUID().toString(), "assistant", "I'm having trouble connecting. Please try again.")
+                            _uiState.value = ChatUiState.ActiveChat(chatId, messagesWithUser + errorMsg)
+                            _isSending.value = false
+                            return@launch
+                        }
                     }
-                }
 
-                responseBody.byteStream().bufferedReader().use { reader ->
-                    reader.forEachLine { line ->
-                        if (line.startsWith("data: ")) {
-                            val dataStr = line.substring(6).trim()
-                            if (dataStr == "[DONE]") return@forEachLine
+                    body.byteStream().bufferedReader().use { reader ->
+                        reader.forEachLine { line ->
+                            if (line.startsWith("data: ")) {
+                                val dataStr = line.substring(6).trim()
+                                if (dataStr == "[DONE]") return@forEachLine
 
-                            try {
-                                val json = JSONObject(dataStr)
-                                val token = json.optString("token")
-                                if (token.isNotEmpty()) {
-                                    fullResponse += token
-                                    val aiMsg = ChatMessage(aiMsgId, "assistant", fullResponse)
-                                    _uiState.value = ChatUiState.ActiveChat(chatId, messagesWithUser + aiMsg)
+                                try {
+                                    val json = JSONObject(dataStr)
+                                    val token = json.optString("token")
+                                    if (token.isNotEmpty()) {
+                                        fullResponse += token
+                                        val aiMsg = ChatMessage(aiMsgId, "assistant", fullResponse)
+                                        _uiState.value = ChatUiState.ActiveChat(chatId, messagesWithUser + aiMsg)
+                                    }
+                                    val suggestedArray = json.optJSONArray("suggestedQuestions")
+                                    if (suggestedArray != null) {
+                                        val list = mutableListOf<String>()
+                                        for (i in 0 until suggestedArray.length()) {
+                                            list.add(suggestedArray.getString(i))
+                                        }
+                                        _suggestedQuestions.value = list
+                                    }
+                                } catch (_: Exception) {
                                 }
-                            } catch (e: Exception) {
                             }
                         }
                     }

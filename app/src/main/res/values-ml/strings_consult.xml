@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Consult Screen - Birth Details Step -->
+    <string name="consult_btn_begin_session">സെഷൻ ആരംഭിക്കുക</string>
+    <string name="consult_title_cosmic_blueprint">കോസ്മിക് ബ്ലൂപ്രിന്റ്</string>
+    <string name="consult_label_dob">ജനന തീയതി (DD-MM-YYYY)</string>
+    <string name="consult_label_tob">ജനന സമയം (HHMM)</string>
+    <string name="consult_label_pob">ജനന സ്ഥലം</string>
+    <string name="consult_section_preferences">മുൻഗണനകൾ</string>
+    <string name="consult_label_preferred_language">താത്പര്യമുള്ള ഭാഷ</string>
+    <string name="consult_lang_english">ഇംഗ്ലീഷ്</string>
+    <string name="consult_lang_hindi">ഹിന്ദി</string>
+    <string name="consult_lang_marathi">മറാഠി</string>
+    <string name="consult_lang_gujarati">ഗുജറാത്തി</string>
+    <string name="consult_lang_tamil">തമിഴ്</string>
+
+    <!-- Consult Screen - Category Selection Step -->
+    <string name="consult_title_select_domain">മേഖല തിരഞ്ഞെടുക്കുക</string>
+    <string name="consult_label_personalized_guidance">വ്യക്തിഗതമാക്കിയ മാർഗ്ഗനിർദ്ദേശം</string>
+
+    <!-- Consult Screen - Subcategory Selection Step -->
+    <string name="consult_title_focus_area_format">%1$s-ന്റെ ശ്രദ്ധാകേന്ദ്രം</string>
+    <string name="consult_desc_focus_analysis">ഈ പ്രത്യേക വിഷയത്തിൽ ആഴത്തിലുള്ള ഉൾക്കാഴ്ചകൾ നൽകുന്നതിന് നവി നിങ്ങളുടെ ജാതകം വിശകലനം ചെയ്യും.</string>
+    <string name="consult_btn_select_focus">ഈ ശ്രദ്ധാകേന്ദ്രം തിരഞ്ഞെടുക്കുക</string>
+
+    <!-- Consult Screen - Question Selection Step -->
+    <string name="consult_title_pick_query">ഒരു ചോദ്യം തിരഞ്ഞെടുക്കുക</string>
+    <string name="consult_desc_query_analysis">ഈ പ്രത്യേക ചോദ്യത്തിന് ഉത്തരം നൽകാൻ നവി നിങ്ങളുടെ ജാതകം വിശകലനം ചെയ്യും.</string>
+    <string name="consult_section_settings">കൺസൾട്ടേഷൻ ക്രമീകരണങ്ങൾ</string>
+    <string name="consult_label_custom_context">നിങ്ങളുടെ സാഹചര്യം നവിയോട് പറയൂ…</string>
+    <string name="consult_label_response_tone">പ്രതികരണ ശൈലി</string>
+    <string name="consult_tone_warm">ഊഷ്മളം</string>
+    <string name="consult_tone_direct">നേരിട്ടുള്ള</string>
+    <string name="consult_tone_spiritual">ആത്മീയമായ</string>
+    <string name="consult_btn_ask_custom">ഇഷ്ടാനുസൃത ചോദ്യം ചോദിക്കുക</string>
+
+    <!-- Consult Screen - Result Step -->
+    <string name="consult_title_cosmic_insight">കോസ്മിക് ഉൾക്കാഴ്ച</string>
+    <string name="consult_loading_planetary">ഗ്രഹങ്ങളുടെ വിന്യാസം പരിശോധിക്കുന്നു…</string>
+    <string name="consult_loading_cosmic">പ്രപഞ്ച സ്വാധീനങ്ങൾ മനസ്സിലാക്കുന്നു…</string>
+    <string name="consult_loading_karmic">നിങ്ങളുടെ കർമ്മ ഫലങ്ങൾ വ്യാഖ്യാനിക്കുന്നു…</string>
+    <string name="consult_loading_celestial">പ്രപഞ്ച മാർഗ്ഗനിർദ്ദേശങ്ങൾ സ്വീകരിക്കുന്നു…</string>
+    <string name="consult_btn_explore_again">മറ്റൊരു ഉൾക്കാഴ്ച കൂടി തേടുക</string>
+
+    <!-- Consult Screen - Date/Dialog -->
+    <string name="consult_btn_ok">ശരി</string>
+    <string name="consult_btn_cancel">റദ്ദാക്കുക</string>
+
+    <!-- Consult History Screen -->
+    <string name="consult_empty_state">കോസ്മിക് കൺസൾട്ടേഷനുകളൊന്നും കണ്ടെത്തിയില്ല.</string>
+    <string name="consult_default_category">കൺസൾട്ടേഷൻ</string>
+    <string name="consult_default_question">ജ്യോതിഷ അന്വേഷണം</string>
+</resources>

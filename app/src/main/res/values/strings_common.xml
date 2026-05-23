@@ -1,0 +1,18 @@
+<resources>
+    <string name="common_credits_badge_description">Credits</string>
+    <string name="common_btn_upgrade">Upgrade</string>
+    <string name="common_search_icon_description">Search</string>
+    <string name="common_btn_ok">OK</string>
+    <string name="common_btn_cancel">Cancel</string>
+    <string name="common_date_picker_description">Select Date</string>
+    <string name="common_time_picker_description">Time</string>
+    <string name="common_error_internet_connection">Connection failed. Please check your internet connection.</string>
+    <string name="common_error_server_timeout">Server is taking too long to respond. Please try again.</string>
+    <string name="common_error_network">Network error. Please check your connection and try again.</string>
+    <string name="common_error_generic">Something went wrong. Please try again.</string>
+    <string name="common_error_session_expired">Your session needs a refresh. Please sign in again.</string>
+    <string name="common_error_feature_upgrade">This feature requires an upgrade.</string>
+    <string name="common_error_not_found">We couldn\'t find this guidance right now.</string>
+    <string name="common_error_server_busy">The server is busy. Please try again in a moment.</string>
+    <string name="common_error_service_unavailable">Our service is temporarily unavailable. Please try again.</string>
+</resources>

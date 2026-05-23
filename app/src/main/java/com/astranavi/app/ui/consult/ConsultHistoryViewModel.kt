@@ -7,7 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.astranavi.app.data.model.ConsultRecord
 import com.astranavi.app.data.repository.AstrologyRepository
 import com.astranavi.app.util.ErrorSanitizer
+import com.astranavi.app.util.LocaleManager
 import com.astranavi.app.util.SessionManager
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 sealed class ConsultHistoryState {
@@ -25,26 +27,37 @@ class ConsultHistoryViewModel(
 
     init {
         fetchHistory()
+        viewModelScope.launch {
+            LocaleManager.localeVersion.drop(1).collect {
+                fetchHistory()
+            }
+        }
     }
 
-    fun fetchHistory() {
+    fun fetchHistory(silent: Boolean = false) {
         viewModelScope.launch {
-            _uiState.value = ConsultHistoryState.Loading
+            if (!silent || _uiState.value !is ConsultHistoryState.Success) {
+                _uiState.value = ConsultHistoryState.Loading
+            }
             try {
                 val response = repository.getConsultHistory()
                 if (response.isSuccessful) {
                     val body = response.body()
                     if (body == null) {
-                        _uiState.value = ConsultHistoryState.Error("Parsing failed. Please contact support.")
+                        if (!silent || _uiState.value !is ConsultHistoryState.Success) {
+                            _uiState.value = ConsultHistoryState.Error("Parsing failed. Please contact support.")
+                        }
                     } else {
                         val records = body.results ?: body.results_alt ?: emptyList()
                         _uiState.value = ConsultHistoryState.Success(records)
                     }
-                } else {
+                } else if (!silent || _uiState.value !is ConsultHistoryState.Success) {
                     _uiState.value = ConsultHistoryState.Error("Failed to fetch history (Code: ${response.code()})")
                 }
             } catch (e: Exception) {
-                _uiState.value = ConsultHistoryState.Error(ErrorSanitizer.sanitize(e))
+                if (!silent || _uiState.value !is ConsultHistoryState.Success) {
+                    _uiState.value = ConsultHistoryState.Error(ErrorSanitizer.sanitize(e))
+                }
             }
         }
     }

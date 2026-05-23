@@ -7,8 +7,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -25,6 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.astranavi.app.data.model.PaywallCardData
 import com.astranavi.app.data.model.PaywallProduct
+import com.astranavi.app.data.model.getLocalizedTitle
+import com.astranavi.app.data.model.getLocalizedDescription
+import com.astranavi.app.data.model.getLocalizedName
+import androidx.compose.ui.res.stringResource
+import com.astranavi.app.R
 
 @Composable
 fun PaywallCard(
@@ -53,6 +60,7 @@ fun PaywallOverlay(
     modifier: Modifier = Modifier
 ) {
     val accentColor = try { Color(android.graphics.Color.parseColor(paywall.color)) } catch (_: Exception) { MaterialTheme.colorScheme.secondary }
+    val metrics = responsiveMetrics()
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -60,14 +68,14 @@ fun PaywallOverlay(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f)),
         border = BorderStroke(1.dp, accentColor.copy(alpha = 0.4f))
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(metrics.cardPadding)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (paywall.icon != null) {
                     Text(paywall.icon, fontSize = 24.sp)
                     Spacer(modifier = Modifier.width(12.dp))
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(paywall.title ?: "Premium Feature", fontWeight = FontWeight.Bold, color = accentColor, style = MaterialTheme.typography.titleMedium)
+                    Text(paywall.getLocalizedTitle().ifEmpty { stringResource(R.string.paywall_premium_feature) }, fontWeight = FontWeight.Bold, color = accentColor, style = MaterialTheme.typography.titleMedium, maxLines = 2)
                     if (paywall.badge != null) {
                         Surface(
                             shape = RoundedCornerShape(4.dp),
@@ -80,12 +88,12 @@ fun PaywallOverlay(
                 }
                 if (onDismiss != null) {
                     IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
-                        Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.paywall_dismiss), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                     }
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text(paywall.description ?: "", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(paywall.getLocalizedDescription(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (paywall.suggestedProducts?.isNotEmpty() == true) {
                 Spacer(modifier = Modifier.height(12.dp))
                 SuggestedProductsRow(products = paywall.suggestedProducts!!, accentColor = accentColor)
@@ -100,33 +108,36 @@ fun PaywallFullBlock(
     modifier: Modifier = Modifier
 ) {
     val accentColor = try { Color(android.graphics.Color.parseColor(paywall.color)) } catch (_: Exception) { MaterialTheme.colorScheme.secondary }
+    val metrics = responsiveMetrics()
 
     Box(
-        modifier = modifier.fillMaxWidth().fillMaxHeight(0.85f),
+        modifier = modifier.fillMaxWidth().heightIn(max = if (metrics.isCompactHeight || metrics.isLargeFont) 560.dp else 680.dp),
         contentAlignment = Alignment.Center
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = if (metrics.isCompactWidth) 0.dp else 16.dp),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             border = BorderStroke(2.dp, accentColor.copy(alpha = 0.5f))
         ) {
             Column(
-                modifier = Modifier.padding(32.dp),
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(if (metrics.isCompactWidth || metrics.isLargeFont) 20.dp else 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
-                    modifier = Modifier.size(64.dp).background(accentColor.copy(alpha = 0.15f), CircleShape).border(2.dp, accentColor, CircleShape),
+                    modifier = Modifier.size(if (metrics.isCompactHeight || metrics.isLargeFont) 52.dp else 64.dp).background(accentColor.copy(alpha = 0.15f), CircleShape).border(2.dp, accentColor, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Lock, contentDescription = null, tint = accentColor, modifier = Modifier.size(32.dp))
+                    Icon(Icons.Default.Lock, contentDescription = null, tint = accentColor, modifier = Modifier.size(if (metrics.isCompactHeight || metrics.isLargeFont) 28.dp else 32.dp))
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 if (paywall.icon != null) {
-                    Text(paywall.icon, fontSize = 32.sp)
+                    Text(paywall.icon, fontSize = if (metrics.isCompactHeight || metrics.isLargeFont) 26.sp else 32.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
-                Text(paywall.title ?: "Premium Feature", fontWeight = FontWeight.Black, color = accentColor, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+                Text(paywall.getLocalizedTitle().ifEmpty { stringResource(R.string.paywall_premium_feature) }, fontWeight = FontWeight.Black, color = accentColor, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center, maxLines = 3)
                 if (paywall.badge != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Surface(
@@ -137,7 +148,7 @@ fun PaywallFullBlock(
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(paywall.description ?: "", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                Text(paywall.getLocalizedDescription(), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
                 if (paywall.suggestedProducts?.isNotEmpty() == true) {
                     Spacer(modifier = Modifier.height(20.dp))
                     SuggestedProductsColumn(products = paywall.suggestedProducts!!, accentColor = accentColor)
@@ -149,18 +160,20 @@ fun PaywallFullBlock(
 
 @Composable
 private fun SuggestedProductsRow(products: List<PaywallProduct>, accentColor: Color) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    val metrics = responsiveMetrics()
+
+    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         products.take(2).forEach { product ->
             val productColor = try { Color(android.graphics.Color.parseColor(product.color)) } catch (_: Exception) { accentColor }
             Card(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(if (metrics.isCompactWidth || metrics.isLargeFont) 1f else 0.48f),
                 shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(containerColor = productColor.copy(alpha = 0.1f)),
                 border = BorderStroke(1.dp, productColor.copy(alpha = 0.3f))
             ) {
                 Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(product.nameEn ?: "", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
-                    Text("${product.credits} credits", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(product.getLocalizedName(), fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, textAlign = TextAlign.Center)
+                    Text(stringResource(R.string.paywall_credits_format, product.credits ?: 0), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     val price = product.priceInr?.let { "₹${it.toInt()}" } ?: "—"
                     Text(price, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = productColor)
                     Spacer(modifier = Modifier.height(4.dp))
@@ -171,7 +184,7 @@ private fun SuggestedProductsRow(products: List<PaywallProduct>, accentColor: Co
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                         enabled = false
                     ) {
-                        Text("Coming Soon", fontSize = 10.sp, color = Color.White)
+                        Text(stringResource(R.string.paywall_coming_soon), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSecondary)
                     }
                 }
             }
@@ -192,8 +205,8 @@ private fun SuggestedProductsColumn(products: List<PaywallProduct>, accentColor:
             ) {
                 Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(product.nameEn ?: "Plan", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                        Text("${product.credits} credits", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(product.getLocalizedName().ifEmpty { stringResource(R.string.plans_default_pack_name) }, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(stringResource(R.string.paywall_credits_format, product.credits ?: 0), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (product.tier != null) {
                             Surface(shape = RoundedCornerShape(4.dp), color = productColor.copy(alpha = 0.2f)) {
                                 Text(product.tier.uppercase(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = productColor, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
@@ -212,7 +225,7 @@ private fun SuggestedProductsColumn(products: List<PaywallProduct>, accentColor:
                     ) {
                         Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Coming Soon", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.paywall_coming_soon), fontWeight = FontWeight.Bold)
                     }
                 }
             }

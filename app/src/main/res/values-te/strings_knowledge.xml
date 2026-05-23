@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KnowledgeHubScreen -->
+    <string name="knowledge_hub_intro">మా క్రమబద్ధమైన ఎన్సైక్లోపీడియా ద్వారా పురాతన జ్యోతిష శాస్త్రాన్ని అన్వేషించండి.</string>
+    <string name="knowledge_hub_rashis">రాశులు</string>
+    <string name="knowledge_hub_rashis_desc">రాశి చక్రంలోని 12 రాశులు.</string>
+    <string name="knowledge_hub_planets">నవగ్రహాలు</string>
+    <string name="knowledge_hub_planets_desc">గ్రహ శక్తులు మరియు వాటి ప్రభావం.</string>
+    <string name="knowledge_hub_nakshatras">27 నక్షత్రాలు</string>
+    <string name="knowledge_hub_nakshatras_desc">నక్షత్రాలపై లోతైన అధ్యయనం.</string>
+    <string name="knowledge_hub_houses">భావ చక్రం</string>
+    <string name="knowledge_hub_houses_desc">మీ జీవితంలోని 12 స్థానాలు (భావాలు).</string>
+    <string name="knowledge_hub_yogas">కాస్మిక్ యోగాలు</string>
+    <string name="knowledge_hub_yogas_desc">పవిత్ర గ్రహాల కలయికలు.</string>
+
+    <!-- RashiScreen / PlanetScreen / NakshatraScreen / HouseScreen -->
+    <string name="knowledge_section_core_nature">ప్రాథమిక స్వభావం</string>
+    <string name="knowledge_section_identity_grid">గుర్తింపు గ్రిడ్</string>
+    <string name="knowledge_section_career_resonance">వృత్తిపరమైన అనుకూలత</string>
+    <string name="knowledge_section_positive_traits">సానుకూల లక్షణాలు</string>
+    <string name="knowledge_section_challenging_traits">సవాలు చేసే లక్షణాలు</string>
+    <string name="knowledge_section_core_meaning">ప్రధాన అర్థం</string>
+    <string name="knowledge_section_significations">సూచనలు</string>
+    <string name="knowledge_section_planetary_indications">గ్రహాల సూచనలు</string>
+    <string name="knowledge_section_karakatvas">కారకత్వాలు</string>
+    <string name="knowledge_section_padas">నాలుగు పాదాలు</string>
+
+    <!-- NakshatraScreen pada display -->
+    <string name="knowledge_pada_prefix">పాదం %1$d</string>
+    <string name="knowledge_pada_navamsha">%1$s నవాంశ</string>
+
+    <!-- HouseScreen display -->
+    <string name="knowledge_house_prefix">స్థానం %1$d</string>
+
+    <!-- IdentityTile labels (generic) -->
+    <string name="knowledge_tile_label_ruler">అధిపతి</string>
+    <string name="knowledge_tile_label_element">తత్వం</string>
+    <string name="knowledge_tile_label_quality">గుణం</string>
+    <string name="knowledge_tile_label_caste">వర్ణం</string>
+    <string name="knowledge_tile_label_nature">స్వభావం</string>
+    <string name="knowledge_tile_label_direction">దిశ</string>
+
+    <!-- IdentityTile labels specific to Houses -->
+    <string name="knowledge_tile_label_natural_sign">సహజ రాశి</string>
+    <string name="knowledge_tile_label_karaka">కారకుడు</string>
+    <string name="knowledge_tile_label_classification">వర్గీకరణ</string>
+    <string name="knowledge_tile_label_body_part">శరీర భాగం</string>
+
+    <!-- PlanetScreen specific -->
+    <string name="knowledge_planet_exaltation">ఉచ్ఛ స్థితి</string>
+    <string name="knowledge_planet_debilitation">నీచ స్థితి</string>
+    <string name="knowledge_planet_own_sign">స్వక్షేత్రం</string>
+
+    <!-- YogaScreen -->
+    <string name="knowledge_yoga_intro">వైదిక జ్యోతిషశాస్త్రం వందలాది యోగాలను గుర్తిస్తుంది — నిర్దిష్ట గ్రహాల అమరికలు జీవితంలో ప్రత్యేక ఫలితాలను సృష్టిస్తాయి.</string>
+    <string name="knowledge_yoga_stats_classification">వర్గీకరణ</string>
+    <string name="knowledge_yoga_stats_key_planets">ముఖ్యమైన గ్రహాలు</string>
+    <string name="knowledge_yoga_logic">తర్కం</string>
+    <string name="knowledge_yoga_detailed_analysis">లోతైన విశ్లేషణ</string>
+    <string name="knowledge_yoga_expected_results">ఆశించే ఫలితాలు</string>
+
+    <!-- Screen titles (set via LocalTopBarTitle) -->
+    <string name="knowledge_title_rashis">రాశులు</string>
+    <string name="knowledge_title_planets">గ్రహాలు</string>
+    <string name="knowledge_title_nakshatras">నక్షత్రాలు</string>
+    <string name="knowledge_title_houses">స్థానాలు</string>
+    <string name="knowledge_title_yogas">యోగాలు</string>
+</resources>

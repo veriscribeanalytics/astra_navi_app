@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KnowledgeHubScreen -->
+    <string name="knowledge_hub_intro">고대 과학을 통해 우리의 체계화된 백과사전을 탐색하세요.</string>
+    <string name="knowledge_hub_rashis">황도대 별자리</string>
+    <string name="knowledge_hub_rashis_desc">황도대의 12개 별자리.</string>
+    <string name="knowledge_hub_planets">나바그라하</string>
+    <string name="knowledge_hub_planets_desc">행성의 힘과 영향.</string>
+    <string name="knowledge_hub_nakshatras">27 낙샤트라</string>
+    <string name="knowledge_hub_nakshatras_desc">달의 별자리(낙샤트라)에 대한 깊이 있는 탐구.</string>
+    <string name="knowledge_hub_houses">바바 차크라</string>
+    <string name="knowledge_hub_houses_desc">당신 삶의 12개 하우스.</string>
+    <string name="knowledge_hub_yogas">우주 요가</string>
+    <string name="knowledge_hub_yogas_desc">신성한 행성 조합.</string>
+
+    <!-- RashiScreen / PlanetScreen / NakshatraScreen / HouseScreen -->
+    <string name="knowledge_section_core_nature">핵심 본질</string>
+    <string name="knowledge_section_identity_grid">정체성 그리드</string>
+    <string name="knowledge_section_career_resonance">경력 공명</string>
+    <string name="knowledge_section_positive_traits">긍정적 특성</string>
+    <string name="knowledge_section_challenging_traits">도전적 특성</string>
+    <string name="knowledge_section_core_meaning">핵심 의미</string>
+    <string name="knowledge_section_significations">의미 지시</string>
+    <string name="knowledge_section_planetary_indications">행성 지시</string>
+    <string name="knowledge_section_karakatvas">카라카트바</string>
+    <string name="knowledge_section_padas">네 파다</string>
+
+    <!-- NakshatraScreen pada display -->
+    <string name="knowledge_pada_prefix">파다 %1$d</string>
+    <string name="knowledge_pada_navamsha">%1$s 나바앙샤</string>
+
+    <!-- HouseScreen display -->
+    <string name="knowledge_house_prefix">하우스 %1$d</string>
+
+    <!-- IdentityTile labels (generic) -->
+    <string name="knowledge_tile_label_ruler">통치자</string>
+    <string name="knowledge_tile_label_element">원소</string>
+    <string name="knowledge_tile_label_quality">품질</string>
+    <string name="knowledge_tile_label_caste">카스트</string>
+    <string name="knowledge_tile_label_nature">본질</string>
+    <string name="knowledge_tile_label_direction">방향</string>
+
+    <!-- IdentityTile labels specific to Houses -->
+    <string name="knowledge_tile_label_natural_sign">본질 별자리</string>
+    <string name="knowledge_tile_label_karaka">카라카</string>
+    <string name="knowledge_tile_label_classification">분류</string>
+    <string name="knowledge_tile_label_body_part">신체 부위</string>
+
+    <!-- PlanetScreen specific -->
+    <string name="knowledge_planet_exaltation">고양</string>
+    <string name="knowledge_planet_debilitation">약화</string>
+    <string name="knowledge_planet_own_sign">자신의 별자리</string>
+
+    <!-- YogaScreen -->
+    <string name="knowledge_yoga_intro">베다 점성술은 수백 개의 요가를 식별합니다 — 고유한 삶의 결과를 만드는 특정 행성 정렬.</string>
+    <string name="knowledge_yoga_stats_classification">분류</string>
+    <string name="knowledge_yoga_stats_key_planets">주요 행성</string>
+    <string name="knowledge_yoga_logic">논리</string>
+    <string name="knowledge_yoga_detailed_analysis">자세한 분석</string>
+    <string name="knowledge_yoga_expected_results">예상 결과</string>
+
+    <!-- Screen titles (set via LocalTopBarTitle) -->
+    <string name="knowledge_title_rashis">라시</string>
+    <string name="knowledge_title_planets">행성</string>
+    <string name="knowledge_title_nakshatras">낙샤트라</string>
+    <string name="knowledge_title_houses">하우스</string>
+    <string name="knowledge_title_yogas">요가</string>
+</resources>

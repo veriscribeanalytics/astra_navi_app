@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -16,6 +17,8 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 class SessionManager(private val context: Context) {
     companion object {
+        private val LAST_APP_VERSION_CODE = intPreferencesKey("last_app_version_code")
+        private val DATA_VERSION = intPreferencesKey("data_version")
         private val USER_ID = stringPreferencesKey("user_id")
         private val USER_EMAIL = stringPreferencesKey("user_email")
         private val USER_NAME = stringPreferencesKey("user_name")
@@ -35,24 +38,36 @@ class SessionManager(private val context: Context) {
         private val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
         private val PROFILE_COMPLETE = booleanPreferencesKey("profile_complete")
         private val THEME_PREFERENCE = stringPreferencesKey("theme_preference")
+        private val USER_LANGUAGE = stringPreferencesKey("user_language")
         private const val API_CACHE_PREFIX = "api_cache_"
-        }
+        private val HAS_SEEN_INTRO = booleanPreferencesKey("has_seen_intro")
+    }
 
-        val userId: Flow<String?> = context.dataStore.data.map { it[USER_ID] }
-        val userEmail: Flow<String?> = context.dataStore.data.map { it[USER_EMAIL] }
-        val userName: Flow<String?> = context.dataStore.data.map { it[USER_NAME] }
-        val moonSign: Flow<String?> = context.dataStore.data.map { it[USER_MOON_SIGN] }
-        val sunSign: Flow<String?> = context.dataStore.data.map { it[USER_SUN_SIGN] }
-        val lagnaSign: Flow<String?> = context.dataStore.data.map { it[USER_LAGNA_SIGN] }
-        val userDob: Flow<String?> = context.dataStore.data.map { it[USER_DOB] }
-        val userTob: Flow<String?> = context.dataStore.data.map { it[USER_TOB] }
-        val userPob: Flow<String?> = context.dataStore.data.map { it[USER_POB] }
+    val userId: Flow<String?> = context.dataStore.data.map { it[USER_ID] }
+    val userEmail: Flow<String?> = context.dataStore.data.map { it[USER_EMAIL] }
+    val userName: Flow<String?> = context.dataStore.data.map { it[USER_NAME] }
+    val moonSign: Flow<String?> = context.dataStore.data.map { it[USER_MOON_SIGN] }
+    val sunSign: Flow<String?> = context.dataStore.data.map { it[USER_SUN_SIGN] }
+    val lagnaSign: Flow<String?> = context.dataStore.data.map { it[USER_LAGNA_SIGN] }
+    val userDob: Flow<String?> = context.dataStore.data.map { it[USER_DOB] }
+    val userTob: Flow<String?> = context.dataStore.data.map { it[USER_TOB] }
+    val userPob: Flow<String?> = context.dataStore.data.map { it[USER_POB] }
     val accessToken: Flow<String?> = context.dataStore.data.map { it[ACCESS_TOKEN] }
     val refreshToken: Flow<String?> = context.dataStore.data.map { it[REFRESH_TOKEN] }
     val profileComplete: Flow<Boolean?> = context.dataStore.data.map { it[PROFILE_COMPLETE] }
     val themePreference: Flow<String> = context.dataStore.data.map { it[THEME_PREFERENCE] ?: "system" }
+    val userLanguage: Flow<String> = context.dataStore.data.map { it[USER_LANGUAGE] ?: "en" }
 
-        suspend fun saveSession(
+    val hasSeenIntro: Flow<Boolean> = context.dataStore.data.map { it[HAS_SEEN_INTRO] ?: false }
+    val isLoggedIn: Flow<Boolean> = context.dataStore.data.map { it[USER_ID] != null }
+
+    suspend fun setHasSeenIntro(seen: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[HAS_SEEN_INTRO] = seen
+        }
+    }
+
+    suspend fun saveSession(
         id: String, 
         email: String, 
         name: String?, 
@@ -65,7 +80,7 @@ class SessionManager(private val context: Context) {
         accessToken: String? = null,
         refreshToken: String? = null,
         profileComplete: Boolean? = null
-        ) {
+    ) {
         context.dataStore.edit { prefs ->
             prefs[USER_ID] = id
             prefs[USER_EMAIL] = email
@@ -80,14 +95,14 @@ class SessionManager(private val context: Context) {
             refreshToken?.let { prefs[REFRESH_TOKEN] = it }
             profileComplete?.let { prefs[PROFILE_COMPLETE] = it }
         }
-        }
+    }
 
-        suspend fun updateTokens(accessToken: String, refreshToken: String?) {
+    suspend fun updateTokens(accessToken: String, refreshToken: String?) {
         context.dataStore.edit { prefs ->
             prefs[ACCESS_TOKEN] = accessToken
             refreshToken?.let { prefs[REFRESH_TOKEN] = it }
         }
-        }
+    }
 
         suspend fun updateSigns(
 moonSign: String?, sunSign: String?, lagnaSign: String?) {
@@ -123,6 +138,10 @@ moonSign: String?, sunSign: String?, lagnaSign: String?) {
 
     suspend fun setThemePreference(theme: String) {
         context.dataStore.edit { it[THEME_PREFERENCE] = theme }
+    }
+
+    suspend fun setUserLanguage(language: String) {
+        context.dataStore.edit { it[USER_LANGUAGE] = language }
     }
 
     suspend fun getApiCacheEntry(cacheKey: String): String? {
@@ -162,10 +181,34 @@ moonSign: String?, sunSign: String?, lagnaSign: String?) {
 suspend fun clearSession() {
         context.dataStore.edit { prefs ->
             val themeValue = prefs[THEME_PREFERENCE]
+            val languageValue = prefs[USER_LANGUAGE]
             prefs.clear()
             if (themeValue != null) {
                 prefs[THEME_PREFERENCE] = themeValue
             }
+            if (languageValue != null) {
+                prefs[USER_LANGUAGE] = languageValue
+            }
+        }
+    }
+
+    suspend fun getLastAppVersionCode(): Int {
+        return context.dataStore.data.map { it[LAST_APP_VERSION_CODE] ?: -1 }.first()
+    }
+
+    suspend fun setLastAppVersionCode(version: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[LAST_APP_VERSION_CODE] = version
+        }
+    }
+
+    suspend fun getDataVersion(): Int {
+        return context.dataStore.data.map { it[DATA_VERSION] ?: 0 }.first()
+    }
+
+    suspend fun setDataVersion(version: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[DATA_VERSION] = version
         }
     }
 }

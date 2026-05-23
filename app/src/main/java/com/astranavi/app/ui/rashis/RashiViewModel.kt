@@ -8,7 +8,10 @@ import com.astranavi.app.data.model.HoroscopeResponse
 import com.astranavi.app.data.model.Rashi
 import com.astranavi.app.data.repository.AstrologyRepository
 import com.astranavi.app.data.repository.RashiData
+import com.astranavi.app.data.repository.rashisFor
+import com.astranavi.app.util.LocaleManager
 import com.astranavi.app.util.SessionManager
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 sealed class RashiViewMode {
@@ -31,6 +34,19 @@ class RashiViewModel(
 
     val allRashis = RashiData.rashis
 
+    fun localizedRashis(locale: String): List<com.astranavi.app.data.model.Rashi> = rashisFor(locale)
+
+    init {
+        viewModelScope.launch {
+            LocaleManager.localeVersion.drop(1).collect {
+                val mode = _viewMode.value
+                if (mode is RashiViewMode.Detail) {
+                    fetchGeneralHoroscope(mode.rashi.nameEn)
+                }
+            }
+        }
+    }
+
     fun selectRashi(rashi: Rashi) {
         _viewMode.value = RashiViewMode.Detail(rashi)
         fetchGeneralHoroscope(rashi.nameEn)
@@ -48,9 +64,9 @@ class RashiViewModel(
         _horoscopeData.value = null
     }
 
-    private fun fetchGeneralHoroscope(sign: String) {
+    private fun fetchGeneralHoroscope(sign: String, silent: Boolean = false) {
         viewModelScope.launch {
-            _isHoroscopeLoading.value = true
+            if (!silent) _isHoroscopeLoading.value = true
             try {
                 val response = repository.getGeneralHoroscope(sign)
                 if (response.isSuccessful) {
@@ -59,7 +75,7 @@ class RashiViewModel(
             } catch (e: Exception) {
                 // Silently fail or log
             } finally {
-                _isHoroscopeLoading.value = false
+                if (!silent) _isHoroscopeLoading.value = false
             }
         }
     }

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Consult Screen - Birth Details Step -->
+    <string name="consult_btn_begin_session">సెషన్ ప్రారంభించండి</string>
+    <string name="consult_title_cosmic_blueprint">కాస్మిక్ బ్లూప్రింట్</string>
+    <string name="consult_label_dob">పుట్టిన తేదీ (DD-MM-YYYY)</string>
+    <string name="consult_label_tob">పుట్టిన సమయం (HHMM)</string>
+    <string name="consult_label_pob">పుట్టిన స్థలం</string>
+    <string name="consult_section_preferences">ప్రాధాన్యతలు</string>
+    <string name="consult_label_preferred_language">ఇష్టపడే భాష</string>
+    <string name="consult_lang_english">ఇంగ్లీష్</string>
+    <string name="consult_lang_hindi">హిందీ</string>
+    <string name="consult_lang_marathi">మరాఠీ</string>
+    <string name="consult_lang_gujarati">గుజరాతీ</string>
+    <string name="consult_lang_tamil">తమిళం</string>
+
+    <!-- Consult Screen - Category Selection Step -->
+    <string name="consult_title_select_domain">విభాగాన్ని ఎంచుకోండి</string>
+    <string name="consult_label_personalized_guidance">వ్యక్తిగతీకరించిన మార్గదర్శకత్వం</string>
+
+    <!-- Consult Screen - Subcategory Selection Step -->
+    <string name="consult_title_focus_area_format">%1$s కోసం ప్రత్యేక దృష్టి సారించే అంశం</string>
+    <string name="consult_desc_focus_analysis">నవి మీ జాతకాన్ని విశ్లేషించి, ఈ నిర్దిష్ట అంశంపై లోతైన అంతర్దృష్టులను అందిస్తుంది.</string>
+    <string name="consult_btn_select_focus">ఈ అంశాన్ని ఎంచుకోండి</string>
+
+    <!-- Consult Screen - Question Selection Step -->
+    <string name="consult_title_pick_query">ఒక ప్రశ్నను ఎంచుకోండి</string>
+    <string name="consult_desc_query_analysis">ఈ నిర్దిష్ట ప్రశ్నకు సమాధానం ఇవ్వడానికి నవి మీ జాతకాన్ని విశ్లేషిస్తుంది.</string>
+    <string name="consult_section_settings">సంప్రదింపు సెట్టింగ్‌లు</string>
+    <string name="consult_label_custom_context">మీ పరిస్థితిని నవికి చెప్పండి…</string>
+    <string name="consult_label_response_tone">స్పందన స్వరం</string>
+    <string name="consult_tone_warm">ఆప్యాయత</string>
+    <string name="consult_tone_direct">సూటిగా</string>
+    <string name="consult_tone_spiritual">ఆధ్యాత్మికం</string>
+    <string name="consult_btn_ask_custom">మీ స్వంత ప్రశ్నను అడగండి</string>
+
+    <!-- Consult Screen - Result Step -->
+    <string name="consult_title_cosmic_insight">కాస్మిక్ అంతర్దృష్టి</string>
+    <string name="consult_loading_planetary">గ్రహాల అమరికలను సంప్రదిస్తోంది…</string>
+    <string name="consult_loading_cosmic">కాస్మిక్ ప్రభావాలను చదువుతోంది…</string>
+    <string name="consult_loading_karmic">మీ కర్మానుసార నమూనాలను విశ్లేషిస్తోంది…</string>
+    <string name="consult_loading_celestial">మీ ఖగోళ మార్గదర్శకత్వాన్ని ప్రసారం చేస్తోంది…</string>
+    <string name="consult_btn_explore_again">మరొక అంతర్దృష్టిని అన్వేషించండి</string>
+
+    <!-- Consult Screen - Date/Dialog -->
+    <string name="consult_btn_ok">సరే</string>
+    <string name="consult_btn_cancel">రద్దు చేయండి</string>
+
+    <!-- Consult History Screen -->
+    <string name="consult_empty_state">ఎటువంటి కాస్మిక్ సంప్రదింపులు కనుగొనబడలేదు.</string>
+    <string name="consult_default_category">సంప్రదింపు</string>
+    <string name="consult_default_question">జ్యోతిష్య విచారణ</string>
+</resources>

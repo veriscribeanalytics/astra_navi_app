@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Consult Screen - Birth Details Step -->
+    <string name="consult_btn_begin_session">ਸੈਸ਼ਨ ਸ਼ੁਰੂ ਕਰੋ</string>
+    <string name="consult_title_cosmic_blueprint">ਬ੍ਰਹਿਮੰਡੀ ਰੂਪ-ਰੇਖਾ</string>
+    <string name="consult_label_dob">ਜਨਮ ਮਿਤੀ (DD-MM-YYYY)</string>
+    <string name="consult_label_tob">ਜਨਮ ਦਾ ਸਮਾਂ (HHMM)</string>
+    <string name="consult_label_pob">ਜਨਮ ਸਥਾਨ</string>
+    <string name="consult_section_preferences">ਤਰਜੀਹਾਂ</string>
+    <string name="consult_label_preferred_language">ਪਸੰਦੀਦਾ ਭਾਸ਼ਾ</string>
+    <string name="consult_lang_english">ਅੰਗਰੇਜ਼ੀ</string>
+    <string name="consult_lang_hindi">ਹਿੰਦੀ</string>
+    <string name="consult_lang_marathi">ਮਰਾਠੀ</string>
+    <string name="consult_lang_gujarati">ਗੁਜਰਾਤੀ</string>
+    <string name="consult_lang_tamil">ਤਮਿਲ</string>
+
+    <!-- Consult Screen - Category Selection Step -->
+    <string name="consult_title_select_domain">ਖੇਤਰ ਚੁਣੋ</string>
+    <string name="consult_label_personalized_guidance">ਨਿੱਜੀ ਮਾਰਗਦਰਸ਼ਨ</string>
+
+    <!-- Consult Screen - Subcategory Selection Step -->
+    <string name="consult_title_focus_area_format">%1$s ਲਈ ਫੋਕਸ ਖੇਤਰ</string>
+    <string name="consult_desc_focus_analysis">ਨਵੀ ਇਸ ਖਾਸ ਫੋਕਸ \'ਤੇ ਡੂੰਘੀ ਜਾਣਕਾਰੀ ਪ੍ਰਦਾਨ ਕਰਨ ਲਈ ਤੁਹਾਡੀ ਕੁੰਡਲੀ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੇਗੀ।</string>
+    <string name="consult_btn_select_focus">ਇਹ ਫੋਕਸ ਚੁਣੋ</string>
+
+    <!-- Consult Screen - Question Selection Step -->
+    <string name="consult_title_pick_query">ਇੱਕ ਸਵਾਲ ਚੁਣੋ</string>
+    <string name="consult_desc_query_analysis">ਨਵੀ ਇਸ ਖਾਸ ਸਵਾਲ ਦਾ ਜਵਾਬ ਦੇਣ ਲਈ ਤੁਹਾਡੀ ਕੁੰਡਲੀ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੇਗੀ।</string>
+    <string name="consult_section_settings">ਸਲਾਹ-ਮਸ਼ਵਰੇ ਦੀਆਂ ਸੈਟਿੰਗਾਂ</string>
+    <string name="consult_label_custom_context">ਨਵੀ ਨੂੰ ਆਪਣੀ ਸਥਿਤੀ ਬਾਰੇ ਦੱਸੋ…</string>
+    <string name="consult_label_response_tone">ਜਵਾਬ ਦਾ ਲਹਿਜ਼ਾ</string>
+    <string name="consult_tone_warm">ਨਿੱਘਾ</string>
+    <string name="consult_tone_direct">ਸਿੱਧਾ</string>
+    <string name="consult_tone_spiritual">ਅਧਿਆਤਮਿਕ</string>
+    <string name="consult_btn_ask_custom">ਆਪਣਾ ਸਵਾਲ ਪੁੱਛੋ</string>
+
+    <!-- Consult Screen - Result Step -->
+    <string name="consult_title_cosmic_insight">ਬ੍ਰਹਿਮੰਡੀ ਸੂਝ</string>
+    <string name="consult_loading_planetary">ਗ੍ਰਹਿਆਂ ਦੀ ਸਥਿਤੀ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ…</string>
+    <string name="consult_loading_cosmic">ਬ੍ਰਹਿਮੰਡੀ ਪ੍ਰਭਾਵਾਂ ਨੂੰ ਪੜ੍ਹਿਆ ਜਾ ਰਿਹਾ ਹੈ…</string>
+    <string name="consult_loading_karmic">ਤੁਹਾਡੇ ਕਰਮਾਂ ਦੇ ਪੈਟਰਨਾਂ ਦੀ ਵਿਆਖਿਆ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ…</string>
+    <string name="consult_loading_celestial">ਤੁਹਾਡੇ ਲਈ ਆਕਾਸ਼ੀ ਮਾਰਗਦਰਸ਼ਨ ਪ੍ਰਾਪਤ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ…</string>
+    <string name="consult_btn_explore_again">ਕੋਈ ਹੋਰ ਜਾਣਕਾਰੀ ਦੇਖੋ</string>
+
+    <!-- Consult Screen - Date/Dialog -->
+    <string name="consult_btn_ok">ਠੀਕ ਹੈ</string>
+    <string name="consult_btn_cancel">ਰੱਦ ਕਰੋ</string>
+
+    <!-- Consult History Screen -->
+    <string name="consult_empty_state">ਕੋਈ ਬ੍ਰਹਿਮੰਡੀ ਸਲਾਹ-ਮਸ਼ਵਰਾ ਨਹੀਂ ਮਿਲਿਆ।</string>
+    <string name="consult_default_category">ਸਲਾਹ-ਮਸ਼ਵਰਾ</string>
+    <string name="consult_default_question">ਜੋਤਿਸ਼ ਪੁੱਛਗਿੱਛ</string>
+</resources>

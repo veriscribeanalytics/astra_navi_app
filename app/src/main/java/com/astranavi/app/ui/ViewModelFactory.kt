@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.astranavi.app.data.repository.*
 import com.astranavi.app.util.SessionManager
 import com.astranavi.app.ui.astrologers.AstrologersViewModel
+import com.astranavi.app.ui.chat.AvatarSelectionViewModel
 import com.astranavi.app.ui.chat.ChatViewModel
 import com.astranavi.app.ui.consult.ConsultHistoryViewModel
 import com.astranavi.app.ui.consult.ConsultViewModel
@@ -35,7 +36,10 @@ class ViewModelFactory(
                 ForecastViewModel(dashboardRepository, sessionManager) as T
             }
             modelClass.isAssignableFrom(AstrologersViewModel::class.java) -> {
-                AstrologersViewModel() as T
+                AstrologersViewModel(astrologyRepository) as T
+            }
+            modelClass.isAssignableFrom(AvatarSelectionViewModel::class.java) -> {
+                AvatarSelectionViewModel(astrologyRepository) as T
             }
             modelClass.isAssignableFrom(ChatViewModel::class.java) -> {
                 ChatViewModel(astrologyRepository, sessionManager, entitlementRepository) as T

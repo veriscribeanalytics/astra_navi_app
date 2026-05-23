@@ -14,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.astranavi.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -26,26 +28,10 @@ fun ConsultHistoryScreen(
     viewModel: ConsultHistoryViewModel,
     onBack: () -> Unit
 ) {
+    com.astranavi.app.util.SecureScreen()
     val uiState = viewModel.uiState.value
 
     Column(modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.primary)
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                "Consultation History",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-
         Box(modifier = Modifier.fillMaxSize()) {
             when (uiState) {
                 is ConsultHistoryState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -63,7 +49,7 @@ fun ConsultHistoryScreen(
                         ) {
                             Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("No cosmic consultations found.", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.consult_empty_state), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
                         }
                     } else {
                         LazyColumn(
@@ -71,7 +57,7 @@ fun ConsultHistoryScreen(
                             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            items(uiState.history) { record ->
+                            items(uiState.history, key = { it.id ?: it.hashCode() }) { record ->
                                 ConsultHistoryCard(record)
                             }
                         }
@@ -85,8 +71,8 @@ fun ConsultHistoryScreen(
 @Composable
 fun ConsultHistoryCard(record: ConsultRecord) {
     var isExpanded by remember { mutableStateOf(false) }
-    val displayCategory = record.primary_category?.replace("_", " ")?.uppercase() ?: "CONSULTATION"
-    val displayQuestion = record.final_question ?: "Astrology Inquiry"
+    val displayCategory = record.primary_category?.replace("_", " ")?.uppercase() ?: stringResource(R.string.consult_default_category)
+    val displayQuestion = record.final_question ?: stringResource(R.string.consult_default_question)
     val displayDate = record.created_at?.take(10) ?: record.created_at_alt?.take(10) ?: ""
 
     GlassCard(
@@ -102,8 +88,8 @@ fun ConsultHistoryCard(record: ConsultRecord) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Default.AutoAwesome, 
-                        contentDescription = null, 
+                        Icons.Default.AutoAwesome,
+                        contentDescription = null,
                         tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(24.dp)
                     )
@@ -127,7 +113,7 @@ fun ConsultHistoryCard(record: ConsultRecord) {
                 IconButton(onClick = { isExpanded = !isExpanded }) {
                     Icon(
                         if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = null,
+                        contentDescription = if (isExpanded) "Collapse consultation" else "Expand consultation",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Input Form -->
+    <string name="match_btn_calculate">பொருத்தம் கணக்கிடு</string>
+    <string name="match_desc_vedic_analysis">ஒற்றுமை மற்றும் ஆயுளுக்காக பாரம்பரிய 36 குண வேத பொருத்த பகுப்பாய்வு.</string>
+    <string name="match_label_person1">நபர் 1 (நீங்கள்)</string>
+    <string name="match_label_person2">நபர் 2 (துணை)</string>
+    <string name="match_field_name">பெயர்</string>
+    <string name="match_field_birth_place">பிறந்த இடம்</string>
+    <string name="match_option_male">ஆண்</string>
+    <string name="match_option_female">பெண்</string>
+
+    <!-- Match Result View -->
+    <string name="match_label_out_of_36">36-இல்</string>
+    <string name="match_section_breakdown">அஷ்டகூடப் பிரிவு</string>
+    <string name="match_btn_analyze_another">மற்றொரு பொருத்தத்தைப் பகுப்பாய்வு செய்</string>
+
+    <!-- Score Labels -->
+    <string name="match_score_excellent">சிறந்த பொருத்தம்</string>
+    <string name="match_score_good">நல்ல பொருத்தம்</string>
+    <string name="match_score_low">குறைந்த பொருத்தம்</string>
+
+    <!-- Mangal Dosha Panel -->
+    <string name="match_label_mangal_status">செவ்வாய் தோஷ நிலை</string>
+    <string name="match_msg_mangal_detected">ஜாதகத்தில் செவ்வாயின் தாக்கம் கண்டறியப்பட்டுள்ளது.</string>
+    <string name="match_msg_no_mangal">செவ்வாய் தோஷம் இல்லை.</string>
+    <string name="match_label_cancellation">நிவர்த்தி:</string>
+
+    <!-- Match History Screen -->
+    <string name="match_empty_history">பொருத்தப் பதிவுகள் எதுவும் இல்லை.</string>
+    <string name="match_section_guna_milan">குண மிலன் விவரங்கள்</string>
+    <string name="match_section_mangal">செவ்வாய் தோஷம்</string>
+    <string name="match_btn_delete_record">பதிவை நீக்கு</string>
+
+    <!-- Mangal Dosha Status -->
+    <string name="match_dosha_compatible">பொருந்தக்கூடியது (பாதுகாப்பானது)</string>
+    <string name="match_dosha_high_influence">அதிக தாக்கம் கண்டறியப்பட்டுள்ளது</string>
+    <string name="match_dosha_influence">தாக்கம் கண்டறியப்பட்டுள்ளது</string>
+    <string name="match_dosha_no_influence">பெரிய தாக்கம் இல்லை</string>
+</resources>

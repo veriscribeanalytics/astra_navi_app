@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -24,18 +25,29 @@ fun getIconResId(nameEn: String): Int {
 
 @Composable
 fun InfoChip(text: String, color: Color) {
+    val metrics = responsiveMetrics()
     Surface(color = color.copy(alpha = 0.1f), shape = CircleShape, border = BorderStroke(1.dp, color.copy(alpha = 0.4f))) {
-        Text(text, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Black)
+        Text(
+            text,
+            modifier = Modifier.padding(horizontal = if (metrics.isCompactWidth) 12.dp else 16.dp, vertical = 8.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            fontWeight = FontWeight.Black,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
 @Composable
 fun IdentityTile(label: String, value: String, modifier: Modifier = Modifier) {
+    val metrics = responsiveMetrics()
     Card(modifier = modifier, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+        Column(modifier = Modifier.padding(metrics.cardPadding)) {
+            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Black, letterSpacing = if (metrics.isCompactWidth || metrics.isLargeFont) 0.5.sp else 1.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.ExtraBold)
+            Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.ExtraBold, maxLines = 3, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -45,7 +57,7 @@ fun SectionHeader(title: String, color: Color) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(modifier = Modifier.size(width = 6.dp, height = 28.dp).background(color, RoundedCornerShape(3.dp)))
         Spacer(modifier = Modifier.width(16.dp))
-        Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
+        Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -68,7 +80,7 @@ fun AttributeRow(label: String, value: String, isLast: Boolean = false) {
     Column {
         Row(modifier = Modifier.padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-            Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black)
+            Text(value, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Black, textAlign = TextAlign.End)
         }
         if (!isLast) HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
     }

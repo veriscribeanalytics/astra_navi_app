@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KnowledgeHubScreen -->
+    <string name="knowledge_hub_intro">ഞങ്ങളുടെ വിജ്ഞാനകോശത്തിലൂടെ ജ്യോതിഷം എന്ന പുരാതന ശാസ്ത്രം അടുത്തറിയുക.</string>
+    <string name="knowledge_hub_rashis">രാശികൾ</string>
+    <string name="knowledge_hub_rashis_desc">ദ്വാദശ രാശികൾ (12 രാശികൾ).</string>
+    <string name="knowledge_hub_planets">നവഗ്രഹങ്ങൾ</string>
+    <string name="knowledge_hub_planets_desc">ഗ്രഹങ്ങളുടെ ശക്തിയും അവയുടെ സ്വാധീനവും.</string>
+    <string name="knowledge_hub_nakshatras">27 നക്ഷത്രങ്ങൾ</string>
+    <string name="knowledge_hub_nakshatras_desc">നക്ഷത്രങ്ങളെക്കുറിച്ച് വിശദമായി അറിയുക.</string>
+    <string name="knowledge_hub_houses">ഭാവ ചക്രം</string>
+    <string name="knowledge_hub_houses_desc">ജീവിതത്തിലെ 12 ഭാവങ്ങൾ.</string>
+    <string name="knowledge_hub_yogas">കോസ്മിക് യോഗങ്ങൾ</string>
+    <string name="knowledge_hub_yogas_desc">ഗ്രഹങ്ങളുടെ സവിശേഷമായ യോഗങ്ങൾ.</string>
+
+    <!-- RashiScreen / PlanetScreen / NakshatraScreen / HouseScreen -->
+    <string name="knowledge_section_core_nature">അടിസ്ഥാന സ്വഭാവം</string>
+    <string name="knowledge_section_identity_grid">വ്യക্তিത്വ വിവരങ്ങൾ</string>
+    <string name="knowledge_section_career_resonance">അനുയോജ്യമായ തൊഴിലുകൾ</string>
+    <string name="knowledge_section_positive_traits">നല്ല സവിശേഷതകൾ</string>
+    <string name="knowledge_section_challenging_traits">വെല്ലുവിളി നിറഞ്ഞ സ്വഭാവങ്ങൾ</string>
+    <string name="knowledge_section_core_meaning">അടിസ്ഥാന അർത്ഥം</string>
+    <string name="knowledge_section_significations">സൂചനകൾ</string>
+    <string name="knowledge_section_planetary_indications">ഗ്രഹസൂചനകൾ</string>
+    <string name="knowledge_section_karakatvas">കാരകത്വങ്ങൾ</string>
+    <string name="knowledge_section_padas">നാല് പാദങ്ങൾ</string>
+
+    <!-- NakshatraScreen pada display -->
+    <string name="knowledge_pada_prefix">പാദം %1$d</string>
+    <string name="knowledge_pada_navamsha">%1$s നവാംശം</string>
+
+    <!-- HouseScreen display -->
+    <string name="knowledge_house_prefix">ഭാവം %1$d</string>
+
+    <!-- IdentityTile labels (generic) -->
+    <string name="knowledge_tile_label_ruler">അധിപൻ</string>
+    <string name="knowledge_tile_label_element">തത്വം</string>
+    <string name="knowledge_tile_label_quality">ഗുണം</string>
+    <string name="knowledge_tile_label_caste">വർണ്ണം</string>
+    <string name="knowledge_tile_label_nature">സ്വഭാവം</string>
+    <string name="knowledge_tile_label_direction">ദിശ</string>
+
+    <!-- IdentityTile labels specific to Houses -->
+    <string name="knowledge_tile_label_natural_sign">സ്വാഭാവിക രാശി</string>
+    <string name="knowledge_tile_label_karaka">കാരകൻ</string>
+    <string name="knowledge_tile_label_classification">വർഗ്ഗീകരണം</string>
+    <string name="knowledge_tile_label_body_part">ശരീരഭാഗം</string>
+
+    <!-- PlanetScreen specific -->
+    <string name="knowledge_planet_exaltation">ഉച്ചം</string>
+    <string name="knowledge_planet_debilitation">നീചം</string>
+    <string name="knowledge_planet_own_sign">സ്വക്ഷേത്രം</string>
+
+    <!-- YogaScreen -->
+    <string name="knowledge_yoga_intro">വേദ ജ്യോതിഷം നൂറുകണക്കിന് യോഗങ്ങളെ തിരിച്ചറിയുന്നു - ജീവിതത്തിൽ സവിശേഷമായ ഫലങ്ങൾ നൽകുന്ന പ്രത്യേക ഗ്രഹവിന്യാസങ്ങളാണിവ.</string>
+    <string name="knowledge_yoga_stats_classification">വർഗ്ഗീകരണം</string>
+    <string name="knowledge_yoga_stats_key_planets">പ്രധാന ഗ്രഹങ്ങൾ</string>
+    <string name="knowledge_yoga_logic">യുക്തി</string>
+    <string name="knowledge_yoga_detailed_analysis">വിശദമായ വിശകലനം</string>
+    <string name="knowledge_yoga_expected_results">പ്രതീക്ഷിക്കുന്ന ഫലങ്ങൾ</string>
+
+    <!-- Screen titles (set via LocalTopBarTitle) -->
+    <string name="knowledge_title_rashis">രാശികൾ</string>
+    <string name="knowledge_title_planets">ഗ്രഹങ്ങൾ</string>
+    <string name="knowledge_title_nakshatras">നക്ഷത്രങ്ങൾ</string>
+    <string name="knowledge_title_houses">ഭാവങ്ങൾ</string>
+    <string name="knowledge_title_yogas">യോഗങ്ങൾ</string>
+</resources>

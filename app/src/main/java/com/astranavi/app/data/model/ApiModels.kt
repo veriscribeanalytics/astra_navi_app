@@ -1,9 +1,9 @@
 package com.astranavi.app.data.model
 
-import com.google.gson.annotations.SerializedName
-import com.google.gson.JsonElement
-import kotlinx.serialization.Contextual
+import com.astranavi.app.data.api.AnalyzeFullResponseSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 // --- AUTH & USER ---
 @Serializable
@@ -18,6 +18,7 @@ data class User(
     val email: String,
     val name: String? = null,
     val image: String? = null,
+    @Serializable(with = AnalyzeFullResponseSerializer::class)
     val astrologyData: AnalyzeFullResponse? = null,
     val moonSign: String? = null,
     val sunSign: String? = null,
@@ -37,8 +38,8 @@ data class User(
     val occupation: String? = null,
     val tier: String? = null,
     val language: String? = null,
-    @Contextual val chartContext: JsonElement? = null,
-    @Contextual val preferences: JsonElement? = null
+    val chartContext: JsonElement? = null,
+    val preferences: JsonElement? = null
 )
 
 @Serializable
@@ -104,6 +105,11 @@ data class RefreshTokenResponse(
 )
 
 @Serializable
+data class LogoutRequest(
+    val refreshToken: String
+)
+
+@Serializable
 data class ProfileResponse(
     val user: User? = null,
     val success: Boolean? = null,
@@ -115,7 +121,15 @@ data class ProfileResponse(
 @Serializable
 data class HoroscopeUser(val name: String, val sign: String)
 @Serializable
-data class HoroscopeMeta(val date: String, val date_display: String, val generated_at: String)
+data class PanchangaData(
+    val tithi: String? = null,
+    val nakshatra: String? = null,
+    val yoga: String? = null,
+    val karana: String? = null,
+    val vaara: String? = null
+)
+@Serializable
+data class HoroscopeMeta(val date: String, val date_display: String, val generated_at: String, val panchanga: PanchangaData? = null)
 @Serializable
 data class ScoreData(val overall: Int, val areas: Map<String, AreaScoreValue>?)
 @Serializable
@@ -127,7 +141,7 @@ data class MoodData(val value: String, val type: String)
 @Serializable
 data class LuckyData(val color: String, val number: Int)
 @Serializable
-data class PlanetaryData(val dominant_planet: String?, val active_dasha: String?)
+data class PlanetaryData(val dominant_planet: String?, val active_dasha: String?, val retrograde: List<String>? = null)
 @Serializable
 data class AreasTextData(
     val career: AreaInsight?,
@@ -136,7 +150,7 @@ data class AreasTextData(
     val finance: AreaInsight?
 )
 @Serializable
-data class AreaInsight(val insight: String, val tone: String)
+data class AreaInsight(val insight: String, val tone: String, val personalization_applied: Boolean? = null, val personal_notes: List<String>? = null)
 @Serializable
 data class AlertsData(val primary: AlertItem?, val secondary: List<AlertItem>?, val display_limit: Int? = null)
 @Serializable
@@ -153,7 +167,8 @@ data class TimeTrigger(
     val end: String,
     val type: String,
     val label: String,
-    val advice: String
+    val advice: String,
+    val reason: String? = null
 )
 @Serializable
 data class CurrentStateData(
@@ -164,13 +179,25 @@ data class CurrentStateData(
 @Serializable
 data class AstroExplanationsData(val enabled: Boolean, val items: List<AstroExplanationItem>?)
 @Serializable
-data class AstroExplanationItem(val technical: String, val simple: String, val importance: String)
+data class AstroExplanationItem(val technical: String, val simple: String, val importance: String, val retrograde: Boolean? = null)
 @Serializable
 data class StreakData(val current: Int, val reward: String?)
 @Serializable
 data class EngagementData(val streak: StreakData?)
 @Serializable
 data class SystemData(val is_personalized: Boolean = false, val language: String = "English")
+@Serializable
+data class TransitContextData(
+    val mode: String? = null,
+    val date: String? = null,
+    val timezone_name: String? = null,
+    val timezone_offset: Double? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val location_label: String? = null,
+    val location_mode: String? = null,
+    val ayanamsa_version: String? = null
+)
 
 @Serializable
 data class HoroscopeResponse(
@@ -189,7 +216,8 @@ data class HoroscopeResponse(
     val ui_state: String?,
     val engagement: EngagementData?,
     val system: SystemData? = null,
-    @SerializedName("paywall") val paywall: PaywallCardData? = null,
+    val transit_context: TransitContextData? = null,
+    val paywall: PaywallCardData? = null,
     val teaser: Boolean? = null,
     val message: String? = null
 )
@@ -221,13 +249,14 @@ data class ForecastMood(
 @Serializable
 data class ForecastDay(
     val date: String,
-    val is_today: Boolean,
-    val score: Int,
+    val is_today: Boolean = false,
+    val score: Int = 0,
     val personal_adjustment: Int? = null,
-    val text: String,
-    val dominant_planet: String,
+    val text: String = "",
+    val dominant_planet: String = "",
     val dominant_planet_meaning: String? = null,
     val personalized_alerts: List<PersonalizedAlert>? = null,
+    val alerts: List<PersonalizedAlert>? = null,
     val transits: Map<String, ForecastTransit>? = null,
     val mood: ForecastMood? = null,
     val lucky_color: String? = null,
@@ -242,10 +271,10 @@ data class ForecastRange(
 
 @Serializable
 data class ForecastSummary(
-    val best_day: String,
-    val worst_day: String,
-    val average_score: Double,
-    val trend: String
+    val best_day: String = "",
+    val worst_day: String = "",
+    val average_score: Double = 0.0,
+    val trend: String = "stable"
 )
 
 @Serializable
@@ -260,6 +289,116 @@ data class ForecastResponse(
     val today: String? = null,
     val days: List<ForecastDay>,
     val summary: ForecastSummary,
+    val lang: String? = null
+)
+
+@Serializable
+data class ForecastOverview(
+    val title: String? = null,
+    val text: String? = null,
+    val tone: String? = null,
+    val key_theme: String? = null
+)
+
+@Serializable
+data class ForecastNavigationLimit(
+    val from: String? = null,
+    val to: String? = null
+)
+
+@Serializable
+data class ForecastNavigation(
+    val previous: String? = null,
+    val next: String? = null,
+    val can_go_previous: Boolean = false,
+    val can_go_next: Boolean = false,
+    val limit: ForecastNavigationLimit? = null
+)
+
+@Serializable
+data class WeeklyForecastResponse(
+    val area: String = "general",
+    val name: String? = null,
+    val moon_sign: String? = null,
+    val lagna_sign: String? = null,
+    val active_dasha: String? = null,
+    val today_scores: Map<String, Int>? = null,
+    val range: ForecastRange? = null,
+    val today: String? = null,
+    val days: List<ForecastDay> = emptyList(),
+    val summary: ForecastSummary = ForecastSummary(),
+    val period: String? = null,
+    val period_label: String? = null,
+    val overview: ForecastOverview? = null,
+    val navigation: ForecastNavigation? = null,
+    val lang: String? = null
+)
+
+@Serializable
+data class ForecastWeek(
+    val week_start: String? = null,
+    val week_end: String? = null,
+    val score: Int = 0,
+    val text: String? = null,
+    val alerts: List<PersonalizedAlert>? = null,
+    val days_count: Int? = null
+)
+
+@Serializable
+data class MonthlyForecastResponse(
+    val area: String = "general",
+    val name: String? = null,
+    val moon_sign: String? = null,
+    val lagna_sign: String? = null,
+    val active_dasha: String? = null,
+    val today_scores: Map<String, Int>? = null,
+    val range: ForecastRange? = null,
+    val today: String? = null,
+    val days: List<ForecastDay> = emptyList(),
+    val weeks: List<ForecastWeek> = emptyList(),
+    val summary: ForecastSummary = ForecastSummary(),
+    val period: String? = null,
+    val period_label: String? = null,
+    val overview: ForecastOverview? = null,
+    val navigation: ForecastNavigation? = null,
+    val lang: String? = null
+)
+
+@Serializable
+data class ForecastMonth(
+    val month: String = "",
+    val label: String = "",
+    val score: Int = 0,
+    val score_start: Int? = null,
+    val score_mid: Int? = null,
+    val text: String = "",
+    val alerts: List<PersonalizedAlert>? = null,
+    val transits: Map<String, ForecastTransit>? = null,
+    val is_current: Boolean = false
+)
+
+@Serializable
+data class YearlyForecastSummary(
+    val best_month: String = "",
+    val worst_month: String = "",
+    val average_score: Double = 0.0,
+    val trend: String = "stable"
+)
+
+@Serializable
+data class YearlyForecastResponse(
+    val area: String = "general",
+    val name: String? = null,
+    val moon_sign: String? = null,
+    val lagna_sign: String? = null,
+    val active_dasha: String? = null,
+    val range: ForecastRange? = null,
+    val months: List<ForecastMonth> = emptyList(),
+    val summary: YearlyForecastSummary = YearlyForecastSummary(),
+    val period: String? = null,
+    val period_label: String? = null,
+    val overview: ForecastOverview? = null,
+    val navigation: ForecastNavigation? = null,
     val lang: String? = null
 )
 
@@ -310,18 +449,19 @@ data class AshtakavargaData(
 
 @Serializable
 data class PlanetStrengthRank(
-    val rank: Int,
-    val planet: String,
-    val dignity: String,
-    val summary: String,
-    val shadbala: Double
+    val rank: Int = 99,
+    val planet: String = "",
+    val dignity: String = "",
+    val summary: String = "",
+    val shadbala: Double = 0.0,
+    val shadbala_percent: Double? = null
 )
 
 @Serializable
 data class TransitPlanet(
-    val planet: String,
-    val current_sign: String,
-    val current_house_in_natal: Int,
+    val planet: String = "",
+    val current_sign: String = "",
+    val current_house_in_natal: Int? = null,
     val transit_interpretation: String? = null
 )
 
@@ -340,19 +480,19 @@ data class AscendantData(
 )
 
 @Serializable
-data class Occupant(val planet: String, val dignity: String, val retrograde: Boolean)
+data class Occupant(val planet: String = "", val dignity: String = "", val retrograde: Boolean = false)
 @Serializable
 data class HouseData(
     val house: Int,
-    val name: String,
+    val name: String = "",
     val sanskrit_name: String? = null,
-    val areas: List<String>,
-    val sign: String,
-    val lord: String,
+    val areas: List<String> = emptyList(),
+    val sign: String = "",
+    val lord: String = "",
     val lord_house: Int? = null,
     val lord_dignity: String? = null,
     val lord_interpretation: String? = null,
-    val occupants: List<Occupant>,
+    val occupants: List<Occupant> = emptyList(),
     val ashtakavarga_score: Int? = null,
     val strength_assessment: String? = null,
     val aspects_received: List<String>? = null
@@ -360,16 +500,16 @@ data class HouseData(
 
 @Serializable
 data class PlanetData(
-    val planet: String,
-    val sign: String,
-    val house: Int,
-    val degree: Double,
-    val dignity: String,
+    val planet: String = "",
+    val sign: String = "",
+    val house: Int? = null,
+    val degree: Double? = null,
+    val dignity: String = "",
     val dignity_interpretation: String? = null,
-    val retrograde: Boolean,
+    val retrograde: Boolean = false,
     val combust: Boolean = false,
     val shadbala: Double = 0.0,
-    val shadbala_percent: Int = 0,
+    val shadbala_percent: Double = 0.0,
     val lord_of: List<Int>? = null,
     val nakshatra: String? = null,
     val nakshatra_pada: Int? = null,
@@ -423,8 +563,8 @@ data class PratyantardashaEntry(
 
 @Serializable
 data class DashaData(
-    @SerializedName("active") val active: List<DashaRow>? = null,
-    @SerializedName("explanation") val explanation: List<String>? = null,
+    val active: List<DashaRow>? = null,
+    val explanation: List<String>? = null,
     val current: CurrentDasha? = null,
     val timeline: DashaTimeline? = null,
     val upcoming_transitions: DashaTimeline? = null
@@ -439,18 +579,18 @@ data class DashaRow(
 
 @Serializable
 data class AnalyzeFullResponse(
-    @SerializedName("identity") val identity: ChartIdentity? = null,
-    @SerializedName("chart_summary") val chart_summary: ChartSummaryData? = null,
-    @SerializedName("ascendant") val ascendant: AscendantData? = null,
-    @SerializedName("houses") val houses: List<HouseData>? = null,
-    @SerializedName("planets") val planets: List<PlanetData>? = null,
-    @SerializedName("dasha") val dasha: DashaData? = null,
-    @SerializedName("key_themes") val key_themes: List<KeyTheme>? = null,
-    @SerializedName("ashtakavarga") val ashtakavarga: AshtakavargaData? = null,
-    @SerializedName("planet_strength_ranking") val planet_strength_ranking: List<PlanetStrengthRank>? = null,
-    @SerializedName("transits") val transits: TransitData? = null,
+    val identity: ChartIdentity? = null,
+    val chart_summary: ChartSummaryData? = null,
+    val ascendant: AscendantData? = null,
+    val houses: List<HouseData>? = null,
+    val planets: List<PlanetData>? = null,
+    val dasha: DashaData? = null,
+    val key_themes: List<KeyTheme>? = null,
+    val ashtakavarga: AshtakavargaData? = null,
+    val planet_strength_ranking: List<PlanetStrengthRank>? = null,
+    val transits: TransitData? = null,
     val lockedSections: Map<String, LockedContent>? = null,
-    @SerializedName("lastSyncedAt") val lastSyncedAt: String? = null
+    val lastSyncedAt: String? = null
 )
 
 @Serializable
@@ -458,7 +598,7 @@ data class AnalyzeFullWrapper(
     val success: Boolean,
     val message: String?,
     val astrologyData: AnalyzeFullResponse?,
-    @SerializedName("paywall") val paywall: PaywallCardData? = null
+    val paywall: PaywallCardData? = null
 )
 
 // --- MATCH MAKING ---
@@ -538,7 +678,7 @@ data class MatchResponse(
     // Fallback fields for backward compatibility
     val score: Double? = null,
     val total: Int? = null,
-    @SerializedName("koot_details") val koot_details: List<KootDetail>? = null
+    val koot_details: List<KootDetail>? = null
 )
 
 @Serializable
@@ -552,7 +692,8 @@ data class MatchRecord(
     val bride_name: String? = null,
     val score: Double? = null,
     val total_score: Double? = null,
-    val created_at: String? = null,
+    @SerialName("created_at") val created_at: String? = null,
+    @SerialName("createdAt") val createdAt: String? = null,
     val summary: String? = null,
     val aiNarrative: String? = null,
     val resultData: MatchResponse? = null
@@ -561,20 +702,22 @@ data class MatchRecord(
 @Serializable
 data class MatchHistoryResponse(
     val success: Boolean = true,
-    @SerializedName("history") val history: List<MatchRecord>? = null,
-    @SerializedName("results") val results: List<MatchRecord>? = null
+    val history: List<MatchRecord>? = null,
+    val results: List<MatchRecord>? = null
 )
 
 // --- CHAT ---
 @Serializable
 data class ChatMessage(
     val id: String,
-    val role: String,
-    @SerializedName("content") val content: String,
-    val timestamp: String? = null,
+    val role: String = "",
+    val content: String = "",
+    val text: String? = null,
     val type: String? = null,
+    val timestamp: String? = null,
     val rating: Int? = null,
-    val feedbackTags: List<String>? = null
+    val feedbackTags: List<String>? = null,
+    val avatarId: String? = null
 )
 
 @Serializable
@@ -613,7 +756,27 @@ data class ChatCreateRequest(
 @Serializable
 data class ChatRequest(
     val text: String,
-    val language: String = "english"
+    val language: String = "english",
+    val avatarId: String? = null
+)
+
+@Serializable
+data class ChatAvatar(
+    val avatarId: String,
+    val name: String,
+    val title: String,
+    val description: String = "",
+    val expertise: List<String> = emptyList(),
+    val personality: String = "",
+    val creditCost: Int = 1,
+    val isDefault: Boolean = false,
+    val imageUrl: String? = null
+)
+
+@Serializable
+data class ChatAvatarCatalog(
+    val defaultAvatarId: String = "navi",
+    val avatars: List<ChatAvatar> = emptyList()
 )
 
 @Serializable
@@ -647,20 +810,20 @@ data class ConsultRequest(
 @Serializable
 data class ConsultRecord(
     val id: String? = null,
-    @SerializedName("category") val primary_category: String? = null,
-    @SerializedName("subcategory") val secondary_category: String? = null,
-    @SerializedName("question") val final_question: String? = null,
-    @SerializedName("response") val insight: String? = null,
+    @SerialName("category") val primary_category: String? = null,
+    @SerialName("subcategory") val secondary_category: String? = null,
+    @SerialName("question") val final_question: String? = null,
+    @SerialName("response") val insight: String? = null,
     val tone: String? = null,
-    @SerializedName("createdAt") val created_at: String? = null,
-    val created_at_alt: String? = null
+    @SerialName("createdAt") val created_at: String? = null,
+    @SerialName("created_at") val created_at_alt: String? = null
 )
 
 @Serializable
 data class ConsultHistoryResponse(
     val success: Boolean = true,
-    @SerializedName("history") val results: List<ConsultRecord>? = null,
-    @SerializedName("results") val results_alt: List<ConsultRecord>? = null,
+    @SerialName("history") val results: List<ConsultRecord>? = null,
+    @SerialName("results") val results_alt: List<ConsultRecord>? = null,
     val total: Int? = null,
     val page: Int? = null,
     val limit: Int? = null

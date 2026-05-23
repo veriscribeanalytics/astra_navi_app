@@ -14,9 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.astranavi.app.R
+import com.astranavi.app.util.LocaleFormatter
+import com.astranavi.app.util.currentAppLocale
 
 @Composable
 fun CreditBadge(
@@ -38,18 +42,18 @@ fun CreditBadge(
         border = BorderStroke(1.dp, tierColor.copy(alpha = 0.4f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Default.AutoAwesome,
-                contentDescription = "Credits",
+                Icons.Default.AccountBalanceWallet,
+                contentDescription = stringResource(R.string.common_credits_badge_description),
                 tint = tierColor,
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size(16.dp)
             )
-            Spacer(modifier = Modifier.width(2.dp))
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
-                "$credits",
+                LocaleFormatter.number(credits, currentAppLocale()),
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp,
                 color = tierColor

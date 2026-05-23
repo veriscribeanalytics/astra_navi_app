@@ -3,6 +3,8 @@ package com.astranavi.app.ui.profile
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import com.astranavi.app.ui.components.PreviewMultiDevice
+import com.astranavi.app.ui.theme.AstraNaviTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -16,23 +18,57 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.astranavi.app.R
 import com.astranavi.app.data.model.LocationSearchResult
 import com.astranavi.app.data.model.User
 import com.astranavi.app.ui.components.AstroDatePickerField
 import com.astranavi.app.ui.components.AstroTimePickerField
 import com.astranavi.app.ui.components.LocationSearchField
 import com.astranavi.app.ui.components.bringIntoViewOnFocus
+import com.astranavi.app.ui.components.responsiveMetrics
+import androidx.compose.foundation.shape.CircleShape
+import com.astranavi.app.ui.components.ShimmerBlock
 import com.astranavi.app.ui.components.shimmerEffect
-
-data class ProfileOption(val label: String, val value: String)
+import com.astranavi.app.ui.components.titleCase
 
 private val GenderOptions = listOf("Male", "Female", "Other", "Not Specified")
 private val MaritalStatusOptions = listOf("Single", "Married", "Divorced", "Widowed", "Not Specified")
 private val OccupationOptions = listOf("Student", "Business", "Employed", "Homemaker", "Retired", "Unemployed", "Not Specified")
-private val LanguageOptions = listOf(ProfileOption("English", "en"), ProfileOption("Hindi", "hi"))
+
+private fun getGenderResId(key: String): Int {
+    return when (key) {
+        "Male" -> R.string.profile_option_male
+        "Female" -> R.string.profile_option_female
+        "Other" -> R.string.profile_option_other
+        else -> R.string.profile_option_not_specified
+    }
+}
+
+private fun getMaritalStatusResId(key: String): Int {
+    return when (key) {
+        "Single" -> R.string.profile_option_single
+        "Married" -> R.string.profile_option_married
+        "Divorced" -> R.string.profile_option_divorced
+        "Widowed" -> R.string.profile_option_widowed
+        else -> R.string.profile_option_not_specified
+    }
+}
+
+private fun getOccupationResId(key: String): Int {
+    return when (key) {
+        "Student" -> R.string.profile_option_student
+        "Business" -> R.string.profile_option_business
+        "Employed" -> R.string.profile_option_employed
+        "Homemaker" -> R.string.profile_option_homemaker
+        "Retired" -> R.string.profile_option_retired
+        "Unemployed" -> R.string.profile_option_unemployed
+        else -> R.string.profile_option_not_specified
+    }
+}
 
 private fun isRequiredProfileComplete(name: String, gender: String, dob: String, tob: String, pob: String): Boolean {
     return listOf(name, gender, dob, tob, pob).all { it.isNotBlank() }
@@ -45,20 +81,21 @@ private fun profileCompletionProgress(name: String, gender: String, dob: String,
 
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel, onOpenDrawer: () -> Unit = {}, onBack: () -> Unit = {}, onProfileComplete: () -> Unit = {}, onAccountDeleted: () -> Unit = {}) {
+    com.astranavi.app.util.SecureScreen()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val uiState = viewModel.uiState.value
     val snackbarHostState = remember { SnackbarHostState() }
     val updateMessage = viewModel.updateMessage.value
     val isProfileComplete by viewModel.profileComplete
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchProfile()
-    }
+    // Profile data is fetched automatically in the ViewModel init block
 
     LaunchedEffect(updateMessage) {
         updateMessage?.let {
-            snackbarHostState.showSnackbar(it)
+            val messageStr = it.asString(context)
+            snackbarHostState.showSnackbar(messageStr)
             viewModel.clearUpdateMessage()
-            if (it.contains("Profile updated", ignoreCase = true) && isProfileComplete) {
+            if (messageStr.contains("Profile updated", ignoreCase = true) && isProfileComplete) {
                 onProfileComplete()
             }
         }
@@ -72,7 +109,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, onOpenDrawer: () -> Unit = {}, on
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (uiState) {
                 is ProfileState.Loading -> ProfileSkeleton()
-                is ProfileState.Error -> Text(uiState.message, modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.error)
+                is ProfileState.Error -> Text(uiState.message.asString(), modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.error)
                 is ProfileState.Success -> ProfileContent(uiState.user, viewModel, isProfileComplete, onProfileComplete, onAccountDeleted)
             }
         }
@@ -81,40 +118,85 @@ fun ProfileScreen(viewModel: ProfileViewModel, onOpenDrawer: () -> Unit = {}, on
 
 @Composable
 fun ProfileSkeleton() {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth().height(180.dp),
-            shape = RoundedCornerShape(32.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-        ) {
-            Column(modifier = Modifier.padding(24.dp).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Box(modifier = Modifier.size(80.dp).clip(RoundedCornerShape(16.dp)).shimmerEffect())
-                Spacer(modifier = Modifier.height(16.dp))
-                Box(modifier = Modifier.width(150.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-            }
-        }
+    val metrics = responsiveMetrics()
 
-        Card(
-            modifier = Modifier.fillMaxWidth().height(60.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = metrics.pagePadding)
+                .padding(top = metrics.pagePadding, bottom = metrics.heroBottomPadding * 2.5f),
+            verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap)
         ) {
-            Box(modifier = Modifier.padding(16.dp).fillMaxSize()) {
-                Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-            }
-        }
-
-        repeat(2) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Box(modifier = Modifier.width(140.dp).height(16.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
-                repeat(3) {
-                    Box(modifier = Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(16.dp)).shimmerEffect())
+            Card(
+                modifier = Modifier.fillMaxWidth().height(260.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(metrics.cardPadding).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(modifier = Modifier.size(metrics.profileAvatarSize).clip(CircleShape).shimmerEffect())
+                    Spacer(modifier = Modifier.height(metrics.profileSectionGap / 2))
+                    Box(modifier = Modifier.width(metrics.profileFieldWidth * 0.5f).height(metrics.profileSectionGap / 2).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                    Spacer(modifier = Modifier.height(metrics.profileSectionGap / 3))
+                    Box(modifier = Modifier.width(metrics.profileFieldWidth * 0.3f).height(metrics.profileSectionGap / 3).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                    Spacer(modifier = Modifier.height(metrics.profileSectionGap / 2))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        repeat(2) { Box(modifier = Modifier.height(24.dp).weight(1f).clip(RoundedCornerShape(4.dp)).shimmerEffect()) }
+                    }
+                    Spacer(modifier = Modifier.height(metrics.profileSectionGap / 2))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        repeat(3) { Box(modifier = Modifier.height(28.dp).weight(1f).clip(RoundedCornerShape(12.dp)).shimmerEffect()) }
+                    }
                 }
             }
+
+            Card(
+                modifier = Modifier.fillMaxWidth().height(110.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+            ) {
+                Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                    Box(modifier = Modifier.fillMaxWidth().height(metrics.profileSectionGap / 3).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                    Spacer(modifier = Modifier.height(metrics.profileSectionGap / 2))
+                    Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2)) {
+                Box(modifier = Modifier.width(metrics.profileFieldWidth * 0.4f).height(metrics.profileSectionGap / 2).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                repeat(5) { ShimmerBlock(height = 64.dp, cornerRadius = 16.dp) }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2)) {
+                Box(modifier = Modifier.width(metrics.profileFieldWidth * 0.4f).height(metrics.profileSectionGap / 2).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                ShimmerBlock(height = 64.dp, cornerRadius = 16.dp)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2)) {
+                    repeat(2) { ShimmerBlock(height = 64.dp, modifier = Modifier.weight(1f), cornerRadius = 16.dp) }
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2)) {
+                Box(modifier = Modifier.width(metrics.profileFieldWidth * 0.4f).height(metrics.profileSectionGap / 2).clip(RoundedCornerShape(4.dp)).shimmerEffect())
+                ShimmerBlock(height = 64.dp, cornerRadius = 16.dp)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2)) {
+                    repeat(2) { ShimmerBlock(height = 56.dp, modifier = Modifier.weight(1f), cornerRadius = 16.dp) }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(metrics.heroBottomPadding))
         }
+
+        ShimmerBlock(height = 72.dp, modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(), cornerRadius = 16.dp)
     }
 }
 
@@ -130,10 +212,9 @@ fun ProfileContent(user: User, viewModel: ProfileViewModel, isProfileComplete: B
     var birthLongitude by remember { mutableStateOf(user.birthLongitude) }
     var birthTimezoneName by remember { mutableStateOf(user.birthTimezoneName ?: "") }
     var phoneNumber by remember { mutableStateOf(user.phoneNumber ?: "") }
-    var gender by remember { mutableStateOf(user.gender ?: "") }
-    var maritalStatus by remember { mutableStateOf(user.maritalStatus ?: "") }
-    var occupation by remember { mutableStateOf(user.occupation ?: "") }
-    var language by remember { mutableStateOf(user.language ?: "en") }
+    var gender by remember { mutableStateOf(user.gender?.titleCase() ?: "") }
+    var maritalStatus by remember { mutableStateOf(user.maritalStatus?.titleCase() ?: "") }
+    var occupation by remember { mutableStateOf(user.occupation?.titleCase() ?: "") }
 
     var nameError by remember { mutableStateOf(false) }
     var dobError by remember { mutableStateOf(false) }
@@ -142,8 +223,9 @@ fun ProfileContent(user: User, viewModel: ProfileViewModel, isProfileComplete: B
     var genderError by remember { mutableStateOf(false) }
 
     val isUpdating by viewModel.isUpdating
+    val metrics = responsiveMetrics()
 
-    val hasChanges = remember(user, name, dob, tob, pob, birthPlaceName, birthLatitude, birthLongitude, birthTimezoneName, phoneNumber, gender, maritalStatus, occupation, language) {
+    val hasChanges = remember(user, name, dob, tob, pob, birthPlaceName, birthLatitude, birthLongitude, birthTimezoneName, phoneNumber, gender, maritalStatus, occupation) {
         name != (user.name ?: "") ||
         dob != (user.dob ?: "") ||
         tob != (user.tob ?: "") ||
@@ -153,10 +235,9 @@ fun ProfileContent(user: User, viewModel: ProfileViewModel, isProfileComplete: B
         birthLongitude != user.birthLongitude ||
         birthTimezoneName != (user.birthTimezoneName ?: "") ||
         phoneNumber != (user.phoneNumber ?: "") ||
-        gender != (user.gender ?: "") ||
-        maritalStatus != (user.maritalStatus ?: "") ||
-        occupation != (user.occupation ?: "") ||
-        language != (user.language ?: "en")
+        gender != (user.gender?.titleCase() ?: "") ||
+        maritalStatus != (user.maritalStatus?.titleCase() ?: "") ||
+        occupation != (user.occupation?.titleCase() ?: "")
     }
 
     val (completedRequired, totalRequired) = profileCompletionProgress(name, gender, dob, tob, pob)
@@ -173,125 +254,261 @@ fun ProfileContent(user: User, viewModel: ProfileViewModel, isProfileComplete: B
                 .verticalScroll(scrollState)
                 .imePadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp, bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .padding(horizontal = metrics.pagePadding)
+                .padding(top = metrics.pagePadding, bottom = metrics.heroBottomPadding * 2.5f),
+            verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap)
         ) {
-            ProfileSummaryCard(
-                name = name,
-                email = user.email,
-                isProfileComplete = isProfileComplete,
-                lagnaSign = user.lagnaSign,
-                moonSign = user.moonSign,
-                sunSign = user.sunSign
-            )
-
-            ProfileCompletionCard(
-                completedRequired = completedRequired,
-                totalRequired = totalRequired,
-                completionProgress = completionProgress
-            )
-
-            ProfileSection("BIRTH PROFILE", Icons.Default.AutoAwesome) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it; nameError = false },
-                    label = { Text("Full Name *") },
-                    modifier = Modifier.fillMaxWidth().bringIntoViewOnFocus(),
-                    shape = RoundedCornerShape(16.dp),
-                    isError = nameError,
-                    supportingText = if (nameError) { { Text("Name is required") } } else null
-                )
-
-                ProfileDropdown(
-                    label = "Gender *",
-                    options = GenderOptions,
-                    selectedOption = gender,
-                    onOptionSelected = { gender = it; genderError = false },
+            if (metrics.isTabletWidth) {
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    isError = genderError
+                    horizontalArrangement = Arrangement.spacedBy(metrics.profileSectionGap)
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        ProfileSummaryCard(
+                            name = name,
+                            email = user.email,
+                            isProfileComplete = isProfileComplete,
+                            tier = user.tier,
+                            lagnaSign = user.lagnaSign,
+                            moonSign = user.moonSign,
+                            sunSign = user.sunSign
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        ProfileCompletionCard(
+                            completedRequired = completedRequired,
+                            totalRequired = totalRequired,
+                            completionProgress = completionProgress
+                        )
+                    }
+                }
+            } else {
+                ProfileSummaryCard(
+                    name = name,
+                    email = user.email,
+                    isProfileComplete = isProfileComplete,
+                    tier = user.tier,
+                    lagnaSign = user.lagnaSign,
+                    moonSign = user.moonSign,
+                    sunSign = user.sunSign
                 )
 
-                AstroDatePickerField(
-                    value = dob,
-                    onValueChange = { dob = it; dobError = false },
-                    label = "Date of Birth *",
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = dobError,
-                    supportingText = if (dobError) { { Text("Date of Birth is required") } } else null
-                )
-
-                AstroTimePickerField(
-                    value = tob,
-                    onValueChange = { tob = it; tobError = false },
-                    label = "Time of Birth *",
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = tobError,
-                    supportingText = if (tobError) { { Text("Time of Birth is required") } } else null
-                )
-
-                LocationSearchField(
-                    value = pob,
-                    onValueChange = { pob = it; pobError = false },
-                    onLocationSelected = { location: LocationSearchResult ->
-                        pob = location.name; pobError = false
-                        birthPlaceName = location.name
-                        birthLatitude = location.lat
-                        birthLongitude = location.lon
-                        birthTimezoneName = location.timezone
-                    },
-                    searchLocations = { query -> viewModel.searchLocations(query) },
-                    label = "Place of Birth *",
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = pobError,
-                    supportingText = if (pobError) { { Text("Place of Birth is required") } } else null
-                )
-
-                Text(
-                    text = "Exact birth time and place improve chart accuracy.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(start = 16.dp)
+                ProfileCompletionCard(
+                    completedRequired = completedRequired,
+                    totalRequired = totalRequired,
+                    completionProgress = completionProgress
                 )
             }
 
-            ProfileSection("PERSONAL DETAILS", Icons.Default.Person) {
-                OutlinedTextField(
-                    value = phoneNumber,
-                    onValueChange = { phoneNumber = it },
-                    label = { Text("Phone Number") },
-                    modifier = Modifier.fillMaxWidth().bringIntoViewOnFocus(),
-                    shape = RoundedCornerShape(16.dp)
-                )
-
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxWidth()
+            if (metrics.useTabletTwoPane) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(metrics.profileSectionGap),
+                    verticalAlignment = Alignment.Top
                 ) {
-                    ProfileDropdown(
-                        label = "Marital Status",
-                        options = MaritalStatusOptions,
-                        selectedOption = maritalStatus,
-                        onOptionSelected = { maritalStatus = it },
-                        modifier = Modifier.weight(1f)
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap)
+                    ) {
+                        ProfileSection(stringResource(R.string.profile_title_birth_profile), Icons.Default.AutoAwesome) {
+                            OutlinedTextField(
+                                value = name,
+                                onValueChange = { name = it; nameError = false },
+                                label = { Text(stringResource(R.string.profile_label_full_name)) },
+                                modifier = Modifier.fillMaxWidth().bringIntoViewOnFocus(),
+                                shape = RoundedCornerShape(16.dp),
+                                isError = nameError,
+                                supportingText = if (nameError) { { Text(stringResource(R.string.profile_error_name_required)) } } else null
+                            )
+
+                            ProfileDropdown(
+                                label = stringResource(R.string.profile_label_gender),
+                                options = GenderOptions,
+                                selectedOption = gender,
+                                onOptionSelected = { gender = it; genderError = false },
+                                optionToResId = { getGenderResId(it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                isError = genderError
+                            )
+
+                            AstroDatePickerField(
+                                value = dob,
+                                onValueChange = { dob = it; dobError = false },
+                                label = stringResource(R.string.profile_label_dob),
+                                modifier = Modifier.fillMaxWidth(),
+                                isError = dobError,
+                                supportingText = if (dobError) { { Text(stringResource(R.string.profile_error_dob_required)) } } else null
+                            )
+
+                            AstroTimePickerField(
+                                value = tob,
+                                onValueChange = { tob = it; tobError = false },
+                                label = stringResource(R.string.profile_label_tob),
+                                modifier = Modifier.fillMaxWidth(),
+                                isError = tobError,
+                                supportingText = if (tobError) { { Text(stringResource(R.string.profile_error_tob_required)) } } else null
+                            )
+
+                            LocationSearchField(
+                                value = pob,
+                                onValueChange = { pob = it; pobError = false },
+                                onLocationSelected = { location: LocationSearchResult ->
+                                    pob = location.name; pobError = false
+                                    birthPlaceName = location.name
+                                    birthLatitude = location.lat
+                                    birthLongitude = location.lon
+                                    birthTimezoneName = location.timezone
+                                },
+                                searchLocations = { query -> viewModel.searchLocations(query) },
+                                label = stringResource(R.string.profile_label_pob),
+                                modifier = Modifier.fillMaxWidth(),
+                                isError = pobError,
+                                supportingText = if (pobError) { { Text(stringResource(R.string.profile_error_pob_required)) } } else null
+                            )
+
+                            Text(
+                                text = stringResource(R.string.profile_hint_chart_accuracy),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.padding(start = metrics.cardPadding)
+                            )
+                        }
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap)
+                    ) {
+                        ProfileSection(stringResource(R.string.profile_title_personal_details), Icons.Default.Person) {
+                            OutlinedTextField(
+                                value = phoneNumber,
+                                onValueChange = { phoneNumber = it },
+                                label = { Text(stringResource(R.string.profile_label_phone_number)) },
+                                modifier = Modifier.fillMaxWidth().bringIntoViewOnFocus(),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2),
+                                verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                ProfileDropdown(
+                                    label = stringResource(R.string.profile_label_marital_status),
+                                    options = MaritalStatusOptions,
+                                    selectedOption = maritalStatus,
+                                    onOptionSelected = { maritalStatus = it },
+                                    optionToResId = { getMaritalStatusResId(it) },
+                                    modifier = Modifier.fillMaxWidth().weight(1f)
+                                )
+                                ProfileDropdown(
+                                    label = stringResource(R.string.profile_label_occupation),
+                                    options = OccupationOptions,
+                                    selectedOption = occupation,
+                                    onOptionSelected = { occupation = it },
+                                    optionToResId = { getOccupationResId(it) },
+                                    modifier = Modifier.fillMaxWidth().weight(1f)
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                ProfileSection(stringResource(R.string.profile_title_birth_profile), Icons.Default.AutoAwesome) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it; nameError = false },
+                        label = { Text(stringResource(R.string.profile_label_full_name)) },
+                        modifier = Modifier.fillMaxWidth().bringIntoViewOnFocus(),
+                        shape = RoundedCornerShape(16.dp),
+                        isError = nameError,
+                        supportingText = if (nameError) { { Text(stringResource(R.string.profile_error_name_required)) } } else null
                     )
+
                     ProfileDropdown(
-                        label = "Occupation",
-                        options = OccupationOptions,
-                        selectedOption = occupation,
-                        onOptionSelected = { occupation = it },
-                        modifier = Modifier.weight(1f)
+                        label = stringResource(R.string.profile_label_gender),
+                        options = GenderOptions,
+                        selectedOption = gender,
+                        onOptionSelected = { gender = it; genderError = false },
+                        optionToResId = { getGenderResId(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = genderError
+                    )
+
+                    AstroDatePickerField(
+                        value = dob,
+                        onValueChange = { dob = it; dobError = false },
+                        label = stringResource(R.string.profile_label_dob),
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = dobError,
+                        supportingText = if (dobError) { { Text(stringResource(R.string.profile_error_dob_required)) } } else null
+                    )
+
+                    AstroTimePickerField(
+                        value = tob,
+                        onValueChange = { tob = it; tobError = false },
+                        label = stringResource(R.string.profile_label_tob),
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = tobError,
+                        supportingText = if (tobError) { { Text(stringResource(R.string.profile_error_tob_required)) } } else null
+                    )
+
+                    LocationSearchField(
+                        value = pob,
+                        onValueChange = { pob = it; pobError = false },
+                        onLocationSelected = { location: LocationSearchResult ->
+                            pob = location.name; pobError = false
+                            birthPlaceName = location.name
+                            birthLatitude = location.lat
+                            birthLongitude = location.lon
+                            birthTimezoneName = location.timezone
+                        },
+                        searchLocations = { query -> viewModel.searchLocations(query) },
+                        label = stringResource(R.string.profile_label_pob),
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = pobError,
+                        supportingText = if (pobError) { { Text(stringResource(R.string.profile_error_pob_required)) } } else null
+                    )
+
+                    Text(
+                        text = stringResource(R.string.profile_hint_chart_accuracy),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(start = metrics.cardPadding)
                     )
                 }
 
-                LabeledProfileDropdown(
-                    label = "Language",
-                    options = LanguageOptions,
-                    selectedValue = language,
-                    onValueSelected = { language = it },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                ProfileSection(stringResource(R.string.profile_title_personal_details), Icons.Default.Person) {
+                    OutlinedTextField(
+                        value = phoneNumber,
+                        onValueChange = { phoneNumber = it },
+                        label = { Text(stringResource(R.string.profile_label_phone_number)) },
+                        modifier = Modifier.fillMaxWidth().bringIntoViewOnFocus(),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2),
+                        verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        ProfileDropdown(
+                            label = stringResource(R.string.profile_label_marital_status),
+                            options = MaritalStatusOptions,
+                            selectedOption = maritalStatus,
+                            onOptionSelected = { maritalStatus = it },
+                            optionToResId = { getMaritalStatusResId(it) },
+                            modifier = Modifier.fillMaxWidth().weight(1f)
+                        )
+                        ProfileDropdown(
+                            label = stringResource(R.string.profile_label_occupation),
+                            options = OccupationOptions,
+                            selectedOption = occupation,
+                            onOptionSelected = { occupation = it },
+                            optionToResId = { getOccupationResId(it) },
+                            modifier = Modifier.fillMaxWidth().weight(1f)
+                        )
+                    }
+                }
             }
 
             AccountManagementSection(
@@ -303,8 +520,8 @@ fun ProfileContent(user: User, viewModel: ProfileViewModel, isProfileComplete: B
             if (showDeleteDialog) {
                 AlertDialog(
                     onDismissRequest = { showDeleteDialog = false },
-                    title = { Text("Delete Account?") },
-                    text = { Text("This action is permanent and cannot be undone. All your history and profile data will be lost forever.") },
+                    title = { Text(stringResource(R.string.profile_dialog_delete_title)) },
+                    text = { Text(stringResource(R.string.profile_dialog_delete_text)) },
                     confirmButton = {
                         Button(
                             onClick = {
@@ -313,18 +530,18 @@ fun ProfileContent(user: User, viewModel: ProfileViewModel, isProfileComplete: B
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
-                            Text("DELETE")
+                            Text(stringResource(R.string.profile_dialog_delete_confirm))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showDeleteDialog = false }) {
-                            Text("CANCEL")
+                            Text(stringResource(R.string.profile_dialog_delete_dismiss))
                         }
                     }
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(metrics.profileSectionGap / 2))
         }
 
         StickyProfileAction(
@@ -352,8 +569,7 @@ fun ProfileContent(user: User, viewModel: ProfileViewModel, isProfileComplete: B
                     phoneNumber = phoneNumber,
                     gender = gender,
                     maritalStatus = maritalStatus,
-                    occupation = occupation,
-                    language = language
+                    occupation = occupation
                 ))
             },
             modifier = Modifier.align(Alignment.BottomCenter)
@@ -367,55 +583,82 @@ fun ProfileSummaryCard(
     name: String,
     email: String,
     isProfileComplete: Boolean,
+    tier: String?,
     lagnaSign: String?,
     moonSign: String?,
     sunSign: String?
 ) {
+    val metrics = responsiveMetrics()
+    val tierColor = when (tier?.lowercase()) {
+        "pro" -> Color(0xFF7C3AED)
+        "premium" -> Color(0xFFC8880A)
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
-        Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(modifier = Modifier.padding(metrics.cardPadding), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(contentAlignment = Alignment.Center) {
-                Surface(modifier = Modifier.size(80.dp), shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) {
-                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.padding(16.dp), tint = MaterialTheme.colorScheme.primary)
+                Surface(modifier = Modifier.size(metrics.profileAvatarSize), shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) {
+                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.padding(metrics.profileAvatarSize / 5), tint = MaterialTheme.colorScheme.primary)
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(metrics.profileSectionGap / 2))
             Text(
-                text = name.ifBlank { "Astra User" },
+                text = name.ifBlank { stringResource(R.string.profile_label_astra_user) },
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines = 2
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = email,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                maxLines = 2
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = if (isProfileComplete) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+            Spacer(modifier = Modifier.height(metrics.profileSectionGap / 2))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 3),
+                verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 3)
             ) {
-                Text(
-                    text = if (isProfileComplete) "Profile Complete" else "Setup Needed",
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isProfileComplete) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                )
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = tierColor.copy(alpha = 0.1f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.profile_label_member_suffix, (tier ?: "Free").titleCase()),
+                        modifier = Modifier.padding(horizontal = metrics.cardPadding / 2, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = tierColor
+                    )
+                }
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isProfileComplete) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                ) {
+                    Text(
+                        text = if (isProfileComplete) stringResource(R.string.profile_label_verified) else stringResource(R.string.profile_label_setup_needed),
+                        modifier = Modifier.padding(horizontal = metrics.cardPadding / 2, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isProfileComplete) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    )
+                }
             }
             if (lagnaSign != null || moonSign != null || sunSign != null) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(metrics.profileSectionGap / 2))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 3),
+                    verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 3)
                 ) {
-                    if (lagnaSign != null) ProfileInfoChip("Lagna", lagnaSign)
-                    if (moonSign != null) ProfileInfoChip("Moon", moonSign)
-                    if (sunSign != null) ProfileInfoChip("Sun", sunSign)
+                    if (lagnaSign != null) ProfileInfoChip(stringResource(R.string.profile_label_lagna), lagnaSign)
+                    if (moonSign != null) ProfileInfoChip(stringResource(R.string.profile_label_moon), moonSign)
+                    if (sunSign != null) ProfileInfoChip(stringResource(R.string.profile_label_sun), sunSign)
                 }
             }
         }
@@ -424,12 +667,13 @@ fun ProfileSummaryCard(
 
 @Composable
 fun ProfileInfoChip(label: String, value: String) {
+    val metrics = responsiveMetrics()
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = metrics.cardPadding / 2, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -441,28 +685,29 @@ fun ProfileInfoChip(label: String, value: String) {
 
 @Composable
 fun ProfileCompletionCard(completedRequired: Int, totalRequired: Int, completionProgress: Float) {
+    val metrics = responsiveMetrics()
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(metrics.cardPadding)) {
             LinearProgressIndicator(
                 progress = { completionProgress },
-                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                modifier = Modifier.fillMaxWidth().height(metrics.profileSectionGap / 3).clip(RoundedCornerShape(4.dp)),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(metrics.profileSectionGap / 3))
             Text(
-                text = "$completedRequired of $totalRequired required details complete",
+                text = stringResource(R.string.profile_text_completion_status, completedRequired, totalRequired),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold
             )
             if (completedRequired < totalRequired) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Complete these details for accurate horoscope, kundli, forecast, and match results.",
+                    text = stringResource(R.string.profile_hint_completion_needed),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
@@ -473,17 +718,18 @@ fun ProfileCompletionCard(completedRequired: Int, totalRequired: Int, completion
 
 @Composable
 fun AccountManagementSection(email: String, onDeleteClick: () -> Unit, onLogoutClick: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
-            Text("ACCOUNT MANAGEMENT", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp, fontWeight = FontWeight.Bold)
+    val metrics = responsiveMetrics()
+    Column(verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 3)) {
+            Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize), tint = MaterialTheme.colorScheme.primary)
+            Text(stringResource(R.string.profile_title_account_management), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp, fontWeight = FontWeight.Bold)
         }
 
         OutlinedTextField(
             value = email,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.profile_label_email)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             trailingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)) }
@@ -495,9 +741,9 @@ fun AccountManagementSection(email: String, onDeleteClick: () -> Unit, onLogoutC
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
         ) {
-            Icon(Icons.Default.DeleteForever, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Delete Account", fontWeight = FontWeight.Bold)
+            Icon(Icons.Default.DeleteForever, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize))
+            Spacer(modifier = Modifier.width(metrics.profileSectionGap / 3))
+            Text(stringResource(R.string.profile_btn_delete_account), fontWeight = FontWeight.Bold)
         }
 
         OutlinedButton(
@@ -505,9 +751,9 @@ fun AccountManagementSection(email: String, onDeleteClick: () -> Unit, onLogoutC
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
         ) {
-            Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Logout", fontWeight = FontWeight.Bold)
+            Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize))
+            Spacer(modifier = Modifier.width(metrics.profileSectionGap / 3))
+            Text(stringResource(R.string.profile_btn_logout), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -520,26 +766,28 @@ fun StickyProfileAction(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val metrics = responsiveMetrics()
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shadowElevation = 8.dp,
         color = MaterialTheme.colorScheme.surface
     ) {
-        Box(modifier = Modifier.imePadding().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Box(modifier = Modifier.imePadding().navigationBarsPadding().padding(horizontal = metrics.pagePadding, vertical = metrics.profileSectionGap / 2)) {
             Button(
                 onClick = onClick,
                 enabled = hasChanges && !isUpdating,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = metrics.buttonHeight),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 if (isUpdating) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Saving...", fontWeight = FontWeight.Bold)
+                    CircularProgressIndicator(modifier = Modifier.size(metrics.bottomNavIconSize * 1.2f), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                    Spacer(modifier = Modifier.width(metrics.profileSectionGap / 3))
+                    Text(stringResource(R.string.profile_state_saving), fontWeight = FontWeight.Bold)
                 } else if (!isProfileComplete) {
-                    Text("Complete Profile", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.profile_btn_complete_profile), fontWeight = FontWeight.Bold)
                 } else {
-                    Text("Save Changes", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.profile_btn_save_changes), fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -548,9 +796,10 @@ fun StickyProfileAction(
 
 @Composable
 fun ProfileSection(title: String, icon: ImageVector, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+    val metrics = responsiveMetrics()
+    Column(verticalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 2)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(metrics.profileSectionGap / 3)) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize), tint = MaterialTheme.colorScheme.primary)
             Text(title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp, fontWeight = FontWeight.Bold)
         }
         content()
@@ -564,6 +813,7 @@ fun ProfileDropdown(
     options: List<String>,
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
+    optionToResId: (String) -> Int,
     modifier: Modifier = Modifier,
     isError: Boolean = false
 ) {
@@ -575,13 +825,20 @@ fun ProfileDropdown(
         modifier = modifier
     ) {
         OutlinedTextField(
-            value = if (selectedOption.isEmpty()) "Select $label" else selectedOption,
+            value = if (selectedOption.isEmpty()) {
+                stringResource(R.string.profile_select_field, label)
+            } else {
+                stringResource(optionToResId(selectedOption))
+            },
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            modifier = Modifier.menuAnchor().fillMaxWidth().bringIntoViewOnFocus(),
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
+                .fillMaxWidth()
+                .bringIntoViewOnFocus(),
             shape = RoundedCornerShape(16.dp),
             isError = isError
         )
@@ -592,7 +849,7 @@ fun ProfileDropdown(
             modifier = Modifier.background(MaterialTheme.colorScheme.surface)
         ) {
             DropdownMenuItem(
-                text = { Text("Select $label", color = Color.Gray, fontWeight = FontWeight.Medium) },
+                text = { Text(stringResource(R.string.profile_select_field, label), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), fontWeight = FontWeight.Medium) },
                 onClick = {
                     onOptionSelected("")
                     expanded = false
@@ -601,10 +858,11 @@ fun ProfileDropdown(
 
             options.forEach { option ->
                 val isSelected = option == selectedOption
+                val optionResId = optionToResId(option)
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = option,
+                            text = stringResource(optionResId),
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                         )
@@ -620,64 +878,20 @@ fun ProfileDropdown(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@PreviewMultiDevice
 @Composable
-fun LabeledProfileDropdown(
-    label: String,
-    options: List<ProfileOption>,
-    selectedValue: String,
-    onValueSelected: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedLabel = options.find { it.value == selectedValue }?.label ?: selectedValue
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            value = if (selectedValue.isEmpty()) "Select $label" else selectedLabel,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            modifier = Modifier.menuAnchor().fillMaxWidth().bringIntoViewOnFocus(),
-            shape = RoundedCornerShape(16.dp)
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-        ) {
-            DropdownMenuItem(
-                text = { Text("Select $label", color = Color.Gray, fontWeight = FontWeight.Medium) },
-                onClick = {
-                    onValueSelected("")
-                    expanded = false
-                }
+fun ProfileSummaryCardPreview() {
+    AstraNaviTheme {
+        Surface {
+            ProfileSummaryCard(
+                name = "Astra Seeker",
+                email = "seeker@cosmos.com",
+                isProfileComplete = true,
+                tier = "Premium",
+                lagnaSign = "Aries",
+                moonSign = "Taurus",
+                sunSign = "Leo"
             )
-
-            options.forEach { option ->
-                val isSelected = option.value == selectedValue
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = option.label,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                        )
-                    },
-                    onClick = {
-                        onValueSelected(option.value)
-                        expanded = false
-                    },
-                    modifier = if (isSelected) Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) else Modifier
-                )
-            }
         }
     }
 }

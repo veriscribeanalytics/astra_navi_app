@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.astranavi.app.R
 import com.astranavi.app.data.api.RetrofitClient
 import com.astranavi.app.data.model.LocationSearchResult
 import com.astranavi.app.data.model.ProfileResponse
@@ -11,13 +12,14 @@ import com.astranavi.app.data.model.User
 import com.astranavi.app.data.repository.AuthRepository
 import com.astranavi.app.util.ErrorSanitizer
 import com.astranavi.app.util.SessionManager
+import com.astranavi.app.util.UiText
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 sealed class ProfileState {
     object Loading : ProfileState()
     data class Success(val user: User) : ProfileState()
-    data class Error(val message: String) : ProfileState()
+    data class Error(val message: UiText) : ProfileState()
 }
 
 class ProfileViewModel(
@@ -32,13 +34,18 @@ class ProfileViewModel(
     private val _isUpdating = mutableStateOf(false)
     val isUpdating: State<Boolean> = _isUpdating
 
-    private val _updateMessage = mutableStateOf<String?>(null)
-    val updateMessage: State<String?> = _updateMessage
+    private val _updateMessage = mutableStateOf<UiText?>(null)
+    val updateMessage: State<UiText?> = _updateMessage
 
     private val _profileComplete = mutableStateOf(false)
     val profileComplete: State<Boolean> = _profileComplete
 
+    init {
+        fetchProfile()
+    }
+
     fun fetchProfile() {
+        if (_uiState.value is ProfileState.Success) return
         viewModelScope.launch {
             _uiState.value = ProfileState.Loading
             try {
@@ -46,6 +53,9 @@ class ProfileViewModel(
                 if (response.isSuccessful && response.body()?.user != null) {
                     val user = response.body()!!.user!!
                     _uiState.value = ProfileState.Success(user)
+                    user.language?.takeIf { it.isNotBlank() }?.let {
+                        sessionManager.setUserLanguage(it)
+                    }
                     // Check if profile is complete (dob, tob, pob all filled)
                     val isComplete = !user.name.isNullOrBlank() &&
                             !user.gender.isNullOrBlank() &&
@@ -54,10 +64,10 @@ class ProfileViewModel(
                             !user.pob.isNullOrBlank()
                     _profileComplete.value = isComplete
                 } else {
-                    _uiState.value = ProfileState.Error("Failed to fetch profile")
+                    _uiState.value = ProfileState.Error(UiText.StringResource(R.string.profile_error_fetch_failed))
                 }
             } catch (e: Exception) {
-                _uiState.value = ProfileState.Error(ErrorSanitizer.sanitize(e))
+                _uiState.value = ProfileState.Error(UiText.DynamicString(ErrorSanitizer.sanitize(e)))
             }
         }
     }
@@ -79,8 +89,15 @@ class ProfileViewModel(
                             updatedUser.birthLongitude, updatedUser.birthTimezoneName,
                             updatedUser.birthTimezoneOffsetAtBirth, updatedUser.birthTimeFold
                         )
+                        updatedUser.language?.takeIf { it.isNotBlank() }?.let {
+                            sessionManager.setUserLanguage(it)
+                        }
                     }
-                    _updateMessage.value = body?.message ?: "Profile updated successfully"
+                    _updateMessage.value = if (body?.message != null) {
+                        UiText.DynamicString(body.message)
+                    } else {
+                        UiText.StringResource(R.string.profile_success_updated)
+                    }
 
                     val isComplete = if (updatedUser != null) {
                         !updatedUser.name.isNullOrBlank() &&
@@ -108,20 +125,21 @@ class ProfileViewModel(
                             val detail = json.getJSONArray("detail")
                             if (detail.length() > 0) {
                                 val first = detail.getJSONObject(0)
-                                first.optString("msg", "Error while saving, try again later")
+                                val msgStr = first.optString("msg", "")
+                                if (msgStr.isNotBlank()) UiText.DynamicString(msgStr) else UiText.StringResource(R.string.profile_error_save_failed)
                             } else {
-                                "Error while saving, try again later"
+                                UiText.StringResource(R.string.profile_error_save_failed)
                             }
                         } else {
-                            "Error while saving, try again later"
+                            UiText.StringResource(R.string.profile_error_save_failed)
                         }
                     } catch (e: Exception) {
-                        "Error while saving, try again later"
+                        UiText.StringResource(R.string.profile_error_save_failed)
                     }
                     _updateMessage.value = message
                 }
             } catch (e: Exception) {
-                _updateMessage.value = ErrorSanitizer.sanitize(e)
+                _updateMessage.value = UiText.DynamicString(ErrorSanitizer.sanitize(e))
             } finally {
                 _isUpdating.value = false
             }
@@ -148,10 +166,10 @@ class ProfileViewModel(
                     sessionManager.clearSession()
                     onAccountDeleted()
                 } else {
-                    _updateMessage.value = "Failed to delete account. Please try again later."
+                    _updateMessage.value = UiText.StringResource(R.string.profile_error_delete_failed)
                 }
             } catch (e: Exception) {
-                _updateMessage.value = ErrorSanitizer.sanitize(e)
+                _updateMessage.value = UiText.DynamicString(ErrorSanitizer.sanitize(e))
             } finally {
                 _isUpdating.value = false
             }

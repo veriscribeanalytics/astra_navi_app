@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KnowledgeHubScreen -->
+    <string name="knowledge_hub_intro">हमारे संरचित विश्वकोश के माध्यम से प्रकाश के प्राचीन विज्ञान का अन्वेषण करें।</string>
+    <string name="knowledge_hub_rashis">राशि चक्र</string>
+    <string name="knowledge_hub_rashis_desc">12 राशियाँ।</string>
+    <string name="knowledge_hub_planets">नवग्रह</string>
+    <string name="knowledge_hub_planets_desc">ग्रहों की शक्तियाँ और प्रभाव।</string>
+    <string name="knowledge_hub_nakshatras">27 नक्षत्र</string>
+    <string name="knowledge_hub_nakshatras_desc">चंद्र नक्षत्रों में गहरा अध्ययन।</string>
+    <string name="knowledge_hub_houses">भाव चक्र</string>
+    <string name="knowledge_hub_houses_desc">आपके जीवन के 12 भाव।</string>
+    <string name="knowledge_hub_yogas">ब्रह्मांडीय योग</string>
+    <string name="knowledge_hub_yogas_desc">पवित्र ग्रह संयोजन।</string>
+
+    <!-- RashiScreen / PlanetScreen / NakshatraScreen / HouseScreen -->
+    <string name="knowledge_section_core_nature">मूल प्रकृति</string>
+    <string name="knowledge_section_identity_grid">पहचान ग्रिड</string>
+    <string name="knowledge_section_career_resonance">कैरियर अनुरूपता</string>
+    <string name="knowledge_section_positive_traits">सकारात्मक गुण</string>
+    <string name="knowledge_section_challenging_traits">चुनौतीपूर्ण गुण</string>
+    <string name="knowledge_section_core_meaning">मूल अर्थ</string>
+    <string name="knowledge_section_significations">अर्थ निर्देश</string>
+    <string name="knowledge_section_planetary_indications">ग्रह संकेत</string>
+    <string name="knowledge_section_karakatvas">करकत्व</string>
+    <string name="knowledge_section_padas">चार पद</string>
+
+    <!-- NakshatraScreen pada display -->
+    <string name="knowledge_pada_prefix">पद %1$d</string>
+    <string name="knowledge_pada_navamsha">%1$s नवांश</string>
+
+    <!-- HouseScreen display -->
+    <string name="knowledge_house_prefix">भाव %1$d</string>
+
+    <!-- IdentityTile labels (generic) -->
+    <string name="knowledge_tile_label_ruler">शासक</string>
+    <string name="knowledge_tile_label_element">तत्व</string>
+    <string name="knowledge_tile_label_quality">गुणवत्ता</string>
+    <string name="knowledge_tile_label_caste">वर्ण</string>
+    <string name="knowledge_tile_label_nature">प्रकृति</string>
+    <string name="knowledge_tile_label_direction">दिशा</string>
+
+    <!-- IdentityTile labels specific to Houses -->
+    <string name="knowledge_tile_label_natural_sign">प्राकृतिक राशि</string>
+    <string name="knowledge_tile_label_karaka">कारक</string>
+    <string name="knowledge_tile_label_classification">वर्गीकरण</string>
+    <string name="knowledge_tile_label_body_part">शरीर भाग</string>
+
+    <!-- PlanetScreen specific -->
+    <string name="knowledge_planet_exaltation">उच्च</string>
+    <string name="knowledge_planet_debilitation">नीच</string>
+    <string name="knowledge_planet_own_sign">स्वराशि</string>
+
+    <!-- YogaScreen -->
+    <string name="knowledge_yoga_intro">वैदिक ज्योतिष सैकड़ों योगों की पहचान करता है — विशिष्ट ग्रह संरेखण जो अद्वितीय जीवन परिणाम बनाते हैं।</string>
+    <string name="knowledge_yoga_stats_classification">वर्गीकरण</string>
+    <string name="knowledge_yoga_stats_key_planets">मुख्य ग्रह</string>
+    <string name="knowledge_yoga_logic">तर्क</string>
+    <string name="knowledge_yoga_detailed_analysis">विस्तृत विश्लेषण</string>
+    <string name="knowledge_yoga_expected_results">अपेक्षित परिणाम</string>
+
+    <!-- Screen titles (set via LocalTopBarTitle) -->
+    <string name="knowledge_title_rashis">राशि</string>
+    <string name="knowledge_title_planets">ग्रह</string>
+    <string name="knowledge_title_nakshatras">नक्षत्र</string>
+    <string name="knowledge_title_houses">भाव</string>
+    <string name="knowledge_title_yogas">योग</string>
+</resources>

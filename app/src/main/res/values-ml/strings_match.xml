@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Input Form -->
+    <string name="match_btn_calculate">പൊരുത്തം കണക്കാക്കുക</string>
+    <string name="match_desc_vedic_analysis">ദാമ്പത്യ ഐക്യത്തിനും ദീർഘായുസ്സിനുമായി പരമ്പരാഗത 36 ഗുണ വേദ പൊരുത്ത വിശകലനം.</string>
+    <string name="match_label_person1">വ്യക്തി 1 (നിങ്ങൾ)</string>
+    <string name="match_label_person2">വ്യക്തി 2 (പങ്കാളി)</string>
+    <string name="match_field_name">പേര്</string>
+    <string name="match_field_birth_place">ജനന സ്ഥലം</string>
+    <string name="match_option_male">പുരുഷൻ</string>
+    <string name="match_option_female">സ്ത്രീ</string>
+
+    <!-- Match Result View -->
+    <string name="match_label_out_of_36">36-ൽ</string>
+    <string name="match_section_breakdown">അഷ്ടകൂട വിശകലനം</string>
+    <string name="match_btn_analyze_another">മറ്റൊരു പൊരുത്തം വിശകലനം ചെയ്യുക</string>
+
+    <!-- Score Labels -->
+    <string name="match_score_excellent">ഉത്തമ പൊരുത്തം</string>
+    <string name="match_score_good">നല്ല പൊരുത്തം</string>
+    <string name="match_score_low">പൊരുത്തം കുറവാണ്</string>
+
+    <!-- Mangal Dosha Panel -->
+    <string name="match_label_mangal_status">ചൊവ്വാദോഷ നില</string>
+    <string name="match_msg_mangal_detected">ജാതകത്തിൽ ചൊവ്വാ സ്വാധീനം കണ്ടെത്തിയിട്ടുണ്ട്.</string>
+    <string name="match_msg_no_mangal">ചൊവ്വാദോഷം ഇല്ല.</string>
+    <string name="match_label_cancellation">ദോഷപരിഹാരം / റദ്ദാക്കൽ:</string>
+
+    <!-- Match History Screen -->
+    <string name="match_empty_history">പൊരുത്ത വിവരങ്ങളൊന്നും കണ്ടെത്തിയില്ല.</string>
+    <string name="match_section_guna_milan">ഗുണ മിലൻ വിവരങ്ങൾ</string>
+    <string name="match_section_mangal">ചൊവ്വാദോഷം</string>
+    <string name="match_btn_delete_record">വിവരങ്ങൾ ഇല്ലാതാക്കുക</string>
+
+    <!-- Mangal Dosha Status -->
+    <string name="match_dosha_compatible">അനുയോജ്യം (സുരക്ഷിതം)</string>
+    <string name="match_dosha_high_influence">ശക്തമായ സ്വാധീനം കണ്ടെത്തി</string>
+    <string name="match_dosha_influence">സ്വാധീനം കണ്ടെത്തി</string>
+    <string name="match_dosha_no_influence">പ്രധാന സ്വാധീനം ഒന്നുമില്ല</string>
+</resources>

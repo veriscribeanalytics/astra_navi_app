@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Input Form -->
+    <string name="match_btn_calculate">ਅਨੁਕੂਲਤਾ ਦੀ ਗਣਨਾ ਕਰੋ</string>
+    <string name="match_desc_vedic_analysis">ਤਾਲਮੇਲ ਅਤੇ ਲੰਬੀ ਉਮਰ ਲਈ ਰਵਾਇਤੀ 36 ਗੁਣ ਵੈਦਿਕ ਮਿਲਾਨ ਵਿਸ਼ਲੇਸ਼ਣ।</string>
+    <string name="match_label_person1">ਵਿਅਕਤੀ 1 (ਤੁਸੀਂ)</string>
+    <string name="match_label_person2">ਵਿਅਕਤੀ 2 (ਸਾਥੀ)</string>
+    <string name="match_field_name">ਨਾਮ</string>
+    <string name="match_field_birth_place">ਜਨਮ ਸਥਾਨ</string>
+    <string name="match_option_male">ਪੁਰਸ਼</string>
+    <string name="match_option_female">ਮਹਿਲਾ</string>
+
+    <!-- Match Result View -->
+    <string name="match_label_out_of_36">36 ਵਿੱਚੋਂ</string>
+    <string name="match_section_breakdown">ਅਸ਼ਟਕੂਟ ਵੇਰਵਾ</string>
+    <string name="match_btn_analyze_another">ਕਿਸੇ ਹੋਰ ਮਿਲਾਨ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੋ</string>
+
+    <!-- Score Labels -->
+    <string name="match_score_excellent">ਉੱਤਮ ਮਿਲਾਨ</string>
+    <string name="match_score_good">ਚੰਗਾ ਮਿਲਾਨ</string>
+    <string name="match_score_low">ਘੱਟ ਅਨੁਕੂਲਤਾ</string>
+
+    <!-- Mangal Dosha Panel -->
+    <string name="match_label_mangal_status">ਮੰਗਲ ਦੋਸ਼ ਦੀ ਸਥਿਤੀ</string>
+    <string name="match_msg_mangal_detected">ਕੁੰਡਲੀਆਂ ਵਿੱਚ ਮੰਗਲ ਦਾ ਪ੍ਰਭਾਵ ਮਿਲਿਆ ਹੈ।</string>
+    <string name="match_msg_no_mangal">ਕੋਈ ਮੰਗਲ ਦੋਸ਼ ਮੌਜੂਦ ਨਹੀਂ ਹੈ।</string>
+    <string name="match_label_cancellation">ਰੱਦ ਹੋਣਾ:</string>
+
+    <!-- Match History Screen -->
+    <string name="match_empty_history">ਕੋਈ ਅਨੁਕੂਲਤਾ ਰਿਕਾਰਡ ਨਹੀਂ ਮਿਲਿਆ।</string>
+    <string name="match_section_guna_milan">ਗੁਣ ਮਿਲਾਨ ਦੇ ਵੇਰਵੇ</string>
+    <string name="match_section_mangal">ਮੰਗਲ ਦੋਸ਼</string>
+    <string name="match_btn_delete_record">ਰਿਕਾਰਡ ਮਿਟਾਓ</string>
+
+    <!-- Mangal Dosha Status -->
+    <string name="match_dosha_compatible">ਅਨੁਕੂਲ (ਸੁਰੱਖਿਅਤ)</string>
+    <string name="match_dosha_high_influence">ਉੱਚ ਪ੍ਰਭਾਵ ਪਾਇਆ ਗਿਆ</string>
+    <string name="match_dosha_influence">ਪ੍ਰਭਾਵ ਪਾਇਆ ਗਿਆ</string>
+    <string name="match_dosha_no_influence">ਕੋਈ ਵੱਡਾ ਪ੍ਰਭਾਵ ਨਹੀਂ</string>
+</resources>

@@ -5,17 +5,24 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="AstraNavi"
+        android:localeConfig="@xml/locales_config"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AstraNavi"
+        android:usesCleartextTraffic="false"
         tools:targetApi="31">
-        
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="locale|layoutDirection|fontScale|uiMode|screenSize|screenLayout|smallestScreenSize|orientation"
             android:theme="@style/Theme.AstraNavi"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -23,7 +30,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+
     </application>
 
 </manifest>

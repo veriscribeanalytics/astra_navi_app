@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KnowledgeHubScreen -->
+    <string name="knowledge_hub_intro">கட்டமைக்கப்பட்ட எங்கள் கலைக்களஞ்சியம் மூலம் ஜோதிட அறிவியல் அறிவை ஆராயுங்கள்.</string>
+    <string name="knowledge_hub_rashis">ராசிகள்</string>
+    <string name="knowledge_hub_rashis_desc">ராசி மண்டலத்தின் 12 ராசிகள்.</string>
+    <string name="knowledge_hub_planets">நவக்கிரகங்கள்</string>
+    <string name="knowledge_hub_planets_desc">கிரக சக்திகளும் அவற்றின் தாக்கமும்.</string>
+    <string name="knowledge_hub_nakshatras">27 நட்சத்திரங்கள்</string>
+    <string name="knowledge_hub_nakshatras_desc">சந்திர மாளிகைகள் பற்றிய ஆழமான பார்வை.</string>
+    <string name="knowledge_hub_houses">பாவ சக்கரம்</string>
+    <string name="knowledge_hub_houses_desc">உங்கள் வாழ்க்கையின் 12 பாவங்கள் (வீடுகள்).</string>
+    <string name="knowledge_hub_yogas">பிரபஞ்ச யோகங்கள்</string>
+    <string name="knowledge_hub_yogas_desc">புனித கிரக சேர்க்கைகள்.</string>
+
+    <!-- RashiScreen / PlanetScreen / NakshatraScreen / HouseScreen -->
+    <string name="knowledge_section_core_nature">முக்கிய குணம்</string>
+    <string name="knowledge_section_identity_grid">அடையாள கட்டம்</string>
+    <string name="knowledge_section_career_resonance">தொழில் பொருத்தம்</string>
+    <string name="knowledge_section_positive_traits">நேர்மறையான பண்புகள்</string>
+    <string name="knowledge_section_challenging_traits">சவாலான பண்புகள்</string>
+    <string name="knowledge_section_core_meaning">முக்கிய அர்த்தம்</string>
+    <string name="knowledge_section_significations">காரகத்துவங்கள்</string>
+    <string name="knowledge_section_planetary_indications">கிரக அறிகுறிகள்</string>
+    <string name="knowledge_section_karakatvas">காரகத்துவங்கள் (குணங்கள்)</string>
+    <string name="knowledge_section_padas">நான்கு பாதங்கள்</string>
+
+    <!-- NakshatraScreen pada display -->
+    <string name="knowledge_pada_prefix">பாதம் %1$d</string>
+    <string name="knowledge_pada_navamsha">%1$s நவாம்சம்</string>
+
+    <!-- HouseScreen display -->
+    <string name="knowledge_house_prefix">பாவம் %1$d</string>
+
+    <!-- IdentityTile labels (generic) -->
+    <string name="knowledge_tile_label_ruler">அதிபதி</string>
+    <string name="knowledge_tile_label_element">பூதம் (தத்துவம்)</string>
+    <string name="knowledge_tile_label_quality">தன்மை</string>
+    <string name="knowledge_tile_label_caste">பிரிவு</string>
+    <string name="knowledge_tile_label_nature">குணம்</string>
+    <string name="knowledge_tile_label_direction">திசை</string>
+
+    <!-- IdentityTile labels specific to Houses -->
+    <string name="knowledge_tile_label_natural_sign">இயற்கை ராசி</string>
+    <string name="knowledge_tile_label_karaka">காரகர்</string>
+    <string name="knowledge_tile_label_classification">வகைப்பாடு</string>
+    <string name="knowledge_tile_label_body_part">உடல் உறுப்பு</string>
+
+    <!-- PlanetScreen specific -->
+    <string name="knowledge_planet_exaltation">உச்சம்</string>
+    <string name="knowledge_planet_debilitation">நீசம்</string>
+    <string name="knowledge_planet_own_sign">சொந்த ராசி</string>
+
+    <!-- YogaScreen -->
+    <string name="knowledge_yoga_intro">வேத ஜோதிடம் நூற்றுக்கணக்கான யோகங்களை அடையாளம் காட்டுகிறது — தனித்துவமான வாழ்க்கை முடிவுகளை உருவாக்கும் குறிப்பிட்ட கிரக சேர்க்கைகள்.</string>
+    <string name="knowledge_yoga_stats_classification">வகைப்பாடு</string>
+    <string name="knowledge_yoga_stats_key_planets">முக்கிய கிரகங்கள்</string>
+    <string name="knowledge_yoga_logic">தர்க்கம்</string>
+    <string name="knowledge_yoga_detailed_analysis">விரிவான பகுப்பாய்வு</string>
+    <string name="knowledge_yoga_expected_results">எதிர்பார்க்கப்படும் பலன்கள்</string>
+
+    <!-- Screen titles (set via LocalTopBarTitle) -->
+    <string name="knowledge_title_rashis">ராசிகள்</string>
+    <string name="knowledge_title_planets">கிரகங்கள்</string>
+    <string name="knowledge_title_nakshatras">நட்சத்திரங்கள்</string>
+    <string name="knowledge_title_houses">பாவங்கள்</string>
+    <string name="knowledge_title_yogas">யோகங்கள்</string>
+</resources>

@@ -1,11 +1,15 @@
 package com.astranavi.app.data.cache
 
+import com.astranavi.app.data.api.JsonConfig
 import com.astranavi.app.data.model.AnalyzeFullRequest
 import com.astranavi.app.util.SessionManager
-import com.google.gson.Gson
+import com.astranavi.app.util.nextLocalHourMillis
+import com.astranavi.app.util.nextLocalMidnightMillis
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.decodeFromJsonElement
 import retrofit2.Response
-import java.util.Calendar
 import java.util.Locale
 
 sealed class ApiCachePolicy {
@@ -14,6 +18,30 @@ sealed class ApiCachePolicy {
     object UntilNextLocalMidnight : ApiCachePolicy()
 }
 
+data class CacheMeta(
+    val cachedAtMillis: Long,
+    val expiresAtMillis: Long,
+    val fromCache: Boolean
+) {
+    companion object {
+        /**
+         * Combine multiple per-section meta values into one screen-level meta.
+         * Uses the oldest cachedAt + soonest expiresAt, and marks fromCache=true
+         * if any of the contributing sections was served from cache.
+         */
+        fun combine(metas: List<CacheMeta?>): CacheMeta? {
+            val present = metas.filterNotNull()
+            if (present.isEmpty()) return null
+            return CacheMeta(
+                cachedAtMillis = present.minOf { it.cachedAtMillis },
+                expiresAtMillis = present.minOf { it.expiresAtMillis },
+                fromCache = present.any { it.fromCache }
+            )
+        }
+    }
+}
+
+@Serializable
 private data class StoredApiResponse(
     val cachedAtMillis: Long,
     val expiresAtMillis: Long,
@@ -21,11 +49,10 @@ private data class StoredApiResponse(
 )
 
 class ApiResponseCache(
-    private val sessionManager: SessionManager,
-    private val gson: Gson = Gson()
+    private val sessionManager: SessionManager
 ) {
     companion object {
-        const val PROFILE_TTL_MILLIS = 5 * 60 * 1000L
+        private const val CACHE_VERSION_PREFIX = "v2:"
     }
 
     suspend fun <T : Any> getOrFetch(
@@ -34,12 +61,14 @@ class ApiResponseCache(
         policy: ApiCachePolicy,
         bypassRead: Boolean = false,
         shouldCache: (T) -> Boolean = { true },
+        onMeta: ((CacheMeta) -> Unit)? = null,
         fetch: suspend () -> Response<T>
     ): Response<T> {
         val scopedKey = scopedKey(logicalKey)
 
         if (!bypassRead) {
-            readValid(scopedKey, responseClass)?.let { cachedBody ->
+            readValidWithMeta(scopedKey, responseClass)?.let { (cachedBody, cachedAt, expiresAt) ->
+                onMeta?.invoke(CacheMeta(cachedAt, expiresAt, fromCache = true))
                 return Response.success(cachedBody)
             }
         }
@@ -47,15 +76,18 @@ class ApiResponseCache(
         val response = fetch()
         val body = response.body()
         if (response.isSuccessful && body != null && shouldCache(body)) {
+            val now = System.currentTimeMillis()
+            val expiresAt = expiresAtMillis(policy, now)
             put(scopedKey, body, policy)
+            onMeta?.invoke(CacheMeta(now, expiresAt, fromCache = false))
         }
         return response
     }
 
     fun profileKey(): String = "profile"
 
-    fun dailyHoroscopeKey(sign: String?, lang: String = "English"): String {
-        return "daily-horoscope:sign:${keyPart(sign)}:lang:${keyPart(lang)}"
+    fun dailyHoroscopeKey(lang: String = "en"): String {
+        return "daily-horoscope:lang:${keyPart(lang)}"
     }
 
     fun generalHoroscopeKey(sign: String): String {
@@ -72,6 +104,16 @@ class ApiResponseCache(
             ":forward:${keyPart(daysForward?.toString())}:lang:${keyPart(lang)}:birth:${birthFingerprint()}"
     }
 
+    suspend fun forecastPeriodKey(
+        area: String,
+        period: String,
+        anchor: String?,
+        lang: String? = null
+    ): String {
+        return "forecast-period:area:${keyPart(area)}:period:${keyPart(period)}" +
+            ":anchor:${keyPart(anchor)}:lang:${keyPart(lang)}:birth:${birthFingerprint()}"
+    }
+
     suspend fun kundliKey(request: AnalyzeFullRequest): String {
         return "kundli:birth:${birthFingerprint()}:context:${keyPart(request.chart_context)}"
     }
@@ -83,6 +125,7 @@ class ApiResponseCache(
             "daily-horoscope",
             "general-horoscope",
             "forecast",
+            "forecast-period",
             "kundli"
         ).forEach { section ->
             sessionManager.removeApiCacheEntriesStartingWith(prefix + section)
@@ -93,26 +136,33 @@ class ApiResponseCache(
         sessionManager.clearApiCache()
     }
 
-    private suspend fun <T : Any> readValid(scopedKey: String, responseClass: Class<T>): T? {
+    private suspend fun <T : Any> readValidWithMeta(
+        scopedKey: String,
+        responseClass: Class<T>
+    ): Triple<T, Long, Long>? {
         val raw = sessionManager.getApiCacheEntry(scopedKey) ?: return null
         val stored = try {
-            gson.fromJson(raw, StoredApiResponse::class.java)
+            JsonConfig.json.decodeFromString(StoredApiResponse.serializer(), raw)
         } catch (e: Exception) {
             sessionManager.removeApiCacheEntry(scopedKey)
             return null
-        } ?: return null
+        }
 
         if (System.currentTimeMillis() >= stored.expiresAtMillis) {
             sessionManager.removeApiCacheEntry(scopedKey)
             return null
         }
 
-        return try {
-            gson.fromJson(stored.payload, responseClass)
+        val body = try {
+            JsonConfig.json.decodeFromJsonElement(
+                deserializer = serializerFor(responseClass),
+                element = JsonConfig.json.parseToJsonElement(stored.payload)
+            )
         } catch (e: Exception) {
             sessionManager.removeApiCacheEntry(scopedKey)
-            null
+            return null
         }
+        return Triple(body, stored.cachedAtMillis, stored.expiresAtMillis)
     }
 
     private suspend fun <T : Any> put(
@@ -124,9 +174,26 @@ class ApiResponseCache(
         val stored = StoredApiResponse(
             cachedAtMillis = now,
             expiresAtMillis = expiresAtMillis(policy, now),
-            payload = gson.toJson(body)
+            payload = JsonConfig.json.encodeToString(serializerFor(body.javaClass), body)
         )
-        sessionManager.putApiCacheEntry(scopedKey, gson.toJson(stored))
+        sessionManager.putApiCacheEntry(
+            scopedKey,
+            JsonConfig.json.encodeToString(StoredApiResponse.serializer(), stored)
+        )
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <T : Any> serializerFor(responseClass: Class<T>): KSerializer<T> {
+        return when (responseClass) {
+            com.astranavi.app.data.model.AnalyzeFullWrapper::class.java -> com.astranavi.app.data.model.AnalyzeFullWrapper.serializer()
+            com.astranavi.app.data.model.ForecastResponse::class.java -> com.astranavi.app.data.model.ForecastResponse.serializer()
+            com.astranavi.app.data.model.WeeklyForecastResponse::class.java -> com.astranavi.app.data.model.WeeklyForecastResponse.serializer()
+            com.astranavi.app.data.model.MonthlyForecastResponse::class.java -> com.astranavi.app.data.model.MonthlyForecastResponse.serializer()
+            com.astranavi.app.data.model.YearlyForecastResponse::class.java -> com.astranavi.app.data.model.YearlyForecastResponse.serializer()
+            com.astranavi.app.data.model.HoroscopeResponse::class.java -> com.astranavi.app.data.model.HoroscopeResponse.serializer()
+            com.astranavi.app.data.model.ProfileResponse::class.java -> com.astranavi.app.data.model.ProfileResponse.serializer()
+            else -> error("No cache serializer registered for ${responseClass.name}")
+        } as KSerializer<T>
     }
 
     private suspend fun scopedKey(logicalKey: String): String {
@@ -136,7 +203,7 @@ class ApiResponseCache(
     private suspend fun currentUserPrefix(): String {
         val userId = sessionManager.userId.first()
         val email = sessionManager.userEmail.first()
-        return "user:${keyPart(userId ?: email ?: "anonymous")}:"
+        return CACHE_VERSION_PREFIX + "user:${keyPart(userId ?: email ?: "anonymous")}:"
     }
 
     private suspend fun birthFingerprint(): String {
@@ -152,27 +219,6 @@ class ApiResponseCache(
             ApiCachePolicy.UntilNextLocalHour -> nextLocalHourMillis(nowMillis)
             ApiCachePolicy.UntilNextLocalMidnight -> nextLocalMidnightMillis(nowMillis)
         }
-    }
-
-    private fun nextLocalHourMillis(nowMillis: Long): Long {
-        return Calendar.getInstance().apply {
-            timeInMillis = nowMillis
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-            add(Calendar.HOUR_OF_DAY, 1)
-        }.timeInMillis
-    }
-
-    private fun nextLocalMidnightMillis(nowMillis: Long): Long {
-        return Calendar.getInstance().apply {
-            timeInMillis = nowMillis
-            add(Calendar.DAY_OF_YEAR, 1)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
     }
 
     private fun keyPart(value: String?): String {

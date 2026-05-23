@@ -196,3 +196,9 @@ val houses = listOf(
         planetsInHouse = mapOf("Sun" to "spiritual ego", "Moon" to "dream state", "Mars" to "foreign conflict", "Mercury" to "isolated study", "Jupiter" to "foreign wisdom", "Venus" to "foreign beauty", "Saturn" to "spiritual discipline", "Rahu" to "foreign residence", "Ketu" to "ultimate moksha")
     )
 )
+
+fun housesFor(locale: String): List<House> = when (locale.lowercase()) {
+    "hi" -> HouseDataHi.houses
+    "ko" -> HouseDataKo.houses
+    else -> houses
+}
