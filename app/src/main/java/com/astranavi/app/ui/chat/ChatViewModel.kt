@@ -67,11 +67,8 @@ class ChatViewModel(
     val userName: State<String> = _userName
 
     fun setActiveAvatar(avatar: ChatAvatar?) {
-        val previousId = _activeAvatar.value?.avatarId
         _activeAvatar.value = avatar
-        if (previousId != avatar?.avatarId) {
-            initializeWelcomeChat()
-        }
+        initializeWelcomeChat()
     }
 
     fun switchActiveAvatar(avatar: ChatAvatar) {

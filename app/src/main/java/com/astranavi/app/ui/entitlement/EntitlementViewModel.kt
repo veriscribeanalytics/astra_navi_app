@@ -61,7 +61,10 @@ class EntitlementViewModel(
     }
 
     fun refreshAll() {
-        _uiState.value = EntitlementUiState.Loading
+        val currentState = _uiState.value
+        if (currentState !is EntitlementUiState.Success) {
+            _uiState.value = EntitlementUiState.Loading
+        }
         viewModelScope.launch {
             try {
                 val balanceRes = repository.getBalance()
@@ -81,9 +84,16 @@ class EntitlementViewModel(
                     paywallStates = paywallStates
                 )
             } catch (e: Exception) {
-                _uiState.value = EntitlementUiState.Error("Failed to load entitlement data")
+                if (_uiState.value !is EntitlementUiState.Success) {
+                    _uiState.value = EntitlementUiState.Error("Failed to load entitlement data")
+                }
             }
         }
+    }
+
+    fun reset() {
+        _uiState.value = EntitlementUiState.Loading
+        _activePaywall.value = null
     }
 
     fun checkFeature(featureKey: String) {
@@ -133,7 +143,7 @@ class EntitlementViewModel(
 
     fun getCurrentCredits(): Int {
         val current = _uiState.value
-        return if (current is EntitlementUiState.Success) current.balance.credits else 0
+        return if (current is EntitlementUiState.Success) current.balance.totalCreditsRemaining else 0
     }
 
     fun getCurrentTier(): String {

@@ -30,7 +30,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "API_KEY", "\"$apiKey\"")
 
-        resourceConfigurations += listOf("en", "hi", "ko")
+        resourceConfigurations += listOf("en", "hi", "ko", "bn", "gu", "kn", "ml", "mr", "pa", "ta", "te")
     }
 
     lint {

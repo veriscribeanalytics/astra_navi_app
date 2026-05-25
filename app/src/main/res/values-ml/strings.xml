@@ -36,6 +36,22 @@
     <string name="title_houses">ഭാവങ്ങൾ</string>
     <string name="title_yogas">യോഗങ്ങൾ</string>
 
+    <!-- Added translation keys -->
+    <string name="chat_history_title">ചാറ്റ് ചരിത്രം</string>
+    <string name="drawer_user_default">അസ്ട്ര ഉപയോക്താവ്</string>
+    <string name="dasha_md">MD</string>
+    <string name="dasha_ad">AD</string>
+    <string name="dashboard_label_mahadasha_title">മഹാദശ</string>
+    <string name="dashboard_label_antardasha_title">അന്തർദശ</string>
+    <string name="cd_back">തിരികെ</string>
+    <string name="cd_open_menu">മെനു തുറക്കുക</string>
+    <string name="cd_consult_history">കൺസൾട്ടേഷൻ ചരിത്രം</string>
+    <string name="cd_match_history">പൊരുത്ത ചരിത്രം</string>
+    <string name="cd_close_history">ചരിത്രം അടയ്ക്കുക</string>
+    <string name="cd_chat_history">ചാറ്റ് ചരിത്രം</string>
+    <string name="cd_new_chat">പുതിയ ചാറ്റ്</string>
+    <string name="cd_switch_avatar">അവതാർ മാറ്റുക</string>
+
     <!-- B3 Login / Register / Splash / Intro -->
     <string name="login_register_title">രജിസ്റ്റർ ചെയ്യുക</string>
     <string name="login_login_title">ലോഗിൻ ചെയ്യുക</string>

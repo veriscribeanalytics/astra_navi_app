@@ -36,6 +36,22 @@
     <string name="title_houses">ভাবসমূহ</string>
     <string name="title_yogas">যোগসমূহ</string>
 
+    <!-- Added translation keys -->
+    <string name="chat_history_title">চ্যাট ইতিহাস</string>
+    <string name="drawer_user_default">অ্যাস্ট্রা ব্যবহারকারী</string>
+    <string name="dasha_md">MD</string>
+    <string name="dasha_ad">AD</string>
+    <string name="dashboard_label_mahadasha_title">মহাদশা</string>
+    <string name="dashboard_label_antardasha_title">অন্তর্দশা</string>
+    <string name="cd_back">পিছনে</string>
+    <string name="cd_open_menu">মেনু খুলুন</string>
+    <string name="cd_consult_history">পরামর্শ ইতিহাস</string>
+    <string name="cd_match_history">মিলান ইতিহাস</string>
+    <string name="cd_close_history">ইতিহাস বন্ধ করুন</string>
+    <string name="cd_chat_history">চ্যাট ইতিহাস</string>
+    <string name="cd_new_chat">নতুন চ্যাট</string>
+    <string name="cd_switch_avatar">অবতার পরিবর্তন করুন</string>
+
     <!-- B3 Login / Register / Splash / Intro -->
     <string name="login_register_title">নিবন্ধন করুন</string>
     <string name="login_login_title">লগ ইন</string>

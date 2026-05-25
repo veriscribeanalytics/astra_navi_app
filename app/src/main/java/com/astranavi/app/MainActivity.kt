@@ -106,20 +106,22 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
 import com.astranavi.app.ui.entitlement.EntitlementUiState
 
-sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    object Dashboard : Screen("home", "Home", Icons.Default.Home)
-    object Forecast : Screen("forecast", "Forecast", Icons.Default.TrendingUp)
-    object Kundli : Screen("kundli", "Kundli", Icons.Default.Star)
-    object Match : Screen("match", "Match", Icons.Default.Favorite)
-    object Consult : Screen("consult", "Consult", Icons.Default.Info)
-    object Blogs : Screen("blogs", "Knowledge", Icons.Default.List)
-    object Rashis : Screen("rashis", "Zodiac", Icons.Default.PlayArrow)
-    object Chat : Screen("chat", "AI Chat", Icons.Default.AutoAwesome)
-    object Profile : Screen("profile", "Profile", Icons.Default.Person)
-    object Astrologers : Screen("astrologers", "Experts", Icons.Default.Face)
-    object Plans : Screen("plans", "Plans", Icons.Default.AutoAwesome)
+sealed class Screen(val route: String, @StringRes val labelRes: Int, val icon: ImageVector) {
+    object Dashboard : Screen("home", R.string.nav_home, Icons.Default.Home)
+    object Forecast : Screen("forecast", R.string.nav_forecast, Icons.Default.TrendingUp)
+    object Kundli : Screen("kundli", R.string.nav_kundli, Icons.Default.Star)
+    object Match : Screen("match", R.string.nav_match, Icons.Default.Favorite)
+    object Consult : Screen("consult", R.string.nav_consult, Icons.Default.Info)
+    object Blogs : Screen("blogs", R.string.nav_blogs, Icons.Default.List)
+    object Rashis : Screen("rashis", R.string.nav_rashis, Icons.Default.PlayArrow)
+    object Chat : Screen("chat", R.string.nav_chat, Icons.Default.AutoAwesome)
+    object Profile : Screen("profile", R.string.nav_profile, Icons.Default.Person)
+    object Astrologers : Screen("astrologers", R.string.nav_astrologers, Icons.Default.Face)
+    object Plans : Screen("plans", R.string.nav_plans, Icons.Default.AutoAwesome)
 }
 
 val LocalTopBarTitle = compositionLocalOf<((String?) -> Unit)?> { null }
@@ -191,13 +193,13 @@ fun RowScope.NavBarItem(
     ) {
         Icon(
             screen.icon,
-            contentDescription = screen.label,
+            contentDescription = stringResource(screen.labelRes),
             tint = if (isSelected) activeColor else inactiveColor,
             modifier = Modifier.size(22.dp)
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
-            screen.label,
+            stringResource(screen.labelRes),
             color = if (isSelected) activeColor else inactiveColor,
             fontSize = 10.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
@@ -220,7 +222,7 @@ fun CosmicHeader(onClose: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "COSMIC NAVIGATION",
+                text = stringResource(R.string.drawer_cosmic_navigation),
                 style = MaterialTheme.typography.labelSmall.copy(
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.Light
@@ -230,13 +232,13 @@ fun CosmicHeader(onClose: () -> Unit) {
             IconButton(onClick = onClose) {
                 Icon(
                     Icons.Default.Close,
-                    contentDescription = "Close",
+                    contentDescription = stringResource(R.string.btn_close),
                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
             }
         }
         Text(
-            text = "AstraNavi",
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.displaySmall.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp
@@ -244,7 +246,7 @@ fun CosmicHeader(onClose: () -> Unit) {
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = "Your celestial guide",
+            text = stringResource(R.string.drawer_celestial_guide),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
         )
@@ -415,6 +417,7 @@ val sessionManager = SessionManager(this)
                         var showLogoutDialog by remember { mutableStateOf(false) }
                         var dynamicTitle by remember { mutableStateOf<String?>(null) }
                         var dynamicTopBarColor by remember { mutableStateOf<Color?>(null) }
+                        val context = androidx.compose.ui.platform.LocalContext.current
 
                         val sharedViewModelFactory = remember {
                             ViewModelFactory(
@@ -456,24 +459,24 @@ val sessionManager = SessionManager(this)
                                 Screen.Blogs.route
                             )
 
-                            val defaultTopBarTitle = remember(currentDestination) {
+                            val defaultTopBarTitle = remember(currentDestination, appLanguage) {
                                 when (currentDestination?.route?.substringBefore("?")) {
-                                    Screen.Dashboard.route -> "Home"
-                                    Screen.Forecast.route -> "Forecast"
-                                    Screen.Blogs.route -> "Knowledge"
-                                    Screen.Consult.route -> "Consult"
-                                    Screen.Chat.route -> "AI Chat"
-                                    Screen.Astrologers.route -> "Experts"
-                                    Screen.Profile.route -> "Profile"
-                                    Screen.Kundli.route -> "Kundli"
-                                    Screen.Match.route -> "Match"
-                                    Screen.Rashis.route -> "Zodiac"
-                                    "planets" -> "Planets"
-                                    "nakshatras" -> "Nakshatras"
-                                    "houses" -> "Houses"
-                                    "yogas" -> "Yogas"
-                                    "match_history" -> "Match History"
-                                    else -> "AstraNavi"
+                                    Screen.Dashboard.route -> context.getString(Screen.Dashboard.labelRes)
+                                    Screen.Forecast.route -> context.getString(Screen.Forecast.labelRes)
+                                    Screen.Blogs.route -> context.getString(Screen.Blogs.labelRes)
+                                    Screen.Consult.route -> context.getString(Screen.Consult.labelRes)
+                                    Screen.Chat.route -> context.getString(Screen.Chat.labelRes)
+                                    Screen.Astrologers.route -> context.getString(Screen.Astrologers.labelRes)
+                                    Screen.Profile.route -> context.getString(Screen.Profile.labelRes)
+                                    Screen.Kundli.route -> context.getString(Screen.Kundli.labelRes)
+                                    Screen.Match.route -> context.getString(Screen.Match.labelRes)
+                                    Screen.Rashis.route -> context.getString(Screen.Rashis.labelRes)
+                                    "planets" -> context.getString(R.string.title_planets)
+                                    "nakshatras" -> context.getString(R.string.title_nakshatras)
+                                    "houses" -> context.getString(R.string.title_houses)
+                                    "yogas" -> context.getString(R.string.title_yogas)
+                                    "match_history" -> context.getString(R.string.title_match_history)
+                                    else -> context.getString(R.string.app_name)
                                 }
                             }
 
@@ -494,12 +497,13 @@ val sessionManager = SessionManager(this)
                             if (showLogoutDialog) {
                                 AlertDialog(
                                     onDismissRequest = { showLogoutDialog = false },
-                                    title = { Text("Logout") },
-                                    text = { Text("Are you sure you want to logout from AstraNavi?") },
+                                    title = { Text(stringResource(R.string.logout_title)) },
+                                    text = { Text(stringResource(R.string.logout_message)) },
                                     confirmButton = {
                                         Button(
                                             onClick = {
                                                 showLogoutDialog = false
+                                                entitlementViewModel.reset()
                                                 scope.launch {
                                                     sessionManager.clearSession()
                                                     navController.navigate("login") {
@@ -508,12 +512,12 @@ val sessionManager = SessionManager(this)
                                                 }
                                             }
                                         ) {
-                                            Text("Logout")
+                                            Text(stringResource(R.string.logout_confirm))
                                         }
                                     },
                                     dismissButton = {
                                         TextButton(onClick = { showLogoutDialog = false }) {
-                                            Text("Cancel")
+                                            Text(stringResource(R.string.logout_cancel))
                                         }
                                     }
                                 )
@@ -555,7 +559,10 @@ val sessionManager = SessionManager(this)
                                             CenterAlignedTopAppBar(
                                                 title = {
                                                     if (currentBaseRoute == Screen.Chat.route) {
-                                                        val chatViewModel: ChatViewModel = viewModel(factory = sharedViewModelFactory)
+                                                        val chatViewModel: ChatViewModel = viewModel(
+                                                            viewModelStoreOwner = this@MainActivity,
+                                                            factory = sharedViewModelFactory
+                                                        )
                                                         val activeAvatar by chatViewModel.activeAvatar
                                                         Box {
                                                             Row(
@@ -573,14 +580,14 @@ val sessionManager = SessionManager(this)
                                                                 )
                                                                 Spacer(Modifier.width(8.dp))
                                                                 Text(
-                                                                    activeAvatar?.name ?: "AI Chat",
+                                                                    activeAvatar?.name ?: stringResource(R.string.nav_chat),
                                                                     fontWeight = FontWeight.Black,
                                                                     maxLines = 1,
                                                                     overflow = TextOverflow.Ellipsis
                                                                 )
                                                                 Icon(
                                                                     Icons.Default.ArrowDropDown,
-                                                                    contentDescription = "Switch avatar"
+                                                                    contentDescription = stringResource(R.string.cd_switch_avatar)
                                                                 )
                                                             }
                                                             DropdownMenu(
@@ -633,7 +640,7 @@ val sessionManager = SessionManager(this)
                                                             IconButton(onClick = { backDispatcher?.onBackPressed() }) {
                                                                 Icon(
                                                                     Icons.Default.ArrowBack,
-                                                                    contentDescription = "Back"
+                                                                    contentDescription = stringResource(R.string.cd_back)
                                                                 )
                                                             }
                                                         } else {
@@ -651,49 +658,50 @@ val sessionManager = SessionManager(this)
                                                     }
                                                 },
                                                 actions = {
-                                                    if (showBottomBar) {
-                                                        IconButton(onClick = {
-                                                            isMenuOpen = true
-                                                        }) {
-                                                            Icon(
-                                                                Icons.Default.Person,
-                                                                contentDescription = "Open Menu"
-                                                            )
-                                                        }
-                                                    }
-                                                    if (!isLogin) {
-                                                        val credits = if (entitlementState is EntitlementUiState.Success) (entitlementState as EntitlementUiState.Success).balance.credits else 0
-                                                        val tier = if (entitlementState is EntitlementUiState.Success) (entitlementState as EntitlementUiState.Success).balance.tier else "free"
-                                                        CreditBadge(credits = credits, tier = tier, onClick = { navController.navigate(Screen.Plans.route) })
-                                                    }
                                                     if (currentDestination?.route == Screen.Consult.route) {
                                                         IconButton(onClick = { navController.navigate("consult_history") }) {
-                                                            Icon(Icons.Default.History, contentDescription = "Consult History")
+                                                            Icon(Icons.Default.History, contentDescription = stringResource(R.string.cd_consult_history))
                                                         }
                                                     }
                                                     if (currentDestination?.route == Screen.Match.route) {
                                                         IconButton(onClick = { navController.navigate("match_history") }) {
-                                                            Icon(Icons.Default.History, contentDescription = "Match History")
+                                                            Icon(Icons.Default.History, contentDescription = stringResource(R.string.cd_match_history))
                                                         }
                                                     }
                                                     if (currentBaseRoute == Screen.Chat.route) {
                                                         val chatViewModel: ChatViewModel = viewModel(
+                                                            viewModelStoreOwner = this@MainActivity,
                                                             factory = sharedViewModelFactory
                                                         )
                                                         val chatShowHistory by chatViewModel.showHistory
                                                         if (chatShowHistory) {
                                                             IconButton(onClick = { chatViewModel.setShowHistory(false) }) {
-                                                                Icon(Icons.Default.Close, contentDescription = "Close History")
+                                                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_close_history))
                                                             }
                                                         } else {
                                                             IconButton(onClick = { chatViewModel.toggleHistory() }) {
-                                                                Icon(Icons.Default.History, contentDescription = "Chat History")
+                                                                Icon(Icons.Default.History, contentDescription = stringResource(R.string.cd_chat_history))
                                                             }
                                                             IconButton(onClick = {
                                                                 navController.navigate("avatar_selection")
                                                             }) {
-                                                                Icon(Icons.Default.AddComment, contentDescription = "New Chat")
+                                                                Icon(Icons.Default.AddComment, contentDescription = stringResource(R.string.cd_new_chat))
                                                             }
+                                                        }
+                                                    }
+                                                    if (!isLogin) {
+                                                        val credits = if (entitlementState is EntitlementUiState.Success) (entitlementState as EntitlementUiState.Success).balance.totalCreditsRemaining else 0
+                                                        val tier = if (entitlementState is EntitlementUiState.Success) (entitlementState as EntitlementUiState.Success).balance.tier else "free"
+                                                        CreditBadge(credits = credits, tier = tier, onClick = { navController.navigate(Screen.Plans.route) })
+                                                    }
+                                                    if (showBottomBar) {
+                                                        IconButton(onClick = {
+                                                            isMenuOpen = true
+                                                        }) {
+                                                            Icon(
+                                                                Icons.Default.Menu,
+                                                                contentDescription = stringResource(R.string.cd_open_menu)
+                                                            )
                                                         }
                                                     }
                                                 },
@@ -790,7 +798,7 @@ val sessionManager = SessionManager(this)
                                                     ) {
                                                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                                             Icon(Screen.Chat.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(30.dp))
-                                                            Text("AI CHAT", color = MaterialTheme.colorScheme.onPrimary, fontSize = 7.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
+                                                            Text(stringResource(R.string.nav_chat).uppercase(), color = MaterialTheme.colorScheme.onPrimary, fontSize = 7.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
                                                         }
                                                     }
                                                 }
@@ -1004,9 +1012,12 @@ val sessionManager = SessionManager(this)
                                                     navArgument("avatarId") { type = NavType.StringType; nullable = true; defaultValue = null }
                                                 )
                                             ) { backStackEntry ->
-                                                val chatViewModel: ChatViewModel = viewModel(factory = sharedViewModelFactory)
+                                                val chatViewModel: ChatViewModel = viewModel(
+                                                    viewModelStoreOwner = this@MainActivity,
+                                                    factory = sharedViewModelFactory
+                                                )
                                                 val chatShowHistory by chatViewModel.showHistory
-                                                LaunchedEffect(chatShowHistory) { dynamicTitle = if (chatShowHistory) "Chat History" else null }
+                                                LaunchedEffect(chatShowHistory) { dynamicTitle = if (chatShowHistory) context.getString(R.string.chat_history_title) else null }
                                                 ChatScreen(
                                                     viewModel = chatViewModel,
                                                     seedPrompt = backStackEntry.arguments?.getString("prompt"),
@@ -1064,16 +1075,16 @@ val sessionManager = SessionManager(this)
                                             ParticleBackground()
                                             Column(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars).navigationBarsPadding()) {
                                                 CosmicHeader(onClose = { isMenuOpen = false })
-                                                CosmicProfile(userName = userName ?: "Astra User", lagnaSign = lagnaSign, onClick = { isMenuOpen = false; navController.navigate(Screen.Profile.route) })
+                                                CosmicProfile(userName = userName ?: stringResource(R.string.drawer_user_default), lagnaSign = lagnaSign, onClick = { isMenuOpen = false; navController.navigate(Screen.Profile.route) })
                                                 Spacer(modifier = Modifier.height(16.dp))
                                                 val menuItems = listOf(Screen.Dashboard, Screen.Blogs, Screen.Chat, Screen.Consult, Screen.Match)
-                                                menuItems.forEachIndexed { index, screen -> CosmicNavItem(label = screen.label, icon = screen.icon, selected = currentDestination?.route == screen.route, onClick = { isMenuOpen = false; navController.navigate(screen.route) }, staggerDelay = 100 + (index * 40)) }
+                                                menuItems.forEachIndexed { index, screen -> CosmicNavItem(label = stringResource(screen.labelRes), icon = screen.icon, selected = currentDestination?.route == screen.route, onClick = { isMenuOpen = false; navController.navigate(screen.route) }, staggerDelay = 100 + (index * 40)) }
                                                 Spacer(modifier = Modifier.weight(1f))
                                                 Column(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
-                                                    Text(text = "PREFERENCES", style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
+                                                    Text(text = stringResource(R.string.menu_preferences), style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
                                                     val isDark = when (themePreference) { "dark" -> true; "light" -> false; else -> isSystemInDarkTheme() }
-                                                    CosmicNavItem(label = if (isDark) "Switch to Light Mode" else "Switch to Dark Mode", icon = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode, selected = false, onClick = { scope.launch { sessionManager.setThemePreference(if (isDark) "light" else "dark") } }, staggerDelay = 400)
-                                                    CosmicNavItem(label = "Logout", icon = Icons.Default.Logout, selected = false, onClick = { isMenuOpen = false; showLogoutDialog = true }, staggerDelay = 450)
+                                                    CosmicNavItem(label = if (isDark) stringResource(R.string.menu_light_mode) else stringResource(R.string.menu_dark_mode), icon = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode, selected = false, onClick = { scope.launch { sessionManager.setThemePreference(if (isDark) "light" else "dark") } }, staggerDelay = 400)
+                                                    CosmicNavItem(label = stringResource(R.string.menu_logout), icon = Icons.Default.Logout, selected = false, onClick = { isMenuOpen = false; showLogoutDialog = true }, staggerDelay = 450)
                                                 }
                                             }
                                         }

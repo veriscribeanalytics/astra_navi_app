@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.annotation.StringRes
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
@@ -851,10 +852,14 @@ fun DailySnapshotCard(
     val activeTrigger = remember(horoscope.time_triggers) {
         findActiveOrUpcomingTrigger(horoscope.time_triggers)
     }
-    val activeDashaText = horoscope.planetary?.active_dasha
-        ?.replace("Mahadasha", "MD", ignoreCase = true)
-        ?.replace("Antardasha", "AD", ignoreCase = true)
-        ?.replace("/", " / ")
+    val activeDashaText = horoscope.planetary?.active_dasha?.let { rawDasha ->
+        rawDasha
+            .replace("Mahadasha", stringResource(R.string.dasha_md), ignoreCase = true)
+            .replace("Antardasha", stringResource(R.string.dasha_ad), ignoreCase = true)
+            .replace(stringResource(R.string.dashboard_label_mahadasha_title), stringResource(R.string.dasha_md), ignoreCase = true)
+            .replace(stringResource(R.string.dashboard_label_antardasha_title), stringResource(R.string.dasha_ad), ignoreCase = true)
+            .replace("/", " / ")
+    }
     val leadingColumnWidth = when {
         compact -> 72.dp
         responsive.isMediumWidth -> 104.dp
@@ -1309,7 +1314,7 @@ fun ActiveGuidanceCard(
                 if (onClick != null) {
                     Icon(
                         Icons.Default.ChevronRight,
-                        contentDescription = "View all",
+                        contentDescription = stringResource(R.string.dashboard_label_view_all),
                         tint = triggerColor.copy(alpha = 0.4f),
                         modifier = Modifier.size(20.dp)
                     )
@@ -1478,7 +1483,7 @@ fun StreakBar(streak: StreakData) {
     ) {
         Text("🔥", fontSize = 14.sp)
         Spacer(modifier = Modifier.width(8.dp))
-        Text("COSMIC STREAK", style = MaterialTheme.typography.labelSmall, color = AstroColors.Sun, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
+        Text(stringResource(R.string.dashboard_label_cosmic_streak), style = MaterialTheme.typography.labelSmall, color = AstroColors.Sun, fontWeight = FontWeight.Black, modifier = Modifier.weight(1f))
 
         LinearProgressIndicator(
             progress = { progress },
@@ -1511,7 +1516,7 @@ fun StreakCard(streak: StreakData) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("🔥", fontSize = 24.sp)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("YOUR COSMIC STREAK", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = AstroColors.Sun)
+                Text(stringResource(R.string.dashboard_label_your_cosmic_streak), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, color = AstroColors.Sun)
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -1581,7 +1586,7 @@ fun ErrorView(message: String, onRetry: () -> Unit) {
             onClick = onRetry,
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Retry Connection", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.dashboard_btn_retry_connection), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -1704,7 +1709,7 @@ fun WeeklyForecastSection(forecast: WeeklyForecastResponse, themeColor: Color, o
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "☀️ TODAY ${today?.score ?: "--"}",
+                    text = "☀️ ${stringResource(R.string.dashboard_today).uppercase()} ${today?.score ?: "--"}",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
                     color = themeColor
@@ -1714,7 +1719,7 @@ fun WeeklyForecastSection(forecast: WeeklyForecastResponse, themeColor: Color, o
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                 )
                 Text(
-                    text = "Mood: ${titleCase(today?.mood?.value ?: "Balanced")}",
+                    text = stringResource(R.string.dashboard_label_mood_title, stringResource(getMoodResource(today?.mood?.value))),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1724,7 +1729,7 @@ fun WeeklyForecastSection(forecast: WeeklyForecastResponse, themeColor: Color, o
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                 )
                 Text(
-                    text = "🔮 DETAILS",
+                    text = stringResource(R.string.dashboard_label_details),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
                     color = themeColor
@@ -2042,7 +2047,7 @@ fun KundliPeekCard(
                                 .addHeader("Authorization", "Bearer $accessToken")
                                 .crossfade(true)
                                 .build(),
-                            contentDescription = "Vedic Birth Chart",
+                            contentDescription = stringResource(R.string.dashboard_label_vedic_birth_chart),
                             modifier = Modifier.fillMaxSize().padding(4.dp),
                             contentScale = ContentScale.Fit
                         ) {
@@ -2059,7 +2064,7 @@ fun KundliPeekCard(
                                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                     Icon(
                                         imageVector = Icons.Default.BrokenImage,
-                                        contentDescription = "Chart loading failed",
+                                        contentDescription = stringResource(R.string.dashboard_label_chart_failed),
                                         tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
                                         modifier = Modifier.size(24.dp)
                                     )
@@ -2072,7 +2077,7 @@ fun KundliPeekCard(
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.Lock,
-                                contentDescription = "Sign in to view chart",
+                                contentDescription = stringResource(R.string.dashboard_label_sign_in_chart),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 modifier = Modifier.size(24.dp)
                             )
@@ -2124,7 +2129,7 @@ fun KundliPeekCard(
                 ) {
                     if (mahadasha != null) {
                         MiniDashaChip(
-                            label = "Mahadasha",
+                            labelRes = R.string.dashboard_label_mahadasha_title,
                             planetName = mahadasha.planet,
                             startDate = mahadasha.start,
                             endDate = mahadasha.end,
@@ -2134,7 +2139,7 @@ fun KundliPeekCard(
                     }
                     if (antardasha != null) {
                         MiniDashaChip(
-                            label = "Antardasha",
+                            labelRes = R.string.dashboard_label_antardasha_title,
                             planetName = antardasha.planet,
                             startDate = antardasha.start,
                             endDate = antardasha.end,
@@ -2154,7 +2159,7 @@ fun KundliPeekCard(
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = themeColor)
             ) {
-                Text("EXPLORE FULL ANALYSIS", fontWeight = FontWeight.Black, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSecondary)
+                Text(stringResource(R.string.dashboard_label_explore_full_analysis), fontWeight = FontWeight.Black, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSecondary)
             }
         }
     }
@@ -2177,9 +2182,23 @@ private fun planetAssetFor(planet: String?): String? {
     }
 }
 
+@StringRes
+private fun getMoodResource(mood: String?): Int {
+    return when (mood?.trim()?.lowercase()) {
+        "challenging" -> R.string.dashboard_status_challenging
+        "delicate" -> R.string.dashboard_status_delicate
+        "balanced" -> R.string.dashboard_status_balanced
+        "good progress" -> R.string.dashboard_status_good_progress
+        "stable" -> R.string.dashboard_status_stable
+        "favorable" -> R.string.dashboard_status_favorable
+        "excellent" -> R.string.dashboard_status_excellent
+        else -> R.string.dashboard_status_balanced
+    }
+}
+
 @Composable
 private fun MiniDashaChip(
-    label: String,
+    @StringRes labelRes: Int,
     planetName: String,
     startDate: String?,
     endDate: String?,
@@ -2226,7 +2245,7 @@ private fun MiniDashaChip(
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                label.uppercase(),
+                stringResource(labelRes).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
                 color = planetColor,
@@ -2287,7 +2306,7 @@ fun ConsultTeaserCard(record: ConsultRecord, onClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text("LAST CONSULTATION", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.dashboard_label_last_consultation), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
                 Text(
                     "${record.primary_category?.replace("_", " ") ?: "Guidance"} • ${record.secondary_category?.replace("_", " ") ?: "Inquiry"}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -2301,7 +2320,7 @@ fun ConsultTeaserCard(record: ConsultRecord, onClick: () -> Unit) {
                 modifier = Modifier.height(36.dp).shimmerSweepEffect(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("ASK AGAIN", fontSize = 10.sp, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.dashboard_label_ask_again), fontSize = 10.sp, fontWeight = FontWeight.Black)
             }
         }
     }

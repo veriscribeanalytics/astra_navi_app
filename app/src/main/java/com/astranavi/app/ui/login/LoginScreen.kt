@@ -77,14 +77,6 @@ fun LoginScreen(
             .imePadding()
             .navigationBarsPadding()
     ) {
-        LanguageChip(
-            currentLanguage = currentLanguage,
-            onLanguageSelected = onLanguageSelected,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .statusBarsPadding()
-                .padding(top = 12.dp, end = 12.dp)
-        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -188,5 +180,14 @@ fun LoginScreen(
                 Text(if (isRegisterMode) stringResource(R.string.login_switch_to_login) else stringResource(R.string.login_switch_to_register))
             }
         }
+
+        LanguageChip(
+            currentLanguage = currentLanguage,
+            onLanguageSelected = onLanguageSelected,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .statusBarsPadding()
+                .padding(top = 12.dp, start = 12.dp)
+        )
     }
 }

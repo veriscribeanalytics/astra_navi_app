@@ -757,7 +757,7 @@ fun Zone2Ascendant(ascendant: AscendantData?) {
                 Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(responsive.kundliSmallIconSize))
                 Spacer(modifier = Modifier.width(responsive.kundliSectionGap * 0.5f))
                 Column {
-                    Text("Ascendant: ${ascendant.sign}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text("${stringResource(R.string.profile_label_lagna)}: ${ascendant.sign}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Text("${ascendant.degree}° ${ascendant.nakshatra?.let { "• $it" } ?: ""}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.height(responsive.kundliSectionGap * 0.125f))
                     Text(ascendant.interpretation ?: "", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)

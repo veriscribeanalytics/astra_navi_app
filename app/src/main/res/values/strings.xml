@@ -36,6 +36,22 @@
     <string name="title_houses">Houses</string>
     <string name="title_yogas">Yogas</string>
 
+    <!-- Added translation keys -->
+    <string name="chat_history_title">Chat History</string>
+    <string name="drawer_user_default">Astra User</string>
+    <string name="dasha_md">MD</string>
+    <string name="dasha_ad">AD</string>
+    <string name="dashboard_label_mahadasha_title">Mahadasha</string>
+    <string name="dashboard_label_antardasha_title">Antardasha</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_open_menu">Open Menu</string>
+    <string name="cd_consult_history">Consult History</string>
+    <string name="cd_match_history">Match History</string>
+    <string name="cd_close_history">Close History</string>
+    <string name="cd_chat_history">Chat History</string>
+    <string name="cd_new_chat">New Chat</string>
+    <string name="cd_switch_avatar">Switch Avatar</string>
+
     <!-- B3 Login / Register / Splash / Intro -->
     <string name="login_register_title">Register</string>
     <string name="login_login_title">Log In</string>

@@ -56,6 +56,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.platform.LocalClipboard
 import com.astranavi.app.util.setSensitiveText
+import androidx.compose.ui.graphics.luminance
+import com.astranavi.app.ui.components.GlowColors
+import com.astranavi.app.ui.components.ApplyRootGlow
+import com.astranavi.app.ui.components.ScoreColors
 
 import androidx.activity.compose.BackHandler
 import kotlinx.coroutines.launch
@@ -75,6 +79,29 @@ fun ConsultScreen(
     val step = viewModel.step.value
     val isLoading = viewModel.isLoading.value
     val metrics = responsiveMetrics()
+
+    val selectedCategory = viewModel.selectedCategory.value
+    val showGlow = step != ConsultStep.BirthDetails && step != ConsultStep.CategorySelection
+
+    if (showGlow && selectedCategory != null) {
+        val isDarkTheme = MaterialTheme.colorScheme.background.luminance() <= 0.5f
+        val glowColors = remember(selectedCategory, isDarkTheme) {
+            val areaKey = when {
+                selectedCategory.key.contains("career", ignoreCase = true) -> "career"
+                selectedCategory.key.contains("love", ignoreCase = true) -> "love"
+                selectedCategory.key.contains("health", ignoreCase = true) -> "health"
+                selectedCategory.key.contains("wealth", ignoreCase = true) || selectedCategory.key.contains("finance", ignoreCase = true) -> "finance"
+                else -> "general"
+            }
+            val palette = ScoreColors.paletteFor(areaKey, 80, isDarkTheme)
+            GlowColors(
+                accent = palette.glow,
+                deep = palette.main,
+                radial = palette.glow
+            )
+        }
+        ApplyRootGlow(glowColors)
+    }
 
     BackHandler(enabled = step != ConsultStep.BirthDetails) {
         viewModel.navigateBack()

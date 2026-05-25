@@ -35,6 +35,22 @@
     <string name="title_houses">ಮನೆಗಳು</string>
     <string name="title_yogas">ಯೋಗಗಳು</string>
 
+    <!-- Added translation keys -->
+    <string name="chat_history_title">ಚಾಟ್ ಇತಿಹಾಸ</string>
+    <string name="drawer_user_default">ಅಸ್ತ್ರ ಬಳಕೆದಾರ</string>
+    <string name="dasha_md">MD</string>
+    <string name="dasha_ad">AD</string>
+    <string name="dashboard_label_mahadasha_title">ಮಹಾದಶ</string>
+    <string name="dashboard_label_antardasha_title">ಅಂತರ್ದಶ</string>
+    <string name="cd_back">ಹಿಂದಕ್ಕೆ</string>
+    <string name="cd_open_menu">ಮೆನು ತೆರೆಯಿರಿ</string>
+    <string name="cd_consult_history">ಸಮಾಲೋಚನೆ ಇತಿಹಾಸ</string>
+    <string name="cd_match_history">ಹೊಂದಾಣಿಕೆ ಇತಿಹಾಸ</string>
+    <string name="cd_close_history">ಇತಿಹಾಸ ಮುಚ್ಚು</string>
+    <string name="cd_chat_history">ಚಾಟ್ ಇತಿಹಾಸ</string>
+    <string name="cd_new_chat">ಹೊಸ ಚಾಟ್</string>
+    <string name="cd_switch_avatar">ಅವತಾರ ಬದಲಾಯಿಸಿ</string>
+
     <!-- B3 Login / Register / Splash / Intro -->
     <string name="login_register_title">ನೋಂದಾಯಿಸಿ</string>
     <string name="login_login_title">ಲಾಗ್ ಇನ್</string>

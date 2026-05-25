@@ -36,6 +36,22 @@
     <string name="title_houses">பாவங்கள்</string>
     <string name="title_yogas">யோகங்கள்</string>
 
+    <!-- Added translation keys -->
+    <string name="chat_history_title">அரட்டை வரலாறு</string>
+    <string name="drawer_user_default">அஸ்ட்ரா பயனர்</string>
+    <string name="dasha_md">MD</string>
+    <string name="dasha_ad">AD</string>
+    <string name="dashboard_label_mahadasha_title">மஹாதிசை</string>
+    <string name="dashboard_label_antardasha_title">அந்தர்திசை</string>
+    <string name="cd_back">பின்னால்</string>
+    <string name="cd_open_menu">மெனுவைத் திறக்கவும்</string>
+    <string name="cd_consult_history">ஆலோசனை வரலாறு</string>
+    <string name="cd_match_history">பொருத்த வரலாறு</string>
+    <string name="cd_close_history">வரலாற்றை மூடவும்</string>
+    <string name="cd_chat_history">அரட்டை வரலாறு</string>
+    <string name="cd_new_chat">புதிய அரட்டை</string>
+    <string name="cd_switch_avatar">அவதாரை மாற்றவும்</string>
+
     <!-- B3 Login / Register / Splash / Intro -->
     <string name="login_register_title">பதிவு செய்யவும்</string>
     <string name="login_login_title">உள்நுழைக</string>

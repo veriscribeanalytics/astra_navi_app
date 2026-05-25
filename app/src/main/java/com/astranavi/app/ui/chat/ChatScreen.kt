@@ -1,6 +1,8 @@
 package com.astranavi.app.ui.chat
 
 import androidx.compose.animation.*
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import com.astranavi.app.ui.components.PreviewMultiDevice
 import com.astranavi.app.ui.theme.AstraNaviTheme
@@ -70,7 +72,7 @@ fun ChatScreen(
     LaunchedEffect(seedAvatarId) {
         if (!seedAvatarId.isNullOrBlank()) {
             val resolved = FallbackChatAvatarCatalog.avatars.firstOrNull { it.avatarId == seedAvatarId }
-            if (resolved != null && resolved.avatarId != viewModel.activeAvatar.value?.avatarId) {
+            if (resolved != null) {
                 viewModel.setActiveAvatar(resolved)
             }
         }
@@ -230,6 +232,16 @@ private fun ChatBodySelector(
             }
         }
         uiState is ChatUiState.ActiveChat -> {
+            val animatedBubbleColor by animateColorAsState(
+                targetValue = palette.bubble,
+                animationSpec = tween(400),
+                label = "userBubbleColor"
+            )
+            val animatedOnBubbleColor by animateColorAsState(
+                targetValue = palette.onBubble,
+                animationSpec = tween(400),
+                label = "userOnBubbleColor"
+            )
             if (uiState.messages.isEmpty()) {
                 ChatEmptyState(
                     avatar = activeAvatar,
@@ -250,8 +262,9 @@ private fun ChatBodySelector(
                     chatId = uiState.chatId,
                     isSending = isSending,
                     userRatings = userRatings,
-                    userBubbleColor = palette.bubble,
-                    onUserBubbleColor = palette.onBubble,
+                    userBubbleColor = animatedBubbleColor,
+                    onUserBubbleColor = animatedOnBubbleColor,
+                    activeAvatarName = activeAvatar?.name ?: "Navi",
                     onRate = { msgId, rating -> viewModel.rateMessage(uiState.chatId, msgId, rating) }
                 )
             }
@@ -351,14 +364,20 @@ fun ChatEmptyState(
                         CircleShape
                     )
             )
-            ChatAvatarImage(
-                avatar = avatar,
-                modifier = Modifier
-                    .size(heroSize)
-                    .clip(CircleShape)
-                    .border(2.dp, primary.copy(alpha = 0.45f), CircleShape),
-                contentScale = ContentScale.Crop
-            )
+            Crossfade(
+                targetState = avatar,
+                animationSpec = tween(400),
+                label = "heroAvatar"
+            ) { currentAvatar ->
+                ChatAvatarImage(
+                    avatar = currentAvatar,
+                    modifier = Modifier
+                        .size(heroSize)
+                        .clip(CircleShape)
+                        .border(2.dp, primary.copy(alpha = 0.45f), CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(metrics.chatMessagePadding * 1.25f))
@@ -375,14 +394,25 @@ fun ChatEmptyState(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = intro,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-            lineHeight = 20.sp,
-            modifier = Modifier.padding(horizontal = if (metrics.isCompactWidth) 0.dp else metrics.pagePadding)
-        )
+        AnimatedContent(
+            targetState = intro,
+            transitionSpec = {
+                (fadeIn(animationSpec = tween(300)) + slideInVertically(
+                    animationSpec = tween(300),
+                    initialOffsetY = { it / 6 }
+                )) togetherWith fadeOut(animationSpec = tween(200))
+            },
+            label = "guideIntro"
+        ) { currentIntro ->
+            Text(
+                text = currentIntro,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp,
+                modifier = Modifier.padding(horizontal = if (metrics.isCompactWidth) 0.dp else metrics.pagePadding)
+            )
+        }
 
         Spacer(modifier = Modifier.height(metrics.chatMessagePadding * 1.5f))
 
@@ -700,6 +730,7 @@ fun ChatConversationList(
     userRatings: Map<String, Int>,
     userBubbleColor: Color,
     onUserBubbleColor: Color,
+    activeAvatarName: String,
     onRate: (msgId: String, rating: Int) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -735,6 +766,7 @@ fun ChatConversationList(
                 userRating = userRatings[message.id],
                 userBubbleColor = userBubbleColor,
                 onUserBubbleColor = onUserBubbleColor,
+                activeAvatarName = activeAvatarName,
                 onRate = onRate
             )
         }
@@ -858,6 +890,7 @@ fun ChatBubble(
     userRating: Int?,
     userBubbleColor: Color,
     onUserBubbleColor: Color,
+    activeAvatarName: String,
     onRate: (msgId: String, rating: Int) -> Unit
 ) {
     val isUser = message.role == "user" || message.type == "user"
@@ -881,7 +914,20 @@ fun ChatBubble(
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)) {
                     Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(metrics.kundliSmallIconSize * 0.6f), tint = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.width(metrics.chatMessagePadding / 3))
-                    Text(stringResource(R.string.chat_ai_astrologer_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                    val displayName = remember(message.avatarId) {
+                        val resolved = FallbackChatAvatarCatalog.avatars.find { it.avatarId == message.avatarId }
+                        resolved?.name ?: activeAvatarName
+                    }
+                    val baseLabel = stringResource(R.string.chat_ai_astrologer_label)
+                    val labelText = remember(baseLabel, displayName) {
+                        val separatorIndex = baseLabel.indexOf("·")
+                        if (separatorIndex != -1) {
+                            displayName.uppercase(java.util.Locale.getDefault()) + baseLabel.substring(separatorIndex)
+                        } else {
+                            displayName.uppercase(java.util.Locale.getDefault()) + " · AI ASTROLOGER"
+                        }
+                    }
+                    Text(labelText, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                 }
             }
 

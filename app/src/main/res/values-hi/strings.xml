@@ -35,6 +35,22 @@
     <string name="title_houses">भाव</string>
     <string name="title_yogas">योग</string>
 
+    <!-- Added translation keys -->
+    <string name="chat_history_title">चैट इतिहास</string>
+    <string name="drawer_user_default">एस्ट्रो उपयोगकर्ता</string>
+    <string name="dasha_md">MD</string>
+    <string name="dasha_ad">AD</string>
+    <string name="dashboard_label_mahadasha_title">महादशा</string>
+    <string name="dashboard_label_antardasha_title">अंतर्दशा</string>
+    <string name="cd_back">पीछे</string>
+    <string name="cd_open_menu">मेनू खोलें</string>
+    <string name="cd_consult_history">परामर्श इतिहास</string>
+    <string name="cd_match_history">मिलान इतिहास</string>
+    <string name="cd_close_history">इतिहास बंद करें</string>
+    <string name="cd_chat_history">चैट इतिहास</string>
+    <string name="cd_new_chat">नई चैट</string>
+    <string name="cd_switch_avatar">अवतार बदलें</string>
+
     <!-- B3 Login / Register / Splash / Intro -->
     <string name="login_register_title">रजिस्टर करें</string>
     <string name="login_login_title">लॉग इन करें</string>

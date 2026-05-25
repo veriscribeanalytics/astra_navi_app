@@ -36,6 +36,22 @@
     <string name="title_houses">स्थान (भाव)</string>
     <string name="title_yogas">योग</string>
 
+    <!-- Added translation keys -->
+    <string name="chat_history_title">चॅट इतिहास</string>
+    <string name="drawer_user_default">अस्त्रा वापरकर्ता</string>
+    <string name="dasha_md">MD</string>
+    <string name="dasha_ad">AD</string>
+    <string name="dashboard_label_mahadasha_title">महादशा</string>
+    <string name="dashboard_label_antardasha_title">अंतर्दशा</string>
+    <string name="cd_back">मागे</string>
+    <string name="cd_open_menu">मेनू उघडा</string>
+    <string name="cd_consult_history">सल्लामसलत इतिहास</string>
+    <string name="cd_match_history">जुळणी इतिहास</string>
+    <string name="cd_close_history">इतिहास बंद करा</string>
+    <string name="cd_chat_history">चॅट इतिहास</string>
+    <string name="cd_new_chat">नवीन चॅट</string>
+    <string name="cd_switch_avatar">अवतार बदला</string>
+
     <!-- B3 Login / Register / Splash / Intro -->
     <string name="login_register_title">रजिस्टर करा</string>
     <string name="login_login_title">लॉगिन</string>
