@@ -7,7 +7,7 @@ import com.astranavi.app.data.cache.CacheMeta
 import com.astranavi.app.data.model.AnalyzeFullRequest
 import com.astranavi.app.data.model.AnalyzeFullWrapper
 import com.astranavi.app.data.model.ChatHistoryWrapper
-import com.astranavi.app.data.model.ForecastResponse
+import com.astranavi.app.data.model.DailyHoroscopeTimingsResponse
 import com.astranavi.app.data.model.MonthlyForecastResponse
 import com.astranavi.app.data.model.HoroscopeResponse
 import com.astranavi.app.data.model.ProfileResponse
@@ -27,7 +27,7 @@ class DashboardRepository(
         val response = apiCache?.getOrFetch(
             logicalKey = apiCache.dailyHoroscopeKey(lang),
             responseClass = HoroscopeResponse::class.java,
-            policy = ApiCachePolicy.UntilNextLocalHour,
+            policy = ApiCachePolicy.UntilNextSixHourMilestone,
             bypassRead = forceRefresh,
             onMeta = { meta ->
                 android.util.Log.d("DailyHoroscope", "cache meta fromCache=${meta.fromCache} key=${apiCache.dailyHoroscopeKey(lang)}")
@@ -68,16 +68,28 @@ class DashboardRepository(
         } ?: analyzeFullNetwork(request)
     }
 
-    suspend fun getForecast(area: String, daysBack: Int? = 3, daysForward: Int? = 3, forceRefresh: Boolean = false): Response<ForecastResponse> {
-        val lang = LocaleManager.current()
-        return apiCache?.getOrFetch(
-            logicalKey = apiCache.forecastKey(area, daysBack, daysForward, lang),
-            responseClass = ForecastResponse::class.java,
-            policy = ApiCachePolicy.UntilNextLocalMidnight,
-            bypassRead = forceRefresh
-        ) {
-            apiService.getForecast(area, daysBack, daysForward, lang)
-        } ?: apiService.getForecast(area, daysBack, daysForward, lang)
+    suspend fun getDailyHoroscopeTimings(
+        sign: String? = null,
+        name: String? = null,
+        lang: String? = null,
+        forceRefresh: Boolean = false,
+        metaConsumer: ((CacheMeta) -> Unit)? = null
+    ): Response<DailyHoroscopeTimingsResponse> {
+        val effectiveLang = lang ?: LocaleManager.current()
+        val isPersonalized = (sign == null && name == null)
+        return if (isPersonalized) {
+            apiCache?.getOrFetch(
+                logicalKey = apiCache.dailyHoroscopeTimingsKey(effectiveLang),
+                responseClass = DailyHoroscopeTimingsResponse::class.java,
+                policy = ApiCachePolicy.UntilNextLocalHour,
+                bypassRead = forceRefresh,
+                onMeta = metaConsumer
+            ) {
+                apiService.getDailyHoroscopeTimings(sign, name, effectiveLang)
+            } ?: apiService.getDailyHoroscopeTimings(sign, name, effectiveLang)
+        } else {
+            apiService.getDailyHoroscopeTimings(sign, name, effectiveLang)
+        }
     }
 
     suspend fun getWeeklyForecast(area: String, date: String? = null, forceRefresh: Boolean = false, metaConsumer: ((CacheMeta) -> Unit)? = null): Response<WeeklyForecastResponse> {

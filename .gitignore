@@ -9,7 +9,18 @@
 /.idea/assetWizardSettings.xml
 .DS_Store
 /build
+app/build/
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Signing & secrets — never commit any of these
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+GoogleService-Info.plist
+.env
+.env.*
+app/release/

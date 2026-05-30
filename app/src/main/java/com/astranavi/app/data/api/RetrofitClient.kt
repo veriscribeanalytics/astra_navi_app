@@ -170,8 +170,8 @@ object RetrofitClient {
         .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
         .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
         .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
-        .addInterceptor(logging)
         .addInterceptor(authInterceptor)
+        .addInterceptor(logging)
         .authenticator(tokenAuthenticator)
         .build()
 

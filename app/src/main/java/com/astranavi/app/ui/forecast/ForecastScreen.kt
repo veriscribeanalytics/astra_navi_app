@@ -64,6 +64,7 @@ fun getAreaStringResId(area: String): Int = when(area.lowercase()) {
     "career" -> R.string.dashboard_career
     "finance" -> R.string.dashboard_finance
     "health" -> R.string.dashboard_health
+    "spiritual" -> R.string.consult_tone_spiritual
     else -> R.string.dashboard_general
 }
 
@@ -81,10 +82,15 @@ fun ForecastScreen(
     val themeColor = getAreaColor(selectedArea)
     val setTopBarTitle = LocalTopBarTitle.current
     val isDarkTheme = MaterialTheme.colorScheme.background.luminance() <= 0.5f
-    val todayScore = (uiState as? ForecastUiState.Success)?.weekly?.days?.find { it.is_today }?.score ?: 70
+    val success = uiState as? ForecastUiState.Success
+    val glowScore = when (selectedPeriod) {
+        ForecastPeriod.WEEKLY -> success?.weekly?.summary?.average_score?.toInt()
+        ForecastPeriod.MONTHLY -> success?.monthly?.summary?.average_score?.toInt()
+        ForecastPeriod.YEARLY -> success?.yearly?.summary?.average_score?.toInt()
+    } ?: 70
     val glowPalette = com.astranavi.app.ui.components.ScoreColors.paletteFor(
         area = selectedArea,
-        score = todayScore,
+        score = glowScore,
         isDarkTheme = isDarkTheme
     )
 
@@ -237,74 +243,123 @@ fun ForecastScreen(
     }
 }
 
+private val FORECAST_AREAS = listOf("general", "love", "career", "health", "finance", "spiritual")
+private val FORECAST_AREA_POSITIONS = listOf(-2, -1, 0, 1, 2, 3)
+
 @Composable
 fun CosmicAreaTabs(selectedArea: String, onAreaSelected: (String) -> Unit) {
-    val areas = listOf("general", "love", "career", "health", "finance")
     val metrics = responsiveMetrics()
-    
-    LazyRow(
+    val selectedIdx = FORECAST_AREAS.indexOf(selectedArea).coerceAtLeast(0)
+    val total = FORECAST_AREAS.size
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = metrics.forecastSectionGap / 2),
-        contentPadding = PaddingValues(horizontal = metrics.pagePadding),
-        horizontalArrangement = Arrangement.spacedBy(metrics.forecastSectionGap)
+            .padding(vertical = metrics.forecastSectionGap / 2)
     ) {
-        items(areas, key = { it }) { area ->
-            val isSelected = selectedArea == area
-            val color = getAreaColor(area)
-            val emoji = getAreaEmoji(area)
-
-            val interactionSource = remember { MutableInteractionSource() }
-            val isPressed by interactionSource.collectIsPressedAsState()
-            val scale by animateFloatAsState(if (isPressed) 0.94f else 1f, label = "tab_scale")
-
-            Column(
-                modifier = Modifier
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                    }
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClick = { onAreaSelected(area) }
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isSelected) color.copy(alpha = 0.1f) else Color.Transparent,
-                    border = if (isSelected) BorderStroke(1.dp, color.copy(alpha = 0.2f)) else null
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = metrics.cardPadding / 2, vertical = metrics.forecastSectionGap / 2),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(emoji, fontSize = 14.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = stringResource(getAreaStringResId(area)).take(3).uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            color = if (isSelected) color else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = metrics.pagePadding),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FORECAST_AREA_POSITIONS.forEach { pos ->
+                val area = FORECAST_AREAS[(selectedIdx + pos + total) % total]
+                val isCenter = pos == 0
+                Box(modifier = Modifier.weight(1f)) {
+                    AnimatedContent(
+                        targetState = area,
+                        transitionSpec = {
+                            (fadeIn(animationSpec = tween(220)) +
+                                slideInHorizontally(animationSpec = tween(220)) { it / 3 })
+                                .togetherWith(
+                                    fadeOut(animationSpec = tween(160)) +
+                                        slideOutHorizontally(animationSpec = tween(160)) { -it / 3 }
+                                )
+                        },
+                        label = "area_chip_$pos"
+                    ) { displayedArea ->
+                        AreaTabChip(
+                            area = displayedArea,
+                            isSelected = isCenter,
+                            onClick = { onAreaSelected(displayedArea) }
                         )
                     }
                 }
-                
-                AnimatedVisibility(
-                    visible = isSelected,
-                    enter = expandHorizontally(expandFrom = Alignment.CenterHorizontally) + fadeIn(),
-                    exit = shrinkHorizontally(shrinkTowards = Alignment.CenterHorizontally) + fadeOut()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 4.dp)
-                            .width(24.dp)
-                            .height(3.dp)
-                            .background(color, CircleShape)
-                    )
-                }
             }
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FORECAST_AREAS.forEachIndexed { idx, _ ->
+                val isActive = idx == selectedIdx
+                val dotSize by animateFloatAsState(if (isActive) 6f else 4f, label = "dot_size")
+                val dotAlpha by animateFloatAsState(if (isActive) 1f else 0.3f, label = "dot_alpha")
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 3.dp)
+                        .size(dotSize.dp)
+                        .background(
+                            color = getAreaColor(FORECAST_AREAS[selectedIdx]).copy(alpha = dotAlpha),
+                            shape = CircleShape
+                        )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AreaTabChip(
+    area: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val color = getAreaColor(area)
+    val emoji = getAreaEmoji(area)
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(if (isPressed) 0.94f else 1f, label = "tab_press_scale")
+
+    Surface(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = pressScale
+                scaleY = pressScale
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) color.copy(alpha = 0.12f) else Color.Transparent,
+        border = if (isSelected) BorderStroke(1.dp, color.copy(alpha = 0.3f)) else null
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(emoji, fontSize = if (isSelected) 14.sp else 12.sp)
+            Spacer(modifier = Modifier.width(3.dp))
+            Text(
+                text = stringResource(getAreaStringResId(area)).take(3).uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                fontSize = if (isSelected) 10.sp else 9.sp,
+                color = if (isSelected) color else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -443,46 +498,91 @@ fun WeeklyForecastTabContent(
         contentPadding = PaddingValues(metrics.pagePadding),
         verticalArrangement = Arrangement.spacedBy(metrics.forecastSectionGap)
     ) {
-        // 1. Weekly Snapshot Card
-        item {
-            WeeklySnapshotCard(
-                days = data.days,
-                summary = data.summary,
-                overview = data.overview,
-                themeColor = themeColor
-            )
-        }
+        // 1. Weekly Snapshot + Chart (2-column on tablet/fold)
+        if (metrics.isMediumWidth) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(metrics.forecastSectionGap)
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        WeeklySnapshotCard(
+                            days = data.days,
+                            summary = data.summary,
+                            overview = data.overview,
+                            themeColor = themeColor
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                            border = BorderStroke(1.dp, themeColor.copy(alpha = 0.1f))
+                        ) {
+                            Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                                Text(
+                                    text = stringResource(R.string.forecast_weekly_comparison),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = themeColor.copy(alpha = 0.6f),
+                                    letterSpacing = 1.sp
+                                )
+                                Spacer(modifier = Modifier.height(metrics.forecastSectionGap))
 
-        // 2. 7-Day Score Chart
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
-                border = BorderStroke(1.dp, themeColor.copy(alpha = 0.1f))
-            ) {
-                Column(modifier = Modifier.padding(metrics.cardPadding)) {
-                    Text(
-                        text = stringResource(R.string.forecast_weekly_comparison),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = themeColor.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(metrics.forecastSectionGap))
+                                WeeklyForecastBarChart(
+                                    days = data.days,
+                                    selectedDate = selectedDate,
+                                    area = selectedArea,
+                                    themeColor = themeColor,
+                                    onDaySelected = { selectedDate = it }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Mobile: Stack vertically
+            item {
+                WeeklySnapshotCard(
+                    days = data.days,
+                    summary = data.summary,
+                    overview = data.overview,
+                    themeColor = themeColor
+                )
+            }
 
-                    WeeklyForecastBarChart(
-                        days = data.days,
-                        selectedDate = selectedDate,
-                        area = selectedArea,
-                        themeColor = themeColor,
-                        onDaySelected = { selectedDate = it }
-                    )
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                    border = BorderStroke(1.dp, themeColor.copy(alpha = 0.1f))
+                ) {
+                    Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                        Text(
+                            text = stringResource(R.string.forecast_weekly_comparison),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = themeColor.copy(alpha = 0.6f),
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(modifier = Modifier.height(metrics.forecastSectionGap))
+
+                        WeeklyForecastBarChart(
+                            days = data.days,
+                            selectedDate = selectedDate,
+                            area = selectedArea,
+                            themeColor = themeColor,
+                            onDaySelected = { selectedDate = it }
+                        )
+                    }
                 }
             }
         }
 
-        // 3. Selected Day Card Details
+        // 2. Selected Day Card Details
         if (selectedDay != null) {
             item {
                 DetailedDayPreviewCard(
@@ -518,83 +618,171 @@ fun MonthlyForecastTabContent(
         contentPadding = PaddingValues(metrics.pagePadding),
         verticalArrangement = Arrangement.spacedBy(metrics.forecastSectionGap)
     ) {
-        // 1. Monthly Overview
-        item {
-            MonthlyOverviewCard(
-                data = data,
-                themeColor = themeColor
-            )
-        }
+        // 1. Monthly Overview + Month Flow Chart (2-column on tablet/fold)
+        if (metrics.isMediumWidth) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(metrics.forecastSectionGap)
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        MonthlyOverviewCard(
+                            data = data,
+                            themeColor = themeColor
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)),
+                            border = BorderStroke(1.dp, themeColor.copy(alpha = 0.1f))
+                        ) {
+                            Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                                Text(
+                                    text = stringResource(R.string.forecast_month_flow),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = themeColor.copy(alpha = 0.6f),
+                                    letterSpacing = 1.sp
+                                )
+                                Spacer(modifier = Modifier.height(metrics.forecastSectionGap / 2))
 
-        // 2. Calendar Heatmap
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
-                border = BorderStroke(1.dp, themeColor.copy(alpha = 0.15f))
-            ) {
-                Column(modifier = Modifier.padding(metrics.cardPadding)) {
-                    Text(
-                        text = stringResource(R.string.forecast_monthly_grid),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = themeColor.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    MonthlyCalendarHeatmap(
-                        days = data.days,
-                        selectedDate = selectedDate,
-                        area = selectedArea,
-                        themeColor = themeColor,
-                        onDateSelected = { selectedDate = it }
-                    )
+                                MonthlyTrendLineChart(
+                                    days = data.days,
+                                    themeColor = themeColor,
+                                    selectedDate = selectedDate
+                                )
+                            }
+                        }
+                    }
                 }
             }
-        }
-
-        // 3. Selected Day Preview
-        if (selectedDay != null) {
+        } else {
+            // Mobile: Stack vertically
             item {
-                DetailedDayPreviewCard(
-                    day = selectedDay,
-                    area = selectedArea,
-                    themeColor = themeColor,
-                    onNavigateToChat = onNavigateToChat
+                MonthlyOverviewCard(
+                    data = data,
+                    themeColor = themeColor
                 )
             }
         }
 
-        // 4. Monthly Trend Chart
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)),
-                border = BorderStroke(1.dp, themeColor.copy(alpha = 0.1f))
-            ) {
-                Column(modifier = Modifier.padding(metrics.cardPadding)) {
-                    Text(
-                        text = stringResource(R.string.forecast_month_flow),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = themeColor.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(metrics.forecastSectionGap / 2))
-                    
-                    MonthlyTrendLineChart(
-                        days = data.days,
+        // 2. Calendar Heatmap + Selected Day Preview (2-column on tablet/fold)
+        if (metrics.isMediumWidth) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(metrics.forecastSectionGap)
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                            border = BorderStroke(1.dp, themeColor.copy(alpha = 0.15f))
+                        ) {
+                            Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                                Text(
+                                    text = stringResource(R.string.forecast_monthly_grid),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = themeColor.copy(alpha = 0.6f),
+                                    letterSpacing = 1.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                MonthlyCalendarHeatmap(
+                                    days = data.days,
+                                    selectedDate = selectedDate,
+                                    area = selectedArea,
+                                    themeColor = themeColor,
+                                    onDateSelected = { selectedDate = it }
+                                )
+                            }
+                        }
+                    }
+                    if (selectedDay != null) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            DetailedDayPreviewCard(
+                                day = selectedDay,
+                                area = selectedArea,
+                                themeColor = themeColor,
+                                onNavigateToChat = onNavigateToChat
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            // Mobile: Stack vertically
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                    border = BorderStroke(1.dp, themeColor.copy(alpha = 0.15f))
+                ) {
+                    Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                        Text(
+                            text = stringResource(R.string.forecast_monthly_grid),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = themeColor.copy(alpha = 0.6f),
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        MonthlyCalendarHeatmap(
+                            days = data.days,
+                            selectedDate = selectedDate,
+                            area = selectedArea,
+                            themeColor = themeColor,
+                            onDateSelected = { selectedDate = it }
+                        )
+                    }
+                }
+            }
+
+            if (selectedDay != null) {
+                item {
+                    DetailedDayPreviewCard(
+                        day = selectedDay,
+                        area = selectedArea,
                         themeColor = themeColor,
-                        selectedDate = selectedDate
+                        onNavigateToChat = onNavigateToChat
                     )
+                }
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)),
+                    border = BorderStroke(1.dp, themeColor.copy(alpha = 0.1f))
+                ) {
+                    Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                        Text(
+                            text = stringResource(R.string.forecast_month_flow),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = themeColor.copy(alpha = 0.6f),
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(modifier = Modifier.height(metrics.forecastSectionGap / 2))
+
+                        MonthlyTrendLineChart(
+                            days = data.days,
+                            themeColor = themeColor,
+                            selectedDate = selectedDate
+                        )
+                    }
                 }
             }
         }
 
-        // 5. Weekly Breakdowns (Expandable List)
+        // 3. Weekly Breakdowns (Expandable List)
         if (!data.weeks.isNullOrEmpty()) {
             item {
                 SectionHeader(stringResource(R.string.forecast_weekly_breakdowns))
@@ -608,7 +796,7 @@ fun MonthlyForecastTabContent(
             }
         }
 
-        // 6. Ask Navi CTA
+        // 4. Ask Navi CTA
         item {
             val bestDayAppLocale = currentAppLocale()
             val bestDayLabel = LocaleFormatter.displayMonthDay(data.summary.best_day, bestDayAppLocale, full = false)
@@ -640,7 +828,7 @@ fun YearlyForecastTabContent(
     val metrics = responsiveMetrics()
     var selectedMonthLabel by remember { mutableStateOf("") }
     val selectedMonth = data.months.find { it.label == selectedMonthLabel } ?: data.months.firstOrNull()
-    
+
     LaunchedEffect(data.months) {
         if (selectedMonthLabel.isEmpty()) {
             selectedMonthLabel = data.months.find { it.is_current }?.label ?: data.months.firstOrNull()?.label ?: ""
@@ -652,82 +840,171 @@ fun YearlyForecastTabContent(
         contentPadding = PaddingValues(metrics.pagePadding),
         verticalArrangement = Arrangement.spacedBy(metrics.forecastSectionGap)
     ) {
-        // 1. Year Card
-        item {
-            YearlyOverviewCard(
-                data = data,
-                themeColor = themeColor
-            )
-        }
+        // 1. Year Overview + Year Trend Chart (2-column on tablet/fold)
+        if (metrics.isMediumWidth) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(metrics.forecastSectionGap)
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        YearlyOverviewCard(
+                            data = data,
+                            themeColor = themeColor,
+                            selectedArea = selectedArea
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)),
+                            border = BorderStroke(1.dp, themeColor.copy(alpha = 0.1f))
+                        ) {
+                            Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                                Text(
+                                    text = stringResource(R.string.forecast_year_flow_trend),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = themeColor.copy(alpha = 0.6f),
+                                    letterSpacing = 1.sp
+                                )
+                                Spacer(modifier = Modifier.height(metrics.forecastSectionGap / 2))
 
-        // 2. Score Grid (12 Months)
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
-                border = BorderStroke(1.dp, themeColor.copy(alpha = 0.15f))
-            ) {
-                Column(modifier = Modifier.padding(metrics.cardPadding)) {
-                    Text(
-                        text = stringResource(R.string.forecast_12_month_matrix),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = themeColor.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    YearlyScoreGrid(
-                        months = data.months,
-                        selectedMonthLabel = selectedMonthLabel,
-                        area = selectedArea,
-                        themeColor = themeColor,
-                        onMonthSelected = { selectedMonthLabel = it }
-                    )
+                                YearlyTrendLineChart(
+                                    months = data.months,
+                                    themeColor = themeColor
+                                )
+                            }
+                        }
+                    }
                 }
             }
-        }
-
-        // 3. Selected Month Preview
-        if (selectedMonth != null) {
+        } else {
+            // Mobile: Stack vertically
             item {
-                YearlyMonthDetailCard(
-                    month = selectedMonth,
-                    area = selectedArea,
+                YearlyOverviewCard(
+                    data = data,
                     themeColor = themeColor,
-                    onNavigateToChat = onNavigateToChat
+                    selectedArea = selectedArea
                 )
             }
         }
 
-        // 4. Year Trend Chart
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)),
-                border = BorderStroke(1.dp, themeColor.copy(alpha = 0.1f))
-            ) {
-                Column(modifier = Modifier.padding(metrics.cardPadding)) {
-                    Text(
-                        text = stringResource(R.string.forecast_year_flow_trend),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Black,
-                        color = themeColor.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(metrics.forecastSectionGap / 2))
+        // 2. 12-Month Score Grid + Selected Month Detail (2-column on tablet/fold)
+        if (metrics.isMediumWidth) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(metrics.forecastSectionGap)
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                            border = BorderStroke(1.dp, themeColor.copy(alpha = 0.15f))
+                        ) {
+                            Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                                Text(
+                                    text = stringResource(R.string.forecast_12_month_matrix),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = themeColor.copy(alpha = 0.6f),
+                                    letterSpacing = 1.sp
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
 
-                    YearlyTrendLineChart(
-                        months = data.months,
-                        themeColor = themeColor
+                                YearlyScoreGrid(
+                                    months = data.months,
+                                    selectedMonthLabel = selectedMonthLabel,
+                                    area = selectedArea,
+                                    themeColor = themeColor,
+                                    onMonthSelected = { selectedMonthLabel = it }
+                                )
+                            }
+                        }
+                    }
+                    if (selectedMonth != null) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            YearlyMonthDetailCard(
+                                month = selectedMonth,
+                                area = selectedArea,
+                                themeColor = themeColor,
+                                onNavigateToChat = onNavigateToChat
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            // Mobile: Stack vertically
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                    border = BorderStroke(1.dp, themeColor.copy(alpha = 0.15f))
+                ) {
+                    Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                        Text(
+                            text = stringResource(R.string.forecast_12_month_matrix),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = themeColor.copy(alpha = 0.6f),
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        YearlyScoreGrid(
+                            months = data.months,
+                            selectedMonthLabel = selectedMonthLabel,
+                            area = selectedArea,
+                            themeColor = themeColor,
+                            onMonthSelected = { selectedMonthLabel = it }
+                        )
+                    }
+                }
+            }
+
+            if (selectedMonth != null) {
+                item {
+                    YearlyMonthDetailCard(
+                        month = selectedMonth,
+                        area = selectedArea,
+                        themeColor = themeColor,
+                        onNavigateToChat = onNavigateToChat
                     )
+                }
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)),
+                    border = BorderStroke(1.dp, themeColor.copy(alpha = 0.1f))
+                ) {
+                    Column(modifier = Modifier.padding(metrics.cardPadding)) {
+                        Text(
+                            text = stringResource(R.string.forecast_year_flow_trend),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = themeColor.copy(alpha = 0.6f),
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(modifier = Modifier.height(metrics.forecastSectionGap / 2))
+
+                        YearlyTrendLineChart(
+                            months = data.months,
+                            themeColor = themeColor
+                        )
+                    }
                 }
             }
         }
 
-        // 5. Quarterly breakdown
+        // 3. Quarterly breakdown
         item {
             SectionHeader(stringResource(R.string.forecast_quarterly_journey))
         }
@@ -738,7 +1015,7 @@ fun YearlyForecastTabContent(
             )
         }
 
-        // 6. Ask Navi CTA
+        // 4. Ask Navi CTA
         item {
             AskNaviCTA(
                 title = stringResource(R.string.forecast_ask_navi_period, data.period_label ?: stringResource(R.string.forecast_period_this_year)),
@@ -1842,9 +2119,16 @@ fun MonthlyWeekBreakdownCard(
 @Composable
 fun YearlyOverviewCard(
     data: YearlyForecastResponse,
-    themeColor: Color
+    themeColor: Color,
+    selectedArea: String
 ) {
     val metrics = responsiveMetrics()
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val yearlyScore = data.summary.average_score.toInt()
+    val scorePalette = remember(yearlyScore, selectedArea, isDarkTheme) {
+        ScoreColors.paletteFor(selectedArea, yearlyScore, isDarkTheme)
+    }
+    val scoreColor = if (isDarkTheme) scorePalette.glow else scorePalette.main
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1871,10 +2155,10 @@ fun YearlyOverviewCard(
                         modifier = Modifier.padding(top = 4.dp)
                     ) {
                         Text(
-                            text = "${data.summary.average_score.toInt()}",
+                            text = "$yearlyScore",
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Black,
-                            color = themeColor
+                            color = scoreColor
                         )
                         Text(
                             text = stringResource(R.string.forecast_score_max),
@@ -2105,6 +2389,8 @@ fun YearlyQuarterlyJourney(
     months: List<ForecastMonth>,
     themeColor: Color
 ) {
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
     val quarters = remember(months) {
         val chunked = months.chunked(3)
         chunked.mapIndexed { idx, qMonths ->
@@ -2122,25 +2408,31 @@ fun YearlyQuarterlyJourney(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         quarters.forEach { (label, data) ->
             val (score, desc) = data
+
+            // Get score-based color palette
+            val scorePalette = remember(score, isDarkTheme) {
+                ScoreColors.paletteFor("general", score, isDarkTheme)
+            }
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
-                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+                border = BorderStroke(0.5.dp, scorePalette.border)
             ) {
                 Row(
                     modifier = Modifier.padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = themeColor)
+                        Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = scorePalette.main)
                         Box(
                             modifier = Modifier
                                 .padding(top = 4.dp)
-                                .background(themeColor.copy(alpha = 0.1f), RoundedCornerShape(6.dp))
+                                .background(scorePalette.surface, RoundedCornerShape(6.dp))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
-                            Text("AVG $score", fontSize = 8.sp, fontWeight = FontWeight.Black, color = themeColor)
+                            Text("AVG $score", fontSize = 8.sp, fontWeight = FontWeight.Black, color = scorePalette.main)
                         }
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -2226,6 +2518,7 @@ fun getAreaEmoji(area: String): String = when(area.lowercase()) {
     "health" -> "🏥"
     "career" -> "💼"
     "finance" -> "💰"
+    "spiritual" -> "🕉️"
     else -> "✨"
 }
 

@@ -105,6 +105,28 @@ data class ResponsiveMetrics(
     val twoPaneRightWeight: Float
 )
 
+// ─── Responsive Font Sizes for AppTypography ──────────────────────────────────
+
+data class ResponsiveFontSizes(
+    // Hero & Display
+    val heroScore: TextUnit,
+    val pageTitle: TextUnit,
+
+    // Sections & Cards
+    val sectionHeader: TextUnit,
+    val cardTitle: TextUnit,
+    val cardBody: TextUnit,
+    val cardValue: TextUnit,
+
+    // Labels & Micro
+    val microLabel: TextUnit,
+    val badgeText: TextUnit,
+    val buttonLabel: TextUnit,
+    val chartLabel: TextUnit,
+    val bottomNavLabel: TextUnit,
+    val technicalText: TextUnit
+)
+
 @Composable
 fun responsiveMetrics(): ResponsiveMetrics {
     val configuration = LocalConfiguration.current
@@ -245,10 +267,10 @@ fun responsiveMetrics(): ResponsiveMetrics {
             else -> 6.sp
         },
         kundliWheelSize = when {
-            isVeryCompactWidth || isLargeFont -> 250.dp
-            isCompactWidth -> 270.dp
-            isMediumWidth -> 360.dp
-            else -> 300.dp
+            isVeryCompactWidth || isLargeFont -> 275.dp
+            isCompactWidth -> 300.dp
+            isMediumWidth -> 396.dp
+            else -> 330.dp
         },
         kundliCardPadding = when {
             isVeryCompactWidth || isLargeFont -> 14.dp
@@ -413,4 +435,67 @@ fun responsiveMetrics(): ResponsiveMetrics {
 @Composable
 fun responsiveGridCells(): GridCells {
     return GridCells.Adaptive(minSize = responsiveMetrics().gridMinCellWidth)
+}
+
+@Composable
+fun responsiveFontSizes(): ResponsiveFontSizes {
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
+    val width = configuration.screenWidthDp.dp
+    val fontScale = density.fontScale
+
+    val isVeryCompact = width < 340.dp
+    val isCompact = width < 380.dp
+    val isLargeFont = fontScale >= 1.25f
+
+    return ResponsiveFontSizes(
+        // Hero & Display
+        heroScore = when {
+            isVeryCompact || isLargeFont -> 36.sp
+            isCompact -> 40.sp
+            else -> 44.sp
+        },
+        pageTitle = when {
+            isVeryCompact || isLargeFont -> 22.sp
+            isCompact -> 24.sp
+            else -> 28.sp
+        },
+
+        // Sections & Cards
+        sectionHeader = when {
+            isVeryCompact || isLargeFont -> 11.sp
+            else -> 12.sp
+        },
+        cardTitle = when {
+            isVeryCompact || isLargeFont -> 16.sp
+            else -> 18.sp
+        },
+        cardBody = 14.sp, // Fixed, WCAG minimum for body text
+        cardValue = when {
+            isVeryCompact || isLargeFont -> 20.sp
+            isCompact -> 22.sp
+            else -> 24.sp
+        },
+
+        // Labels & Micro
+        microLabel = when {
+            isVeryCompact || isLargeFont -> 10.sp
+            else -> 11.sp
+        },
+        badgeText = when {
+            isVeryCompact || isLargeFont -> 11.sp
+            else -> 12.sp
+        },
+        buttonLabel = 14.sp, // Fixed
+        chartLabel = when {
+            isVeryCompact || isLargeFont -> 10.sp
+            else -> 11.sp
+        },
+        bottomNavLabel = when {
+            isVeryCompact || isLargeFont -> 9.sp
+            isCompact -> 9.sp
+            else -> 10.sp
+        },
+        technicalText = 12.sp // Fixed, WCAG minimum for metadata
+    )
 }

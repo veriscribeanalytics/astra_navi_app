@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper -->
+    <string name="match_step_details">వివరాలు</string>
+    <string name="match_step_analysis">విశ్లేషణ</string>
+    <string name="match_step_result">ఫలితం</string>
+    <string name="match_step_person1">మొదటి వ్యక్తి</string>
+    <string name="match_step_person2">రెండవ వ్యక్తి</string>
+    <string name="match_btn_next">తదుపరి</string>
+    <string name="match_btn_back">వెనుకకు</string>
+
     <!-- Match Input Form -->
     <string name="match_btn_calculate">అనుకూలతను లెక్కించండి</string>
     <string name="match_desc_vedic_analysis">సామరస్యం మరియు దీర్ఘాయువు కోసం సాంప్రదాయ 36 గుణాల వైదిక జాతక పొంతన విశ్లేషణ.</string>
+    <string name="match_footer_secure">సురక్షితం • గోప్యం • సాంప్రదాయం</string>
+    <string name="match_hint_accuracy">అత్యంత ఖచ్చితమైన పొంతన విశ్లేషణ కోసం అన్ని వివరాలు సరైనవని దయచేసి నిర్ధారించుకోండి.</string>
     <string name="match_label_person1">మొదటి వ్యక్తి (మీరు)</string>
     <string name="match_label_person2">రెండవ వ్యక్తి (భాగస్వామి)</string>
     <string name="match_field_name">పేరు</string>
@@ -37,4 +48,13 @@
     <string name="match_dosha_high_influence">అధిక ప్రభావం కనుగొనబడింది</string>
     <string name="match_dosha_influence">ప్రభావం కనుగొనబడింది</string>
     <string name="match_dosha_no_influence">పెద్దగా ప్రభావం లేదు</string>
+
+    <!-- Match Benefits -->
+    <string name="match_benefits_title">మీకు లభించేవి:</string>
+    <string name="match_benefit_guna_title">వివరణాత్మక 36 గుణాల విశ్లేషణ</string>
+    <string name="match_benefit_guna_desc">సాంప్రదాయ వైదిక సూత్రాల ఆధారంగా పూర్తి అనుకూలత స్కోర్‌ను పొందండి.</string>
+    <string name="match_benefit_strengths_title">బలాలు &amp; సవాళ్లు</string>
+    <string name="match_benefit_strengths_desc">మీ సంబంధ స్వభావాన్ని లోతుగా అర్థం చేసుకోండి.</string>
+    <string name="match_benefit_guidance_title">సామరస్యం కోసం మార్గదర్శనం</string>
+    <string name="match_benefit_guidance_desc">మెరుగైన మరియు సంతోషకరమైన సంబంధం కోసం ఆచరణాత్మక సూచనలు.</string>
 </resources>

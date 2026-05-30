@@ -296,6 +296,7 @@ class ChatViewModel(
                     }
                 }
             } catch (e: Exception) {
+                android.util.Log.e("ChatViewModel", "Error sending message", e)
                 val errorMsg = ChatMessage(UUID.randomUUID().toString(), "assistant", "I'm having trouble connecting to the stars right now. Please try again.")
                 _uiState.value = ChatUiState.ActiveChat(chatId, messagesWithUser + errorMsg)
             } finally {

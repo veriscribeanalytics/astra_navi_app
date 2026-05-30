@@ -150,7 +150,7 @@ class ForecastViewModel(
 
     private fun normalizeArea(area: String): String {
         return when (area.lowercase(Locale.US).trim()) {
-            "career", "love", "health", "finance" -> area.lowercase(Locale.US).trim()
+            "career", "love", "health", "finance", "spiritual" -> area.lowercase(Locale.US).trim()
             else -> "general"
         }
     }

@@ -4,6 +4,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.astranavi.app.data.api.RetrofitClient
+import com.astranavi.app.data.model.LocationSearchResult
 import com.astranavi.app.data.model.MatchRequest
 import com.astranavi.app.data.model.MatchResponse
 import com.astranavi.app.data.model.PaywallCardData
@@ -29,8 +31,23 @@ class MatchViewModel(
     private val sessionManager: SessionManager,
     private val entitlementRepository: EntitlementRepository? = null
 ) : ViewModel() {
+    private val apiService = RetrofitClient.instance
+
     private val _uiState = mutableStateOf<MatchState>(MatchState.Idle)
     val uiState: State<MatchState> = _uiState
+
+    suspend fun searchLocations(query: String): List<LocationSearchResult> {
+        return try {
+            val response = apiService.searchLocations(query)
+            if (response.isSuccessful) {
+                response.body()?.results ?: emptyList()
+            } else {
+                emptyList()
+            }
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
 
     fun calculateMatch(person1: PersonDetail, person2: PersonDetail) {
         viewModelScope.launch {

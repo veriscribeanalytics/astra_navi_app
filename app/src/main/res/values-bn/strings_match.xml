@@ -1,8 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper -->
+    <string name="match_step_details">বিবরণ</string>
+    <string name="match_step_analysis">বিশ্লেষণ</string>
+    <string name="match_step_result">ফলাফল</string>
+    <string name="match_step_person1">ব্যক্তি ১</string>
+    <string name="match_step_person2">ব্যক্তি ২</string>
+    <string name="match_btn_next">পরবর্তী</string>
+    <string name="match_btn_back">পূর্ববর্তী</string>
+
+    <!-- Match Benefits -->
+    <string name="match_benefits_title">আপনি যা পাবেন:</string>
+    <string name="match_benefit_guna_title">বিস্তারিত ৩৬ গুণ বিশ্লেষণ</string>
+    <string name="match_benefit_guna_desc">ঐতিহ্যবাহী বৈদিক নীতির উপর ভিত্তি করে একটি সম্পূর্ণ সামঞ্জস্যতার স্কোর পান।</string>
+    <string name="match_benefit_strengths_title">শক্তি &amp; চ্যালেঞ্জ</string>
+    <string name="match_benefit_strengths_desc">আপনার সম্পর্কের গতিশীলতা গভীরভাবে বুঝুন।</string>
+    <string name="match_benefit_guidance_title">সম্প্রীতির জন্য দিকনির্দেশনা</string>
+    <string name="match_benefit_guidance_desc">আরও ভালো এবং সুখী সম্পর্কের জন্য ব্যবহারিক পরামর্শ।</string>
+
     <!-- Match Input Form -->
     <string name="match_btn_calculate">সামঞ্জস্যতা গণনা করুন</string>
     <string name="match_desc_vedic_analysis">সম্প্রীতি এবং দীর্ঘায়ুর জন্য ঐতিহ্যবাহী ৩৬ গুণ বৈদিক মিলন বিশ্লেষণ।</string>
+    <string name="match_footer_secure">সুরক্ষিত • ব্যক্তিগত • ঐতিহ্যবাহী</string>
+    <string name="match_hint_accuracy">সবচেয়ে নির্ভুল মিলন বিশ্লেষণের জন্য অনুগ্রহ করে সমস্ত বিবরণ সঠিক কিনা তা নিশ্চিত করুন।</string>
     <string name="match_label_person1">ব্যক্তি ১ (আপনি)</string>
     <string name="match_label_person2">ব্যক্তি ২ (সঙ্গী)</string>
     <string name="match_field_name">নাম</string>

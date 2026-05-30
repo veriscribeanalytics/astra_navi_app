@@ -30,7 +30,10 @@ val FallbackChatAvatarCatalog = ChatAvatarCatalog(
             personality = "Warm, clear, balanced, and practical.",
             creditCost = 1,
             isDefault = true,
-            imageUrl = "/static/avatars/NAVI_AVATAR.webp"
+            imageUrl = "/static/avatars/NAVI_AVATAR.webp",
+            accentColor = "#6366F1",
+            iconKey = "sparkles",
+            defaultMode = "quick"
         ),
         ChatAvatar(
             avatarId = "career_mentor",
@@ -40,7 +43,10 @@ val FallbackChatAvatarCatalog = ChatAvatarCatalog(
             expertise = listOf("career", "job change", "business", "skills", "workplace strategy", "timing"),
             personality = "Direct, pragmatic, strategic, and action-oriented.",
             creditCost = 2,
-            imageUrl = "/static/avatars/ARYA_AVATAR.webp"
+            imageUrl = "/static/avatars/ARYA_AVATAR.webp",
+            accentColor = "#0EA5E9",
+            iconKey = "briefcase",
+            defaultMode = "normal"
         ),
         ChatAvatar(
             avatarId = "relationship_guide",
@@ -50,7 +56,10 @@ val FallbackChatAvatarCatalog = ChatAvatarCatalog(
             expertise = listOf("love", "marriage", "compatibility", "relationship timing", "communication"),
             personality = "Emotionally careful, compassionate, honest, and non-fatalistic.",
             creditCost = 2,
-            imageUrl = "/static/avatars/MEERA_AVATAR.webp"
+            imageUrl = "/static/avatars/MEERA_AVATAR.webp",
+            accentColor = "#EC4899",
+            iconKey = "heart",
+            defaultMode = "normal"
         ),
         ChatAvatar(
             avatarId = "spiritual_guide",
@@ -60,7 +69,10 @@ val FallbackChatAvatarCatalog = ChatAvatarCatalog(
             expertise = listOf("wellness", "health habits", "vitality", "emotional balance", "lifestyle", "daily routines"),
             personality = "Calm, supportive, practical, and encouraging.",
             creditCost = 2,
-            imageUrl = "/static/avatars/ANAND_AVATAR.webp"
+            imageUrl = "/static/avatars/ANAND_AVATAR.webp",
+            accentColor = "#10B981",
+            iconKey = "leaf",
+            defaultMode = "normal"
         ),
         ChatAvatar(
             avatarId = "finance_mentor",
@@ -70,7 +82,10 @@ val FallbackChatAvatarCatalog = ChatAvatarCatalog(
             expertise = listOf("money", "career earnings", "savings", "business finance", "investments", "financial timing", "practical planning"),
             personality = "Practical, strategic, grounded, and cautious.",
             creditCost = 2,
-            imageUrl = "/static/avatars/VIDYA_AVATAR.webp"
+            imageUrl = "/static/avatars/VIDYA_AVATAR.webp",
+            accentColor = "#F59E0B",
+            iconKey = "coin",
+            defaultMode = "normal"
         ),
         ChatAvatar(
             avatarId = "astro_sage",
@@ -80,7 +95,10 @@ val FallbackChatAvatarCatalog = ChatAvatarCatalog(
             expertise = listOf("deep chart analysis", "dasha", "transits", "house synthesis", "life themes"),
             personality = "Analytical, precise, traditional, and thorough.",
             creditCost = 3,
-            imageUrl = "/static/avatars/RISHI_AVATAR.webp"
+            imageUrl = "/static/avatars/RISHI_AVATAR.webp",
+            accentColor = "#7C3AED",
+            iconKey = "telescope",
+            defaultMode = "deep"
         )
     )
 )

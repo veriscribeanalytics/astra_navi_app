@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper -->
+    <string name="match_step_details">तपशील</string>
+    <string name="match_step_analysis">विश्लेषण</string>
+    <string name="match_step_result">निकाल</string>
+    <string name="match_step_person1">व्यक्ती १</string>
+    <string name="match_step_person2">व्यक्ती २</string>
+    <string name="match_btn_next">पुढे</string>
+    <string name="match_btn_back">मागे</string>
+    <!-- Match Input Form -->
     <string name="match_btn_calculate">सुसंगतता मोजा</string>
     <string name="match_desc_vedic_analysis">सामंजस्य आणि दीर्घायुष्यासाठी पारंपारिक ३६ गुण वैदिक कुंडली मिलन विश्लेषण.</string>
+    <string name="match_footer_secure">सुरक्षित • खाजगी • पारंपारिक</string>
+    <string name="match_hint_accuracy">सर्वात अचूक मिलन विश्लेषणासाठी कृपया सर्व तपशील अचूक असल्याची खात्री करा.</string>
     <string name="match_label_person1">व्यक्ती १ (तुम्ही)</string>
     <string name="match_label_person2">व्यक्ती २ (जोडीदार)</string>
     <string name="match_field_name">नाव</string>
@@ -26,4 +37,12 @@
     <string name="match_dosha_high_influence">उच्च प्रभाव आढळला</string>
     <string name="match_dosha_influence">प्रभाव आढळला</string>
     <string name="match_dosha_no_influence">कोणताही मोठा प्रभाव नाही</string>
+    <!-- Match Benefits -->
+    <string name="match_benefits_title">तुम्हाला मिळेल:</string>
+    <string name="match_benefit_guna_title">सविस्तर ३६ गुण विश्लेषण</string>
+    <string name="match_benefit_guna_desc">पारंपारिक वैदिक तत्त्वांवर आधारित संपूर्ण सुसंगतता गुणांक मिळवा.</string>
+    <string name="match_benefit_strengths_title">सामर्थ्ये &amp; आव्हाने</string>
+    <string name="match_benefit_strengths_desc">तुमच्या नात्यातील गतिशीलता सखोलपणे समजून घ्या.</string>
+    <string name="match_benefit_guidance_title">सामंजस्यासाठी मार्गदर्शन</string>
+    <string name="match_benefit_guidance_desc">अधिक चांगल्या आणि आनंदी नात्यासाठी व्यावहारिक सूचना.</string>
 </resources>

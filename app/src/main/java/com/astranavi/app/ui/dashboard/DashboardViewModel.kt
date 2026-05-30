@@ -10,6 +10,7 @@ import com.astranavi.app.data.cache.CacheMeta
 import com.astranavi.app.data.repository.DashboardRepository
 import com.astranavi.app.data.repository.AstrologyRepository
 import com.astranavi.app.data.repository.AuthRepository
+import com.astranavi.app.ui.chat.FallbackChatAvatarCatalog
 import com.astranavi.app.util.ErrorSanitizer
 import com.astranavi.app.util.LocaleManager
 import com.astranavi.app.util.ProfileChangeBus
@@ -38,6 +39,8 @@ sealed class DashboardState {
         val accessToken: String? = null,
         val activeSidebarTab: String = "chat",
         val paywall: PaywallCardData? = null,
+        val timings: DailyHoroscopeTimingsResponse? = null,
+        val topAstrologers: List<ChatAvatar> = emptyList(),
         val meta: CacheMeta? = null
     ) : DashboardState()
     data class Error(val message: String) : DashboardState()
@@ -152,6 +155,22 @@ class DashboardViewModel(
             horoscope = horoscopeResponse.body()
         }
 
+        var timings: DailyHoroscopeTimingsResponse? = null
+        var timingsMeta: CacheMeta? = null
+        try {
+            val lang = LocaleManager.current()
+            val timingsResponse = repository.getDailyHoroscopeTimings(
+                lang = lang,
+                forceRefresh = forceRefresh,
+                metaConsumer = { timingsMeta = it }
+            )
+            if (timingsResponse.isSuccessful) {
+                timings = timingsResponse.body()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("DashboardViewModel", "Failed to fetch timings", e)
+        }
+
         if (horoscope != null) {
             if (moonSign != null || sunSign != null || lagnaSignFromProfile != null) {
                 sessionManager.updateSigns(
@@ -162,7 +181,13 @@ class DashboardViewModel(
                 sessionManager.updateProfileData(
                     dob = user?.dob,
                     tob = user?.tob,
-                    pob = user?.pob
+                    pob = user?.pob,
+                    birthPlaceName = user?.birthPlaceName,
+                    birthLatitude = user?.birthLatitude,
+                    birthLongitude = user?.birthLongitude,
+                    birthTimezoneName = user?.birthTimezoneName,
+                    birthTimezoneOffsetAtBirth = user?.birthTimezoneOffsetAtBirth,
+                    birthTimeFold = user?.birthTimeFold
                 )
             }
 
@@ -170,6 +195,7 @@ class DashboardViewModel(
                 val forecast: Response<WeeklyForecastResponse>,
                 val kundli: Response<AnalyzeFullWrapper>,
                 val consultHistory: Response<ConsultHistoryResponse>,
+                val astrologers: List<ChatAvatar>,
                 val forecastMeta: CacheMeta?,
                 val kundliMeta: CacheMeta?
             )
@@ -193,15 +219,25 @@ class DashboardViewModel(
                     )
                 }
                 val consultHistoryDeferred = async { astrologyRepository.getConsultHistory(limit = 5) }
+                val astrologersDeferred = async {
+                    try {
+                        val res = astrologyRepository.getChatAvatars()
+                        res.body()?.avatars?.takeIf { it.isNotEmpty() } ?: FallbackChatAvatarCatalog.avatars
+                    } catch (e: Exception) {
+                        FallbackChatAvatarCatalog.avatars
+                    }
+                }
 
                 val forecastRes = forecastDeferred.await()
                 val kundliRes = kundliDeferred.await()
                 val consultHistoryRes = consultHistoryDeferred.await()
+                val astrologersRes = astrologersDeferred.await()
 
                 DashboardParallelResults(
                     forecast = forecastRes,
                     kundli = kundliRes,
                     consultHistory = consultHistoryRes,
+                    astrologers = astrologersRes,
                     forecastMeta = forecastMeta,
                     kundliMeta = kundliMeta
                 )
@@ -229,7 +265,9 @@ class DashboardViewModel(
                 userEmail = userEmail,
                 accessToken = accessToken,
                 paywall = horoscope.paywall ?: kundliPaywall,
-                meta = CacheMeta.combine(listOf(horoscopeMeta, parallelResults.forecastMeta, parallelResults.kundliMeta))
+                timings = timings,
+                topAstrologers = parallelResults.astrologers.take(3),
+                meta = CacheMeta.combine(listOf(horoscopeMeta, timingsMeta, parallelResults.forecastMeta, parallelResults.kundliMeta))
             )
         } else {
             return DashboardState.Error("Failed to load your cosmic guidance. Please ensure your profile is complete.")

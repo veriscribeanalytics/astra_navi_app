@@ -8,9 +8,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +34,12 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.astranavi.app.ui.navigation.AppDestination
+import com.astranavi.app.ui.navigation.TransitionStyle
+import com.astranavi.app.ui.navigation.TopAppBarConfig
+import com.astranavi.app.ui.navigation.RightAction
+import com.astranavi.app.ui.navigation.LocalTopBarConfigOverride
+import com.astranavi.app.ui.navigation.ScrollBehavior
 import com.astranavi.app.data.api.RetrofitClient
 import com.astranavi.app.data.cache.ApiResponseCache
 import com.astranavi.app.data.repository.*
@@ -51,7 +60,9 @@ import com.astranavi.app.ui.components.PaywallCard
 import com.astranavi.app.ui.components.PaywallFullBlock
 import com.astranavi.app.ui.components.AnimatedAtmosphericGlow
 import com.astranavi.app.ui.components.GlowColors
-import com.astranavi.app.ui.components.LocalSetGlowColors
+import com.astranavi.app.ui.components.NeutralGlowColors
+import com.astranavi.app.ui.components.GlowRegistry
+import com.astranavi.app.ui.components.LocalGlowRegistry
 import com.astranavi.app.ui.chat.ChatAvatarImage
 import com.astranavi.app.ui.chat.FallbackChatAvatarCatalog
 import com.astranavi.app.data.model.ChatAvatar
@@ -79,6 +90,8 @@ import com.astranavi.app.ui.profile.ProfileScreen
 import com.astranavi.app.ui.profile.ProfileViewModel
 import com.astranavi.app.ui.rashis.RashiScreen
 import com.astranavi.app.ui.rashis.RashiViewModel
+import com.astranavi.app.ui.test.TestScreen
+import com.astranavi.app.ui.test.TestViewModel
 import com.astranavi.app.ui.splash.IntroAnimationScreen
 import com.astranavi.app.ui.splash.LogoSplashScreen
 import com.astranavi.app.ui.theme.AstraNaviTheme
@@ -102,8 +115,15 @@ import com.astranavi.app.ui.consult.ConsultHistoryViewModel
 import androidx.compose.ui.graphics.Brush
 import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.annotation.StringRes
@@ -116,7 +136,7 @@ sealed class Screen(val route: String, @StringRes val labelRes: Int, val icon: I
     object Kundli : Screen("kundli", R.string.nav_kundli, Icons.Default.Star)
     object Match : Screen("match", R.string.nav_match, Icons.Default.Favorite)
     object Consult : Screen("consult", R.string.nav_consult, Icons.Default.Info)
-    object Blogs : Screen("blogs", R.string.nav_blogs, Icons.Default.List)
+    object Blogs : Screen("blogs", R.string.nav_blogs, Icons.AutoMirrored.Filled.MenuBook)
     object Rashis : Screen("rashis", R.string.nav_rashis, Icons.Default.PlayArrow)
     object Chat : Screen("chat", R.string.nav_chat, Icons.Default.AutoAwesome)
     object Profile : Screen("profile", R.string.nav_profile, Icons.Default.Person)
@@ -206,6 +226,15 @@ fun RowScope.NavBarItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+        if (isSelected) {
+            Spacer(modifier = Modifier.height(2.dp))
+            Box(
+                modifier = Modifier
+                    .width(16.dp)
+                    .height(3.dp)
+                    .background(activeColor, CircleShape)
+            )
+        }
     }
 }
 
@@ -214,47 +243,42 @@ fun CosmicHeader(onClose: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .padding(start = 24.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
-            Text(
-                text = stringResource(R.string.drawer_cosmic_navigation),
-                style = MaterialTheme.typography.labelSmall.copy(
-                    letterSpacing = 2.sp,
-                    fontWeight = FontWeight.Light
-                ),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-            )
-            IconButton(onClick = onClose) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.drawer_celestial_guide),
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                )
+            }
+            IconButton(
+                onClick = onClose,
+                modifier = Modifier.size(28.dp)
+            ) {
                 Icon(
                     Icons.Default.Close,
                     contentDescription = stringResource(R.string.btn_close),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
         }
-        Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.displaySmall.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 32.sp
-            ),
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = stringResource(R.string.drawer_celestial_guide),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-        )
     }
 }
 
 @Composable
-fun CosmicProfile(
+fun CompactProfileCard(
     userName: String,
     lagnaSign: String?,
     onClick: () -> Unit
@@ -263,16 +287,21 @@ fun CosmicProfile(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
+            .height(92.dp)
             .clickable(onClick = onClick),
-        color = Color.Transparent
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(52.dp)
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
@@ -282,37 +311,55 @@ fun CosmicProfile(
                         ),
                         shape = CircleShape
                     )
-                    .border(
-                        1.dp,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                        CircleShape
-                    ),
+                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.Person,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(26.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Good Evening ✦",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    text = stringResource(R.string.drawer_good_evening),
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
                 )
                 Text(
                     text = userName,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                if (lagnaSign != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (lagnaSign != null) {
+                        Text(
+                            text = stringResource(R.string.drawer_rising_sign, lagnaSign),
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            text = " · ",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        )
+                    }
                     Text(
-                        text = "Rising: $lagnaSign",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                        text = stringResource(R.string.drawer_view_profile),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Icon(
+                        Icons.Default.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp)
                     )
                 }
             }
@@ -321,61 +368,164 @@ fun CosmicProfile(
 }
 
 @Composable
-fun CosmicNavItem(
-    label: String,
-    icon: ImageVector,
-    selected: Boolean,
-    onClick: () -> Unit,
-    staggerDelay: Int = 0
-) {
-    val alpha = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        delay(staggerDelay.toLong())
-        alpha.animateTo(1f, animationSpec = tween(400))
-    }
-
-    val scale by animateFloatAsState(if (selected) 1.01f else 1.0f, label = "scale")
-    val backgroundAlpha by animateFloatAsState(if (selected) 0.12f else 0f, label = "bgAlpha")
-    val borderAlpha by animateFloatAsState(if (selected) 0.2f else 0f, label = "borderAlpha")
-
+fun AskAiCta(onClick: () -> Unit) {
+    val accent = MaterialTheme.colorScheme.primary
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
-            .graphicsLayer {
-                this.alpha = alpha.value
-                scaleX = scale
-                scaleY = scale
-            }
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .height(72.dp)
             .clickable(onClick = onClick),
-        color = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = backgroundAlpha) else Color.Transparent,
-        shape = RoundedCornerShape(12.dp),
-        border = if (selected) BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha)
-        ) else null
+        shape = RoundedCornerShape(18.dp),
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.45f))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(accent.copy(alpha = 0.22f), accent.copy(alpha = 0.06f))
+                    )
+                )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(accent.copy(alpha = 0.18f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.drawer_cta_ask_ai_title),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.drawer_cta_ask_ai_sub),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Icon(
+                    Icons.Default.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DrawerSectionLabel(text: String) {
+    Text(
+        text = text,
+        fontSize = 11.sp,
+        letterSpacing = 1.5.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 8.dp)
+    )
+}
+
+@Composable
+fun DrawerRow(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    contentColor: Color? = null,
+    trailing: (@Composable () -> Unit)? = null
+) {
+    val tint = contentColor ?: MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .height(52.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(22.dp)
+        )
+        Spacer(modifier = Modifier.width(14.dp))
+        Text(
+            text = label,
+            fontSize = 15.sp,
+            color = tint,
+            modifier = Modifier.weight(1f)
+        )
+        if (trailing != null) {
+            trailing()
+        } else {
+            Icon(
+                Icons.Default.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun KnowledgeChip(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .height(48.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f))
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .fillMaxSize()
+                .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.7f
-                ),
-                modifier = Modifier.size(24.dp)
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                modifier = Modifier.size(18.dp)
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.9f
-                ),
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -387,6 +537,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
 val sessionManager = SessionManager(this)
+        runBlocking { sessionManager.migrateLegacyTokensIfPresent() }
         LocaleManager.apply(runBlocking { sessionManager.userLanguage.first() })
         RetrofitClient.init(sessionManager)
         val apiService = RetrofitClient.instance
@@ -450,49 +601,26 @@ val sessionManager = SessionManager(this)
                                 }
                             }
 
-                            val isLogin = currentDestination?.route == "login"
-                            val isIntroOrSplash = currentDestination?.route == "intro" ||
-                                currentDestination?.route?.substringBefore("?") == "logo_splash"
-                            val showMainActivityTopBar = !isLogin && !isIntroOrSplash
-                            val showBottomBar = currentDestination?.route in listOf(
-                                Screen.Dashboard.route,
-                                Screen.Blogs.route
-                            )
+                            // Get destination config from single source of truth
+                            val appDestination = remember(currentDestination?.route) {
+                                AppDestination.fromRoute(currentDestination?.route)
+                            }
+
+                            // Allow screens to override config dynamically (e.g., ConsultScreen for different steps)
+                            val topBarConfigOverride = LocalTopBarConfigOverride.current
+                            val effectiveTopBarConfig = topBarConfigOverride ?: appDestination.topBarConfig
+
+                            val showMainActivityTopBar = effectiveTopBarConfig.visible
+                            val showBottomBar = appDestination.showBottomBar
+                            val isTopLevel = appDestination.isTopLevel
 
                             val defaultTopBarTitle = remember(currentDestination, appLanguage) {
-                                when (currentDestination?.route?.substringBefore("?")) {
-                                    Screen.Dashboard.route -> context.getString(Screen.Dashboard.labelRes)
-                                    Screen.Forecast.route -> context.getString(Screen.Forecast.labelRes)
-                                    Screen.Blogs.route -> context.getString(Screen.Blogs.labelRes)
-                                    Screen.Consult.route -> context.getString(Screen.Consult.labelRes)
-                                    Screen.Chat.route -> context.getString(Screen.Chat.labelRes)
-                                    Screen.Astrologers.route -> context.getString(Screen.Astrologers.labelRes)
-                                    Screen.Profile.route -> context.getString(Screen.Profile.labelRes)
-                                    Screen.Kundli.route -> context.getString(Screen.Kundli.labelRes)
-                                    Screen.Match.route -> context.getString(Screen.Match.labelRes)
-                                    Screen.Rashis.route -> context.getString(Screen.Rashis.labelRes)
-                                    "planets" -> context.getString(R.string.title_planets)
-                                    "nakshatras" -> context.getString(R.string.title_nakshatras)
-                                    "houses" -> context.getString(R.string.title_houses)
-                                    "yogas" -> context.getString(R.string.title_yogas)
-                                    "match_history" -> context.getString(R.string.title_match_history)
-                                    else -> context.getString(R.string.app_name)
-                                }
+                                context.getString(appDestination.titleResId)
                             }
 
                             val topBarTitle = dynamicTitle ?: defaultTopBarTitle
                             val currentBaseRoute = currentDestination?.route?.substringBefore("?")
-                            val drawsBehindTopBar = currentBaseRoute in listOf(
-                                Screen.Rashis.route,
-                                "planets"
-                            )
-
-                            val isTopLevel = remember(currentDestination) {
-                                currentDestination?.route in listOf(
-                                    Screen.Dashboard.route,
-                                    Screen.Blogs.route
-                                )
-                            }
+                            val drawsBehindTopBar = effectiveTopBarConfig.drawsBehind
 
                             if (showLogoutDialog) {
                                 AlertDialog(
@@ -536,27 +664,66 @@ val sessionManager = SessionManager(this)
                             val backDispatcher =
                                 LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
-                            var glowColors by remember { mutableStateOf<GlowColors?>(null) }
-                            val setGlowColors = remember { { c: GlowColors? -> glowColors = c } }
+                            val glowRegistry = remember { GlowRegistry() }
 
                             val currentLanguage by sessionManager.userLanguage.collectAsState(initial = "en")
                             var avatarMenuExpanded by remember { mutableStateOf(false) }
 
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                glowColors?.let { gc ->
-                                    AnimatedAtmosphericGlow(
-                                        accentColor = gc.accent,
-                                        deepColor = gc.deep,
-                                        radialColor = gc.radial,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
+                            val density = LocalDensity.current
+                            val barsVisible = remember { mutableStateOf(true) }
+                            var topBarHeightPx by remember { mutableStateOf(0) }
+                            var bottomBarHeightPx by remember { mutableStateOf(0) }
+                            val barHideProgress by animateFloatAsState(
+                                targetValue = if (barsVisible.value) 0f else 1f,
+                                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                                label = "barHideProgress"
+                            )
+                            val scrollHideEnabled = effectiveTopBarConfig.scrollBehavior == ScrollBehavior.HIDE_ON_SCROLL
+                            LaunchedEffect(currentBaseRoute) {
+                                barsVisible.value = true
+                            }
+                            val scrollHideConnection = remember {
+                                object : NestedScrollConnection {
+                                    override fun onPreScroll(
+                                        available: Offset,
+                                        source: NestedScrollSource
+                                    ): Offset {
+                                        val dy = available.y
+                                        if (dy < -2f) barsVisible.value = false
+                                        else if (dy > 2f) barsVisible.value = true
+                                        return Offset.Zero
+                                    }
                                 }
+                            }
+                            val topBarHideDp = with(density) { (topBarHeightPx * barHideProgress).toDp() }
+                            val bottomBarHideDp = with(density) { (bottomBarHeightPx * barHideProgress).toDp() }
+
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                val glowDurationMillis = when (AppDestination.fromRoute(currentDestination?.route).transitionStyle) {
+                                    TransitionStyle.PUSH -> 200
+                                    else -> 160
+                                }
+                                AnimatedAtmosphericGlow(
+                                    accentColor = glowRegistry.colors.accent,
+                                    deepColor = glowRegistry.colors.deep,
+                                    radialColor = glowRegistry.colors.radial,
+                                    durationMillis = glowDurationMillis,
+                                    modifier = Modifier.fillMaxSize()
+                                )
                                 Scaffold(
                                     containerColor = Color.Transparent,
                                     contentWindowInsets = WindowInsets(0.dp),
                                     topBar = {
                                         if (showMainActivityTopBar) {
+                                            val animatedBarContentColor by animateColorAsState(
+                                                targetValue = dynamicTopBarColor ?: MaterialTheme.colorScheme.onSurface,
+                                                animationSpec = tween(160),
+                                                label = "topBarContentColor"
+                                            )
                                             CenterAlignedTopAppBar(
+                                                modifier = Modifier
+                                                    .onSizeChanged { topBarHeightPx = it.height }
+                                                    .graphicsLayer { translationY = -topBarHeightPx * barHideProgress },
                                                 title = {
                                                     if (currentBaseRoute == Screen.Chat.route) {
                                                         val chatViewModel: ChatViewModel = viewModel(
@@ -628,199 +795,239 @@ val sessionManager = SessionManager(this)
                                                             }
                                                         }
                                                     } else {
-                                                        Text(
-                                                            topBarTitle,
-                                                            fontWeight = FontWeight.Black
-                                                        )
+                                                         Crossfade(
+                                                             targetState = topBarTitle,
+                                                             animationSpec = tween(130),
+                                                             label = "topBarTitle"
+                                                         ) { title ->
+                                                             Text(
+                                                                 title,
+                                                                 fontWeight = FontWeight.Black
+                                                             )
+                                                         }
                                                     }
                                                 },
                                                 navigationIcon = {
                                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        if (!isTopLevel) {
+                                                        if (!effectiveTopBarConfig.showBackButton) {
+                                                            Spacer(Modifier.width(4.dp))
+                                                        } else {
                                                             IconButton(onClick = { backDispatcher?.onBackPressed() }) {
                                                                 Icon(
                                                                     Icons.Default.ArrowBack,
                                                                     contentDescription = stringResource(R.string.cd_back)
                                                                 )
                                                             }
-                                                        } else {
-                                                            Spacer(Modifier.width(4.dp))
                                                         }
-                                                        LanguageChip(
-                                                            currentLanguage = currentLanguage,
-                                                            onLanguageSelected = { lang ->
-                                                                scope.launch {
-                                                                    authRepository.updateLanguage(lang)
-                                                                    sessionManager.setUserLanguage(lang)
+                                                        if (effectiveTopBarConfig.showLanguageChip) {
+                                                            LanguageChip(
+                                                                currentLanguage = currentLanguage,
+                                                                onLanguageSelected = { lang ->
+                                                                    scope.launch {
+                                                                        authRepository.updateLanguage(lang)
+                                                                        sessionManager.setUserLanguage(lang)
+                                                                    }
                                                                 }
-                                                            }
-                                                        )
+                                                            )
+                                                        }
                                                     }
                                                 },
                                                 actions = {
-                                                    if (currentDestination?.route == Screen.Consult.route) {
-                                                        IconButton(onClick = { navController.navigate("consult_history") }) {
-                                                            Icon(Icons.Default.History, contentDescription = stringResource(R.string.cd_consult_history))
-                                                        }
-                                                    }
-                                                    if (currentDestination?.route == Screen.Match.route) {
-                                                        IconButton(onClick = { navController.navigate("match_history") }) {
-                                                            Icon(Icons.Default.History, contentDescription = stringResource(R.string.cd_match_history))
-                                                        }
-                                                    }
-                                                    if (currentBaseRoute == Screen.Chat.route) {
-                                                        val chatViewModel: ChatViewModel = viewModel(
-                                                            viewModelStoreOwner = this@MainActivity,
-                                                            factory = sharedViewModelFactory
-                                                        )
-                                                        val chatShowHistory by chatViewModel.showHistory
-                                                        if (chatShowHistory) {
-                                                            IconButton(onClick = { chatViewModel.setShowHistory(false) }) {
-                                                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_close_history))
-                                                            }
-                                                        } else {
-                                                            IconButton(onClick = { chatViewModel.toggleHistory() }) {
-                                                                Icon(Icons.Default.History, contentDescription = stringResource(R.string.cd_chat_history))
-                                                            }
-                                                            IconButton(onClick = {
-                                                                navController.navigate("avatar_selection")
-                                                            }) {
-                                                                Icon(Icons.Default.AddComment, contentDescription = stringResource(R.string.cd_new_chat))
-                                                            }
-                                                        }
-                                                    }
-                                                    if (!isLogin) {
+                                                    // Always show CreditBadge first (if authenticated)
+                                                    if (appDestination.requiresAuth) {
                                                         val credits = if (entitlementState is EntitlementUiState.Success) (entitlementState as EntitlementUiState.Success).balance.totalCreditsRemaining else 0
                                                         val tier = if (entitlementState is EntitlementUiState.Success) (entitlementState as EntitlementUiState.Success).balance.tier else "free"
                                                         CreditBadge(credits = credits, tier = tier, onClick = { navController.navigate(Screen.Plans.route) })
                                                     }
-                                                    if (showBottomBar) {
-                                                        IconButton(onClick = {
-                                                            isMenuOpen = true
-                                                        }) {
-                                                            Icon(
-                                                                Icons.Default.Menu,
-                                                                contentDescription = stringResource(R.string.cd_open_menu)
+
+                                                    // Then show the right action based on config
+                                                    when (effectiveTopBarConfig.rightAction) {
+                                                        RightAction.MENU -> {
+                                                            IconButton(onClick = { isMenuOpen = true }) {
+                                                                Icon(
+                                                                    Icons.Default.Menu,
+                                                                    contentDescription = stringResource(R.string.cd_open_menu)
+                                                                )
+                                                            }
+                                                        }
+                                                        RightAction.HISTORY -> {
+                                                            IconButton(onClick = {
+                                                                when (currentBaseRoute) {
+                                                                    Screen.Consult.route -> navController.navigate("consult_history")
+                                                                    Screen.Match.route -> navController.navigate("match_history")
+                                                                    else -> { /* no-op */ }
+                                                                }
+                                                            }) {
+                                                                Icon(Icons.Default.History, contentDescription = stringResource(R.string.cd_history))
+                                                            }
+                                                        }
+                                                        RightAction.CHAT_ACTIONS -> {
+                                                            val chatViewModel: ChatViewModel = viewModel(
+                                                                viewModelStoreOwner = this@MainActivity,
+                                                                factory = sharedViewModelFactory
                                                             )
+                                                            val chatShowHistory by chatViewModel.showHistory
+                                                            if (chatShowHistory) {
+                                                                IconButton(onClick = { chatViewModel.setShowHistory(false) }) {
+                                                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cd_close_history))
+                                                                }
+                                                            } else {
+                                                                IconButton(onClick = { chatViewModel.toggleHistory() }) {
+                                                                    Icon(Icons.Default.History, contentDescription = stringResource(R.string.cd_chat_history))
+                                                                }
+                                                                IconButton(onClick = {
+                                                                    navController.navigate("avatar_selection")
+                                                                }) {
+                                                                    Icon(Icons.Default.AddComment, contentDescription = stringResource(R.string.cd_new_chat))
+                                                                }
+                                                            }
+                                                        }
+                                                        RightAction.NONE -> {
+                                                            // No additional action
                                                         }
                                                     }
                                                 },
                                                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                                                     containerColor = Color.Transparent,
-                                                    titleContentColor = dynamicTopBarColor ?: MaterialTheme.colorScheme.onSurface,
-                                                    navigationIconContentColor = dynamicTopBarColor ?: MaterialTheme.colorScheme.onSurface,
-                                                    actionIconContentColor = dynamicTopBarColor ?: MaterialTheme.colorScheme.onSurface
+                                                    titleContentColor = animatedBarContentColor,
+                                                    navigationIconContentColor = animatedBarContentColor,
+                                                    actionIconContentColor = animatedBarContentColor
                                                 ),
                                                 windowInsets = WindowInsets.statusBars
                                             )
                                         }
                                     },
                                     bottomBar = {
-                                        if (showBottomBar) {
-                                            val activeGold = MaterialTheme.colorScheme.secondary
-                                            val inactiveColor = Color.Gray
-                                            val navBarInsets = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                                         if (showBottomBar) {
+                                             val isCurrentlyDark = when (themePreference) { "dark" -> true; "light" -> false; else -> isSystemInDarkTheme() }
+                                             val activeGold = if (isCurrentlyDark) Color(0xFFFAF7F2) else Color(0xFF7C3AED)
+                                             val inactiveColor = Color.Gray
+                                             val navBarInsets = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-                                            Box(
-                                                modifier = Modifier.fillMaxWidth().wrapContentHeight(unbounded = true),
-                                                contentAlignment = Alignment.BottomCenter
-                                            ) {
-                                                Surface(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    shape = RectangleShape,
-                                                    color = MaterialTheme.colorScheme.background,
-                                                    tonalElevation = 0.dp
-                                                ) {
-                                                    Row(
-                                                        modifier = Modifier.fillMaxWidth().padding(bottom = navBarInsets),
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.SpaceEvenly
-                                                    ) {
-                                                        val leftItems = listOf(Screen.Dashboard, Screen.Kundli)
-                                                        val rightItems = listOf(Screen.Consult, Screen.Blogs)
+                                             Box(
+                                                 modifier = Modifier
+                                                     .fillMaxWidth()
+                                                     .wrapContentHeight(unbounded = true)
+                                                     .onSizeChanged { bottomBarHeightPx = it.height }
+                                                     .graphicsLayer { translationY = bottomBarHeightPx * barHideProgress },
+                                                 contentAlignment = Alignment.BottomCenter
+                                             ) {
+                                                 Surface(
+                                                     modifier = Modifier.fillMaxWidth(),
+                                                     shape = RectangleShape,
+                                                     color = MaterialTheme.colorScheme.background,
+                                                     tonalElevation = 0.dp
+                                                 ) {
+                                                     Column(modifier = Modifier.fillMaxWidth()) {
+HorizontalDivider(
+                                                              color = if (glowRegistry.count > 0) glowRegistry.colors.accent.copy(alpha = 0.35f) else MaterialTheme.colorScheme.outlineVariant,
+                                                              thickness = 0.5.dp
+                                                          )
+                                                         Row(
+                                                             modifier = Modifier.fillMaxWidth().padding(bottom = navBarInsets),
+                                                             verticalAlignment = Alignment.CenterVertically,
+                                                             horizontalArrangement = Arrangement.SpaceEvenly
+                                                         ) {
+                                                             val leftItems = listOf(Screen.Dashboard, Screen.Kundli)
+                                                             val rightItems = listOf(Screen.Consult, Screen.Blogs)
 
-                                                        leftItems.forEach { screen ->
-                                                            val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                                                            NavBarItem(
-                                                                screen = screen,
-                                                                isSelected = isSelected,
-                                                                activeColor = activeGold,
-                                                                inactiveColor = inactiveColor,
-                                                                onClick = {
-                                                                    if (screen == Screen.Dashboard) {
-                                                                        navController.popBackStack(Screen.Dashboard.route, false)
-                                                                    } else {
-                                                                        navController.navigate(screen.route) {
-                                                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                                                            launchSingleTop = true
-                                                                            restoreState = true
-                                                                        }
-                                                                    }
-                                                                }
-                                                            )
-                                                        }
-                                                        Spacer(modifier = Modifier.width(72.dp))
-                                                        rightItems.forEach { screen ->
-                                                            val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                                                            NavBarItem(
-                                                                screen = screen,
-                                                                isSelected = isSelected,
-                                                                activeColor = activeGold,
-                                                                inactiveColor = inactiveColor,
-                                                                onClick = {
-                                                                    navController.navigate(screen.route) {
-                                                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                                                        launchSingleTop = true
-                                                                        restoreState = true
-                                                                    }
-                                                                }
-                                                            )
-                                                        }
-                                                    }
-                                                }
-
-                                                Box(
-                                                    modifier = Modifier.align(Alignment.TopCenter).size(64.dp).background(MaterialTheme.colorScheme.surface, CircleShape),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    FloatingActionButton(
-                                                        onClick = {
-                                                            navController.navigate("avatar_selection") {
-                                                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                                                launchSingleTop = true
-                                                                restoreState = true
-                                                            }
-                                                        },
-                                                        shape = CircleShape,
-                                                        containerColor = MaterialTheme.colorScheme.secondary,
-                                                        elevation = FloatingActionButtonDefaults.elevation(4.dp),
-                                                        modifier = Modifier.size(56.dp)
-                                                    ) {
-                                                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                                                            Icon(Screen.Chat.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(30.dp))
-                                                            Text(stringResource(R.string.nav_chat).uppercase(), color = MaterialTheme.colorScheme.onPrimary, fontSize = 7.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
+                                                             leftItems.forEach { screen ->
+                                                                 val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                                                                 NavBarItem(
+                                                                     screen = screen,
+                                                                     isSelected = isSelected,
+                                                                     activeColor = activeGold,
+                                                                     inactiveColor = inactiveColor,
+                                                                     onClick = {
+                                                                         if (screen == Screen.Dashboard) {
+                                                                             navController.popBackStack(Screen.Dashboard.route, false)
+                                                                         } else {
+                                                                             navController.navigate(screen.route) {
+                                                                                 popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                                                                 launchSingleTop = true
+                                                                                 restoreState = true
+                                                                             }
+                                                                         }
+                                                                     }
+                                                                 )
+                                                             }
+                                                             Spacer(modifier = Modifier.width(72.dp))
+                                                             rightItems.forEach { screen ->
+                                                                 val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                                                                 NavBarItem(
+                                                                     screen = screen,
+                                                                     isSelected = isSelected,
+                                                                     activeColor = activeGold,
+                                                                     inactiveColor = inactiveColor,
+                                                                     onClick = {
+                                                                         navController.navigate(screen.route) {
+                                                                             popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                                                             launchSingleTop = true
+                                                                             restoreState = true
+                                                                         }
+                                                                     }
+                                                                 )
+                                                             }
+                                                         }
+                                                     }
+                                                 }
+                                                 Box(
+                                                     modifier = Modifier.align(Alignment.TopCenter).size(64.dp).background(MaterialTheme.colorScheme.surface, CircleShape),
+                                                     contentAlignment = Alignment.Center
+                                                 ) {
+val fabBg = MaterialTheme.colorScheme.secondary
+                                                       val fabFg = MaterialTheme.colorScheme.onSecondary
+                                                     FloatingActionButton(
+                                                         onClick = {
+                                                             navController.navigate("avatar_selection") {
+                                                                 popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                                                 launchSingleTop = true
+                                                                 restoreState = true
+                                                             }
+                                                         },
+                                                         shape = CircleShape,
+                                                         containerColor = fabBg,
+                                                         elevation = FloatingActionButtonDefaults.elevation(4.dp),
+                                                         modifier = Modifier.size(56.dp)
+                                                     ) {
+                                                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                                                             Icon(Screen.Chat.icon, contentDescription = null, tint = fabFg, modifier = Modifier.size(30.dp))
+                                                             Text(stringResource(R.string.nav_chat).uppercase(), color = fabFg, fontSize = 7.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
+                                                         }
+                                                     }
+                                                 }
+                                             }
+                                         }
                                     }
 ) { innerPadding ->
                                     CompositionLocalProvider(
                                         LocalTopBarTitle provides { dynamicTitle = it },
                                         LocalTopBarColor provides { dynamicTopBarColor = it },
                                         LocalEntitlementViewModel provides entitlementViewModel,
-                                        LocalSetGlowColors provides setGlowColors
+                                        LocalGlowRegistry provides glowRegistry
                                     ) {
                                         NavHost(
                                             navController = navController,
                                             startDestination = startDestination!!,
                                             modifier = Modifier
                                                 .fillMaxSize()
+                                                .then(if (scrollHideEnabled) Modifier.nestedScroll(scrollHideConnection) else Modifier)
                                                 .padding(
-                                                    top = if (drawsBehindTopBar) 0.dp else innerPadding.calculateTopPadding(),
-                                                    bottom = innerPadding.calculateBottomPadding()
-                                                )
+                                                     top = run {
+                                                         val basePadding = if (drawsBehindTopBar) {
+                                                             0.dp
+                                                         } else {
+                                                             val customPadding = effectiveTopBarConfig.customTopPadding
+                                                             if (customPadding != null) {
+                                                                 (innerPadding.calculateTopPadding() + customPadding).coerceAtLeast(0.dp)
+                                                             } else {
+                                                                 innerPadding.calculateTopPadding()
+                                                             }
+                                                         }
+                                                         (basePadding - topBarHideDp).coerceAtLeast(0.dp)
+                                                     },
+                                                     bottom = (innerPadding.calculateBottomPadding() - bottomBarHideDp).coerceAtLeast(0.dp)
+                                                 )
                                         ) {
                                             composable("intro") {
                                                 var isFirstLaunch by remember { mutableStateOf(true) }
@@ -930,6 +1137,9 @@ val sessionManager = SessionManager(this)
                                                     onNavigateToChat = { prompt, area ->
                                                         navController.navigate(buildAvatarSelectionRoute(prompt, area))
                                                     },
+                                                    onChatWithAstrologer = { avatarId ->
+                                                        navController.navigate(buildChatRoute(null, null, avatarId))
+                                                    },
                                                     onNavigateToKundli = { navController.navigate(Screen.Kundli.route) },
                                                     onNavigateToMatch = { navController.navigate(Screen.Match.route) },
                                                     onNavigateToMatchHistory = { navController.navigate("match_history") },
@@ -988,6 +1198,10 @@ val sessionManager = SessionManager(this)
                                             composable("nakshatras") { NakshatraScreen(onBack = { navController.popBackStack() }) }
                                             composable("houses") { HouseScreen(onBack = { navController.popBackStack() }) }
                                             composable("yogas") { YogaScreen(onBack = { navController.popBackStack() }, onOpenDrawer = { isMenuOpen = true }) }
+                                            composable("test_page") {
+                                                val testViewModel: TestViewModel = viewModel(factory = sharedViewModelFactory)
+                                                TestScreen(viewModel = testViewModel, onBack = { navController.popBackStack() })
+                                            }
                                             composable(Screen.Astrologers.route) {
                                                 val astrologersViewModel: AstrologersViewModel = viewModel(factory = sharedViewModelFactory)
                                                 AstrologersScreen(
@@ -1048,7 +1262,14 @@ val sessionManager = SessionManager(this)
                                             }
                                             composable(Screen.Profile.route) {
                                                 val profileViewModel: ProfileViewModel = viewModel(factory = sharedViewModelFactory)
-                                                ProfileScreen(viewModel = profileViewModel, onBack = { navController.popBackStack() }, onProfileComplete = { navController.navigate(Screen.Dashboard.route) { popUpTo(Screen.Profile.route) { inclusive = true } } }, onAccountDeleted = { navController.navigate("login") { popUpTo(0) { inclusive = true } } })
+                                                ProfileScreen(
+                                                    viewModel = profileViewModel,
+                                                    onBack = { navController.popBackStack() },
+                                                    onProfileComplete = { navController.navigate(Screen.Dashboard.route) { popUpTo(Screen.Profile.route) { inclusive = true } } },
+                                                    onAccountDeleted = { navController.navigate("login") { popUpTo(0) { inclusive = true } } },
+                                                    onNavigateToKundli = { navController.navigate(Screen.Kundli.route) },
+                                                    onNavigateToPlans = { navController.navigate(Screen.Plans.route) }
+                                                )
                                             }
                                             composable(Screen.Plans.route) {
                                                 val plansViewModel: PlansViewModel = viewModel(factory = sharedViewModelFactory)
@@ -1059,7 +1280,7 @@ val sessionManager = SessionManager(this)
                                 }
 
                                 AnimatedVisibility(visible = isMenuOpen, enter = fadeIn(tween(200)), exit = fadeOut(tween(200))) {
-                                    Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { isMenuOpen = false })
+                                    Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { isMenuOpen = false })
                                 }
 
                                 if (activePaywall != null) {
@@ -1069,22 +1290,148 @@ val sessionManager = SessionManager(this)
                                     }
                                 }
 
-                                AnimatedVisibility(visible = isMenuOpen, enter = slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300, easing = FastOutSlowInEasing)), exit = slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(250, easing = FastOutSlowInEasing)), modifier = Modifier.align(Alignment.CenterEnd)) {
-                                    Surface(modifier = Modifier.fillMaxHeight().fillMaxWidth(0.85f), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f), shadowElevation = 24.dp, border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))) {
-                                        Box(modifier = Modifier.fillMaxSize()) {
-                                            ParticleBackground()
-                                            Column(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars).navigationBarsPadding()) {
-                                                CosmicHeader(onClose = { isMenuOpen = false })
-                                                CosmicProfile(userName = userName ?: stringResource(R.string.drawer_user_default), lagnaSign = lagnaSign, onClick = { isMenuOpen = false; navController.navigate(Screen.Profile.route) })
-                                                Spacer(modifier = Modifier.height(16.dp))
-                                                val menuItems = listOf(Screen.Dashboard, Screen.Blogs, Screen.Chat, Screen.Consult, Screen.Match)
-                                                menuItems.forEachIndexed { index, screen -> CosmicNavItem(label = stringResource(screen.labelRes), icon = screen.icon, selected = currentDestination?.route == screen.route, onClick = { isMenuOpen = false; navController.navigate(screen.route) }, staggerDelay = 100 + (index * 40)) }
-                                                Spacer(modifier = Modifier.weight(1f))
-                                                Column(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
-                                                    Text(text = stringResource(R.string.menu_preferences), style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
+                                AnimatedVisibility(
+                                    visible = isMenuOpen,
+                                    enter = slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(300, easing = FastOutSlowInEasing)),
+                                    exit = slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(250, easing = FastOutSlowInEasing)),
+                                    modifier = Modifier.align(Alignment.CenterEnd)
+                                ) {
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .fillMaxWidth(0.82f)
+                                            .widthIn(max = 360.dp),
+                                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
+                                        shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 0.dp, bottomEnd = 0.dp),
+                                        shadowElevation = 24.dp,
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                                    ) {
+                                        Column(modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars).navigationBarsPadding()) {
+                                            CosmicHeader(onClose = { isMenuOpen = false })
+
+                                                Column(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .weight(1f)
+                                                        .verticalScroll(rememberScrollState())
+                                                ) {
+                                                    CompactProfileCard(
+                                                        userName = userName ?: stringResource(R.string.drawer_user_default),
+                                                        lagnaSign = lagnaSign,
+                                                        onClick = { isMenuOpen = false; navController.navigate(Screen.Profile.route) }
+                                                    )
+
+                                                    DrawerSectionLabel(stringResource(R.string.drawer_section_quick_action))
+                                                    AskAiCta(onClick = {
+                                                        isMenuOpen = false
+                                                        navController.navigate("avatar_selection") {
+                                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                                            launchSingleTop = true
+                                                            restoreState = true
+                                                        }
+                                                    })
+
+                                                    DrawerSectionLabel(stringResource(R.string.drawer_section_astrology_tools))
+                                                    DrawerRow(
+                                                        label = stringResource(R.string.drawer_item_match_compatibility),
+                                                        icon = Icons.Default.Favorite,
+                                                        onClick = { isMenuOpen = false; navController.navigate(Screen.Match.route) }
+                                                    )
+                                                    DrawerRow(
+                                                        label = stringResource(R.string.nav_forecast),
+                                                        icon = Icons.Default.TrendingUp,
+                                                        onClick = { isMenuOpen = false; navController.navigate(Screen.Forecast.route) }
+                                                    )
+                                                    DrawerRow(
+                                                        label = stringResource(R.string.title_match_history),
+                                                        icon = Icons.Default.History,
+                                                        onClick = { isMenuOpen = false; navController.navigate("match_history") }
+                                                    )
+                                                    DrawerRow(
+                                                        label = stringResource(R.string.drawer_item_astrologers_directory),
+                                                        icon = Icons.Default.Face,
+                                                        onClick = { isMenuOpen = false; navController.navigate(Screen.Astrologers.route) }
+                                                    )
+
+                                                    DrawerSectionLabel(stringResource(R.string.drawer_section_knowledge_library))
+                                                    Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                            KnowledgeChip(
+                                                                label = stringResource(R.string.drawer_item_knowledge_hub),
+                                                                icon = Icons.Default.List,
+                                                                onClick = { isMenuOpen = false; navController.navigate(Screen.Blogs.route) },
+                                                                modifier = Modifier.weight(1f)
+                                                            )
+                                                            KnowledgeChip(
+                                                                label = stringResource(R.string.drawer_item_rashis),
+                                                                icon = Icons.Default.Stars,
+                                                                onClick = { isMenuOpen = false; navController.navigate("rashis") },
+                                                                modifier = Modifier.weight(1f)
+                                                            )
+                                                        }
+                                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                            KnowledgeChip(
+                                                                label = stringResource(R.string.title_planets),
+                                                                icon = Icons.Default.NightsStay,
+                                                                onClick = { isMenuOpen = false; navController.navigate("planets") },
+                                                                modifier = Modifier.weight(1f)
+                                                            )
+                                                            KnowledgeChip(
+                                                                label = stringResource(R.string.title_nakshatras),
+                                                                icon = Icons.Default.AutoAwesome,
+                                                                onClick = { isMenuOpen = false; navController.navigate("nakshatras") },
+                                                                modifier = Modifier.weight(1f)
+                                                            )
+                                                        }
+                                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                            KnowledgeChip(
+                                                                label = stringResource(R.string.title_houses),
+                                                                icon = Icons.Default.Home,
+                                                                onClick = { isMenuOpen = false; navController.navigate("houses") },
+                                                                modifier = Modifier.weight(1f)
+                                                            )
+                                                            KnowledgeChip(
+                                                                label = stringResource(R.string.title_yogas),
+                                                                icon = Icons.Default.Eco,
+                                                                onClick = { isMenuOpen = false; navController.navigate("yogas") },
+                                                                modifier = Modifier.weight(1f)
+                                                            )
+                                                        }
+                                                    }
+
+                                                    DrawerSectionLabel(stringResource(R.string.drawer_section_account))
+                                                    DrawerRow(
+                                                        label = stringResource(R.string.drawer_item_plans_credits),
+                                                        icon = Icons.Default.AccountBalanceWallet,
+                                                        onClick = { isMenuOpen = false; navController.navigate(Screen.Plans.route) }
+                                                    )
+                                                    DrawerRow(
+                                                        label = "API Test Page",
+                                                        icon = Icons.Default.BugReport,
+                                                        onClick = { isMenuOpen = false; navController.navigate("test_page") }
+                                                    )
                                                     val isDark = when (themePreference) { "dark" -> true; "light" -> false; else -> isSystemInDarkTheme() }
-                                                    CosmicNavItem(label = if (isDark) stringResource(R.string.menu_light_mode) else stringResource(R.string.menu_dark_mode), icon = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode, selected = false, onClick = { scope.launch { sessionManager.setThemePreference(if (isDark) "light" else "dark") } }, staggerDelay = 400)
-                                                    CosmicNavItem(label = stringResource(R.string.menu_logout), icon = Icons.Default.Logout, selected = false, onClick = { isMenuOpen = false; showLogoutDialog = true }, staggerDelay = 450)
+                                                    DrawerRow(
+                                                        label = if (isDark) stringResource(R.string.menu_light_mode) else stringResource(R.string.menu_dark_mode),
+                                                        icon = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                                        onClick = { scope.launch { sessionManager.setThemePreference(if (isDark) "light" else "dark") } },
+                                                        trailing = {
+                                                            Switch(
+                                                                checked = isDark,
+                                                                onCheckedChange = { scope.launch { sessionManager.setThemePreference(if (isDark) "light" else "dark") } },
+                                                                modifier = Modifier.scale(0.8f)
+                                                            )
+                                                        }
+                                                    )
+                                                    DrawerRow(
+                                                        label = stringResource(R.string.menu_logout),
+                                                        icon = Icons.Default.Logout,
+                                                        onClick = { isMenuOpen = false; showLogoutDialog = true },
+                                                        contentColor = Color(0xFFEF4444).copy(alpha = 0.85f),
+                                                        trailing = {}
+                                                    )
+
+                                                    Spacer(modifier = Modifier.height(24.dp))
                                                 }
                                             }
                                         }
@@ -1094,7 +1441,6 @@ val sessionManager = SessionManager(this)
                         }
                     }
                 }
-            }
             }
         }
     }

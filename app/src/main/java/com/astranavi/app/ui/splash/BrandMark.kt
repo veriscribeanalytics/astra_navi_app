@@ -22,9 +22,9 @@ import com.astranavi.app.ui.theme.LocalSemanticColors
 fun BrandMark(
     brandColor: Color,
     shadowColor: Color,
-    fontSize: Float = 44f,
-    letterSpacing: Float = 3f,
-    taglineSpacer: Float = 8f
+    fontSize: Float = 52f,
+    letterSpacing: Float = 4f,
+    taglineSpacer: Float = 10f
 ) {
     val semanticColors = LocalSemanticColors.current
     Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {

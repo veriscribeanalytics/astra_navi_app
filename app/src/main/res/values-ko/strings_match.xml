@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper -->
+    <string name="match_step_details">정보 입력</string>
+    <string name="match_step_analysis">분석</string>
+    <string name="match_step_result">결과</string>
+    <string name="match_step_person1">첫 번째 사람</string>
+    <string name="match_step_person2">두 번째 사람</string>
+    <string name="match_btn_next">다음</string>
+    <string name="match_btn_back">이전</string>
+
     <!-- Match Input Form -->
     <string name="match_btn_calculate">궁합 계산</string>
     <string name="match_desc_vedic_analysis">조화와 장수를 위한 전통 36구나 베다 궁합 분석입니다.</string>
+    <string name="match_footer_secure">안전 • 비공개 • 전통 방식</string>
+    <string name="match_hint_accuracy">가장 정확한 궁합 분석을 위해 모든 정보가 정확한지 확인해 주세요.</string>
     <string name="match_label_person1">사람 1 (당신)</string>
     <string name="match_label_person2">사람 2 (파트너)</string>
     <string name="match_field_name">이름</string>
@@ -37,4 +48,13 @@
     <string name="match_dosha_high_influence">높은 영향 감지</string>
     <string name="match_dosha_influence">영향 감지</string>
     <string name="match_dosha_no_influence">주요 영향 없음</string>
+
+    <!-- Match Benefits -->
+    <string name="match_benefits_title">받게 될 내용:</string>
+    <string name="match_benefit_guna_title">상세한 36구나 분석</string>
+    <string name="match_benefit_guna_desc">전통 베다 원리에 기반한 완전한 궁합 점수를 받아보세요.</string>
+    <string name="match_benefit_strengths_title">강점 &amp; 과제</string>
+    <string name="match_benefit_strengths_desc">두 사람의 관계 역학을 깊이 있게 이해할 수 있습니다.</string>
+    <string name="match_benefit_guidance_title">조화를 위한 안내</string>
+    <string name="match_benefit_guidance_desc">더 좋고 행복한 관계를 위한 실용적인 제안을 제공합니다.</string>
 </resources>

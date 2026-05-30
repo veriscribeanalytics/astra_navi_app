@@ -29,7 +29,8 @@ interface ApiService {
     // Personalized Horoscope (Home Dashboard)
     @GET("api/daily-horoscope")
     suspend fun getDailyHoroscope(
-        @Query("lang") lang: String = "en"
+        @Query("lang") lang: String = "en",
+        @Query("include_timings") includeTimings: Boolean = false
     ): Response<HoroscopeResponse>
 
     // General Horoscope (Rashi Page)
@@ -38,13 +39,13 @@ interface ApiService {
         @Path("sign") sign: String
     ): Response<HoroscopeResponse>
 
-    @GET("api/forecast/{area}")
-    suspend fun getForecast(
-        @Path("area") area: String,
-        @Query("days_back") daysBack: Int? = null,
-        @Query("days_forward") daysForward: Int? = null,
+    // Daily Horoscope Timings for client caching
+    @GET("api/daily-horoscope/timings")
+    suspend fun getDailyHoroscopeTimings(
+        @Query("sign") sign: String? = null,
+        @Query("name") name: String? = null,
         @Query("lang") lang: String? = null
-    ): Response<ForecastResponse>
+    ): Response<DailyHoroscopeTimingsResponse>
 
     @GET("api/forecast/{area}/weekly")
     suspend fun getWeeklyForecast(

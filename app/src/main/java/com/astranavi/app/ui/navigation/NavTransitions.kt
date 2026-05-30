@@ -14,10 +14,10 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 
-// Forward push is 260ms; back is 220ms — back feels lighter than forward.
-private const val PUSH_FORWARD_MS = 260
-private const val PUSH_BACK_MS = 220
-private const val TAB_MS = 200
+// Forward push is heavier than back, so it runs slightly longer.
+private const val PUSH_FORWARD_MS = 200
+private const val PUSH_BACK_MS = 170
+private const val TAB_MS = 160
 private const val INSTANT_MS = 0
 
 /** Animation when this destination becomes the visible page (forward push). */

@@ -1,6 +1,7 @@
 package com.astranavi.app.util
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -9,7 +10,11 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -34,14 +39,35 @@ class SessionManager(private val context: Context) {
         private val USER_BIRTH_TIMEZONE_NAME = stringPreferencesKey("user_birth_timezone_name")
         private val USER_BIRTH_TIMEZONE_OFFSET = doublePreferencesKey("user_birth_timezone_offset")
         private val USER_BIRTH_TIME_FOLD = doublePreferencesKey("user_birth_time_fold")
-        private val ACCESS_TOKEN = stringPreferencesKey("access_token")
-        private val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+        // Legacy DataStore keys for one-time migration from plaintext to encrypted storage.
+        private val LEGACY_ACCESS_TOKEN = stringPreferencesKey("access_token")
+        private val LEGACY_REFRESH_TOKEN = stringPreferencesKey("refresh_token")
         private val PROFILE_COMPLETE = booleanPreferencesKey("profile_complete")
         private val THEME_PREFERENCE = stringPreferencesKey("theme_preference")
         private val USER_LANGUAGE = stringPreferencesKey("user_language")
         private const val API_CACHE_PREFIX = "api_cache_"
         private val HAS_SEEN_INTRO = booleanPreferencesKey("has_seen_intro")
+
+        private const val SECURE_PREFS_FILE = "secure_tokens"
+        private const val SECURE_KEY_ACCESS_TOKEN = "access_token"
+        private const val SECURE_KEY_REFRESH_TOKEN = "refresh_token"
     }
+
+    private val securePrefs: SharedPreferences by lazy {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        EncryptedSharedPreferences.create(
+            context,
+            SECURE_PREFS_FILE,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
+
+    private val _accessToken = MutableStateFlow(securePrefs.getString(SECURE_KEY_ACCESS_TOKEN, null))
+    private val _refreshToken = MutableStateFlow(securePrefs.getString(SECURE_KEY_REFRESH_TOKEN, null))
 
     val userId: Flow<String?> = context.dataStore.data.map { it[USER_ID] }
     val userEmail: Flow<String?> = context.dataStore.data.map { it[USER_EMAIL] }
@@ -52,11 +78,16 @@ class SessionManager(private val context: Context) {
     val userDob: Flow<String?> = context.dataStore.data.map { it[USER_DOB] }
     val userTob: Flow<String?> = context.dataStore.data.map { it[USER_TOB] }
     val userPob: Flow<String?> = context.dataStore.data.map { it[USER_POB] }
-    val accessToken: Flow<String?> = context.dataStore.data.map { it[ACCESS_TOKEN] }
-    val refreshToken: Flow<String?> = context.dataStore.data.map { it[REFRESH_TOKEN] }
+    val accessToken: Flow<String?> = _accessToken.asStateFlow()
+    val refreshToken: Flow<String?> = _refreshToken.asStateFlow()
     val profileComplete: Flow<Boolean?> = context.dataStore.data.map { it[PROFILE_COMPLETE] }
     val themePreference: Flow<String> = context.dataStore.data.map { it[THEME_PREFERENCE] ?: "system" }
     val userLanguage: Flow<String> = context.dataStore.data.map { it[USER_LANGUAGE] ?: "en" }
+    val birthLatitude: Flow<Double?> = context.dataStore.data.map { it[USER_BIRTH_LATITUDE] }
+    val birthLongitude: Flow<Double?> = context.dataStore.data.map { it[USER_BIRTH_LONGITUDE] }
+    val birthTimezoneName: Flow<String?> = context.dataStore.data.map { it[USER_BIRTH_TIMEZONE_NAME] }
+    val birthTimezoneOffset: Flow<Double?> = context.dataStore.data.map { it[USER_BIRTH_TIMEZONE_OFFSET] }
+    val birthTimeFold: Flow<Double?> = context.dataStore.data.map { it[USER_BIRTH_TIME_FOLD] }
 
     val hasSeenIntro: Flow<Boolean> = context.dataStore.data.map { it[HAS_SEEN_INTRO] ?: false }
     val isLoggedIn: Flow<Boolean> = context.dataStore.data.map { it[USER_ID] != null }
@@ -68,15 +99,21 @@ class SessionManager(private val context: Context) {
     }
 
     suspend fun saveSession(
-        id: String, 
-        email: String, 
-        name: String?, 
-        moonSign: String?, 
-        sunSign: String? = null, 
-        lagnaSign: String? = null, 
-        dob: String? = null, 
-        tob: String? = null, 
+        id: String,
+        email: String,
+        name: String?,
+        moonSign: String?,
+        sunSign: String? = null,
+        lagnaSign: String? = null,
+        dob: String? = null,
+        tob: String? = null,
         pob: String? = null,
+        birthPlaceName: String? = null,
+        birthLatitude: Double? = null,
+        birthLongitude: Double? = null,
+        birthTimezoneName: String? = null,
+        birthTimezoneOffsetAtBirth: Double? = null,
+        birthTimeFold: Double? = null,
         accessToken: String? = null,
         refreshToken: String? = null,
         profileComplete: Boolean? = null
@@ -91,17 +128,31 @@ class SessionManager(private val context: Context) {
             dob?.let { prefs[USER_DOB] = it }
             tob?.let { prefs[USER_TOB] = it }
             pob?.let { prefs[USER_POB] = it }
-            accessToken?.let { prefs[ACCESS_TOKEN] = it }
-            refreshToken?.let { prefs[REFRESH_TOKEN] = it }
+            birthPlaceName?.let { prefs[USER_BIRTH_PLACE_NAME] = it }
+            birthLatitude?.let { prefs[USER_BIRTH_LATITUDE] = it }
+            birthLongitude?.let { prefs[USER_BIRTH_LONGITUDE] = it }
+            birthTimezoneName?.let { prefs[USER_BIRTH_TIMEZONE_NAME] = it }
+            birthTimezoneOffsetAtBirth?.let { prefs[USER_BIRTH_TIMEZONE_OFFSET] = it }
+            birthTimeFold?.let { prefs[USER_BIRTH_TIME_FOLD] = it }
             profileComplete?.let { prefs[PROFILE_COMPLETE] = it }
+        }
+        if (accessToken != null || refreshToken != null) {
+            securePrefs.edit().apply {
+                accessToken?.let { putString(SECURE_KEY_ACCESS_TOKEN, it) }
+                refreshToken?.let { putString(SECURE_KEY_REFRESH_TOKEN, it) }
+            }.apply()
+            accessToken?.let { _accessToken.value = it }
+            refreshToken?.let { _refreshToken.value = it }
         }
     }
 
     suspend fun updateTokens(accessToken: String, refreshToken: String?) {
-        context.dataStore.edit { prefs ->
-            prefs[ACCESS_TOKEN] = accessToken
-            refreshToken?.let { prefs[REFRESH_TOKEN] = it }
-        }
+        securePrefs.edit().apply {
+            putString(SECURE_KEY_ACCESS_TOKEN, accessToken)
+            refreshToken?.let { putString(SECURE_KEY_REFRESH_TOKEN, it) }
+        }.apply()
+        _accessToken.value = accessToken
+        refreshToken?.let { _refreshToken.value = it }
     }
 
         suspend fun updateSigns(
@@ -190,6 +241,33 @@ suspend fun clearSession() {
             if (languageValue != null) {
                 prefs[USER_LANGUAGE] = languageValue
             }
+        }
+        securePrefs.edit().clear().apply()
+        _accessToken.value = null
+        _refreshToken.value = null
+    }
+
+    /**
+     * One-time migration: move ACCESS_TOKEN / REFRESH_TOKEN from plaintext DataStore
+     * (pre-encryption builds) into EncryptedSharedPreferences. Safe to call on every
+     * launch — it's a no-op once the legacy keys are gone.
+     */
+    suspend fun migrateLegacyTokensIfPresent() {
+        val prefs = context.dataStore.data.first()
+        val legacyAccess = prefs[LEGACY_ACCESS_TOKEN]
+        val legacyRefresh = prefs[LEGACY_REFRESH_TOKEN]
+        if (legacyAccess == null && legacyRefresh == null) return
+
+        securePrefs.edit().apply {
+            legacyAccess?.let { putString(SECURE_KEY_ACCESS_TOKEN, it) }
+            legacyRefresh?.let { putString(SECURE_KEY_REFRESH_TOKEN, it) }
+        }.apply()
+        legacyAccess?.let { _accessToken.value = it }
+        legacyRefresh?.let { _refreshToken.value = it }
+
+        context.dataStore.edit { mutable ->
+            mutable.remove(LEGACY_ACCESS_TOKEN)
+            mutable.remove(LEGACY_REFRESH_TOKEN)
         }
     }
 

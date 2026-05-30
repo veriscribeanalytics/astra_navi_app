@@ -93,6 +93,12 @@ class LoginViewModel(
                             dob = user.dob,
                             tob = user.tob,
                             pob = user.pob,
+                            birthPlaceName = user.birthPlaceName,
+                            birthLatitude = user.birthLatitude,
+                            birthLongitude = user.birthLongitude,
+                            birthTimezoneName = user.birthTimezoneName,
+                            birthTimezoneOffsetAtBirth = user.birthTimezoneOffsetAtBirth,
+                            birthTimeFold = user.birthTimeFold,
                             accessToken = loginResponse.accessToken,
                             refreshToken = loginResponse.refreshToken,
                             profileComplete = loginResponse.profileComplete ?: false

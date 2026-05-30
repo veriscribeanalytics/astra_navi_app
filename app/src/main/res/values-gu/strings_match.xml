@@ -1,8 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper -->
+    <string name="match_step_details">વિગતો</string>
+    <string name="match_step_analysis">વિશ્લેષણ</string>
+    <string name="match_step_result">પરિણામ</string>
+    <string name="match_step_person1">વ્યક્તિ ૧</string>
+    <string name="match_step_person2">વ્યક્તિ ૨</string>
+    <string name="match_btn_next">આગળ</string>
+    <string name="match_btn_back">પાછળ</string>
+
+    <!-- Match Benefits -->
+    <string name="match_benefits_title">તમને મળશે:</string>
+    <string name="match_benefit_guna_title">વિગતવાર ૩૬ ગુણ વિશ્લેષણ</string>
+    <string name="match_benefit_guna_desc">પરંપરાગત વૈદિક સિદ્ધાંતો પર આધારિત સંપૂર્ણ સુસંગતતા સ્કોર મેળવો.</string>
+    <string name="match_benefit_strengths_title">શક્તિઓ &amp; પડકારો</string>
+    <string name="match_benefit_strengths_desc">તમારા સંબંધની ગતિશીલતાને ઊંડાણથી સમજો.</string>
+    <string name="match_benefit_guidance_title">સુમેળ માટે માર્ગદર્શન</string>
+    <string name="match_benefit_guidance_desc">વધુ સારા અને સુખી સંબંધ માટે વ્યવહારુ સૂચનો.</string>
+
     <!-- Match Input Form -->
     <string name="match_btn_calculate">સુસંગતતા ગણતરી કરો</string>
     <string name="match_desc_vedic_analysis">સુમેળ અને દીર્ઘાયુષ્ય માટે પરંપરાગત ૩૬ ગુણ વૈદિક મેળ વિશ્લેષણ.</string>
+    <string name="match_footer_secure">સુરક્ષિત • ખાનગી • પરંપરાગત</string>
+    <string name="match_hint_accuracy">સૌથી ચોક્કસ મેળ વિશ્લેષણ માટે કૃપા કરીને બધી વિગતો સચોટ છે તેની ખાતરી કરો.</string>
     <string name="match_label_person1">વ્યક્તિ ૧ (તમે)</string>
     <string name="match_label_person2">વ્યક્તિ ૨ (ભાગીદાર)</string>
     <string name="match_field_name">નામ</string>

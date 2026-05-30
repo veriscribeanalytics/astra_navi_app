@@ -1,8 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper (4-step wizard) -->
+    <string name="match_step_person1">Person 1</string>
+    <string name="match_step_person2">Person 2</string>
+    <string name="match_step_details">Details</string>
+    <string name="match_step_analysis">Analysis</string>
+    <string name="match_step_result">Result</string>
+
+    <!-- Match Wizard Navigation -->
+    <string name="match_btn_next">Next</string>
+    <string name="match_btn_back">Back</string>
+
+    <!-- Match "You will get" benefits -->
+    <string name="match_benefits_title">You will get:</string>
+    <string name="match_benefit_guna_title">Detailed 36 Guna analysis</string>
+    <string name="match_benefit_guna_desc">Get a complete compatibility score based on traditional Vedic principles.</string>
+    <string name="match_benefit_strengths_title">Strengths &amp; challenges</string>
+    <string name="match_benefit_strengths_desc">Understand your relationship dynamics deeply.</string>
+    <string name="match_benefit_guidance_title">Guidance for harmony</string>
+    <string name="match_benefit_guidance_desc">Practical suggestions for a better and happier relationship.</string>
+
     <!-- Match Input Form -->
     <string name="match_btn_calculate">Calculate Compatibility</string>
     <string name="match_desc_vedic_analysis">Traditional 36 Guna Vedic match analysis for harmony and longevity.</string>
+    <string name="match_footer_secure">Secure • Private • Traditional</string>
+    <string name="match_hint_accuracy">Please ensure all details are accurate for the most precise match analysis.</string>
     <string name="match_label_person1">PERSON 1 (YOU)</string>
     <string name="match_label_person2">PERSON 2 (PARTNER)</string>
     <string name="match_field_name">Name</string>

@@ -1,8 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper -->
+    <string name="match_step_details">ਵੇਰਵੇ</string>
+    <string name="match_step_analysis">ਵਿਸ਼ਲੇਸ਼ਣ</string>
+    <string name="match_step_result">ਨਤੀਜਾ</string>
+    <string name="match_step_person1">ਵਿਅਕਤੀ 1</string>
+    <string name="match_step_person2">ਵਿਅਕਤੀ 2</string>
+    <string name="match_btn_next">ਅੱਗੇ</string>
+    <string name="match_btn_back">ਪਿੱਛੇ</string>
+
+    <!-- Match Benefits -->
+    <string name="match_benefits_title">ਤੁਹਾਨੂੰ ਮਿਲੇਗਾ:</string>
+    <string name="match_benefit_guna_title">ਵਿਸਤ੍ਰਿਤ 36 ਗੁਣ ਵਿਸ਼ਲੇਸ਼ਣ</string>
+    <string name="match_benefit_guna_desc">ਰਵਾਇਤੀ ਵੈਦਿਕ ਸਿਧਾਂਤਾਂ \'ਤੇ ਆਧਾਰਿਤ ਪੂਰਾ ਅਨੁਕੂਲਤਾ ਸਕੋਰ ਪ੍ਰਾਪਤ ਕਰੋ।</string>
+    <string name="match_benefit_strengths_title">ਤਾਕਤਾਂ &amp; ਚੁਣੌਤੀਆਂ</string>
+    <string name="match_benefit_strengths_desc">ਆਪਣੇ ਰਿਸ਼ਤੇ ਦੀ ਗਤੀਸ਼ੀਲਤਾ ਨੂੰ ਡੂੰਘਾਈ ਨਾਲ ਸਮਝੋ।</string>
+    <string name="match_benefit_guidance_title">ਤਾਲਮੇਲ ਲਈ ਮਾਰਗਦਰਸ਼ਨ</string>
+    <string name="match_benefit_guidance_desc">ਬਿਹਤਰ ਅਤੇ ਖੁਸ਼ਹਾਲ ਰਿਸ਼ਤੇ ਲਈ ਵਿਹਾਰਕ ਸੁਝਾਅ।</string>
+
     <!-- Match Input Form -->
     <string name="match_btn_calculate">ਅਨੁਕੂਲਤਾ ਦੀ ਗਣਨਾ ਕਰੋ</string>
     <string name="match_desc_vedic_analysis">ਤਾਲਮੇਲ ਅਤੇ ਲੰਬੀ ਉਮਰ ਲਈ ਰਵਾਇਤੀ 36 ਗੁਣ ਵੈਦਿਕ ਮਿਲਾਨ ਵਿਸ਼ਲੇਸ਼ਣ।</string>
+    <string name="match_footer_secure">ਸੁਰੱਖਿਅਤ • ਨਿੱਜੀ • ਰਵਾਇਤੀ</string>
+    <string name="match_hint_accuracy">ਸਭ ਤੋਂ ਸਟੀਕ ਮਿਲਾਨ ਵਿਸ਼ਲੇਸ਼ਣ ਲਈ ਕਿਰਪਾ ਕਰਕੇ ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਸਾਰੇ ਵੇਰਵੇ ਸਹੀ ਹਨ।</string>
     <string name="match_label_person1">ਵਿਅਕਤੀ 1 (ਤੁਸੀਂ)</string>
     <string name="match_label_person2">ਵਿਅਕਤੀ 2 (ਸਾਥੀ)</string>
     <string name="match_field_name">ਨਾਮ</string>

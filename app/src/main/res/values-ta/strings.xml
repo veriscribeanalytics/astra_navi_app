@@ -5,7 +5,7 @@
     <string name="nav_kundli">ஜாதகம்</string>
     <string name="nav_match">பொருத்தம்</string>
     <string name="nav_consult">ஆலோசனை</string>
-    <string name="nav_blogs">அறிவு</string>
+    <string name="nav_blogs">கற்க</string>
     <string name="nav_rashis">ராசி</string>
     <string name="nav_chat">AI அரட்டை</string>
     <string name="nav_profile">சுயவிவரம்</string>
@@ -99,7 +99,7 @@
     <string name="dashboard_today">இன்று</string>
     <string name="dashboard_lucky">அதிர்ஷ்டம்</string>
     <string name="dashboard_saturn_transit">சனி பெயர்ச்சி</string>
-    <string name="dashboard_general">பொதுவானவை</string>
+    <string name="dashboard_general">பொதுவான நோக்கு</string>
     <string name="dashboard_love">காதல்</string>
     <string name="dashboard_career">தொழில்</string>
     <string name="dashboard_finance">நிதி</string>
@@ -125,7 +125,20 @@
     <string name="dashboard_status_stable">நிலையானது</string>
     <string name="dashboard_status_favorable">சாதகமானது</string>
     <string name="dashboard_status_excellent">மிகவும் சிறப்பானது</string>
+    <string name="dashboard_status_heavy_friction">கடின முரண்பாடு</string>
+    <string name="dashboard_status_love_needs_patience">பொறுமை தேவை</string>
+    <string name="dashboard_status_career_move_slowly">மெதுவாக நகர்க</string>
+    <string name="dashboard_status_finance_needs_caution">எச்சரிக்கை தேவை</string>
+    <string name="dashboard_status_health_needs_rest">ஓய்வு தேவை</string>
+    <string name="dashboard_status_spiritual_seek_stillness">அமைதி தேடுக</string>
+    <string name="dashboard_label_overall_life_score">ஒட்டுமொத்த வாழ்க்கை அளவுகோல்</string>
+    <string name="dashboard_label_caution_window">எச்சரிக்கை நேரம்</string>
+    <string name="dashboard_label_rahu_kaal_upcoming">ராகு காலம் வரவிருக்கிறது</string>
+    <string name="dashboard_label_rahu_kaal_active">ராகு காலம் நடப்பில்</string>
+    <string name="dashboard_label_rahu_kaal_ended">ராகு காலம் முடிந்தது</string>
     <string name="dashboard_header_life_areas">இன்றைய வாழ்க்கைப் பகுதிகள்</string>
+    <string name="dashboard_chip_today_panchang">உங்களுடைய இன்றைய பஞ்சாங்கம்</string>
+    <string name="dashboard_chip_panchang_view">பார்க்க</string>
     <string name="dashboard_header_current_week">நடப்பு வாரம்</string>
     <string name="dashboard_header_kundli">ஜாதகம்</string>
     <string name="dashboard_header_family">குடும்பம் &amp; உறவுகள்</string>
@@ -158,7 +171,7 @@
     <string name="dashboard_btn_ask_navi_today">இன்றைய நாளைப் பற்றி நவியிடம் கேள்</string>
     <string name="dashboard_prompt_ask_navi_today">இன்றைய எனது ஆற்றலைப் பற்றி மேலும் கூறுங்கள். மதிப்பெண்: %1$d, மனநிலை: %2$s.</string>
     <string name="dashboard_prompt_ask_navi_why">எனது நாள் ஏன் %1$s நாளாக இருக்கிறது? பிரபஞ்ச ரீதியாக என்ன நடக்கிறது என்பதை விளக்குங்கள்.</string>
-    <string name="dashboard_label_overall_energy">ஒட்டுமொத்த ஆற்றல்</string>
+    <string name="dashboard_label_general_outlook">பொதுவான நோக்கு</string>
     <string name="dashboard_label_main_tip">முக்கிய குறிப்பு</string>
     <string name="dashboard_label_dominant_planet">ஆதிக்கம் செலுத்தும் கிரகம்</string>
     <string name="dashboard_label_active_dasha">செயலில் உள்ள தசா / கோசாரம்</string>

@@ -71,7 +71,16 @@ data class CosmicHourUiModel(
     val activeTime: String,
     val activeAdvice: String,
     val activeColor: Color,
-    val allTriggers: List<TimeTrigger>
+    val allTriggers: List<TimeTrigger>,
+    val goodTime: String = "----",
+    val goodTimeLabel: String = "",
+    val goodTimeAdvice: String = "",
+    val goodTimeStartRaw: String? = null,
+    val goodTimeEndRaw: String? = null,
+    val rahukaal: String = "----",
+    val rahukaalAdvice: String = "",
+    val rahukaalStartRaw: String? = null,
+    val rahukaalEndRaw: String? = null
 )
 
 data class PanchangaUiModel(
@@ -106,7 +115,8 @@ object DailyHomeUiMapper {
         lagnaSign: String?,
         userName: String?,
         isDarkTheme: Boolean,
-        context: Context
+        context: Context,
+        timings: DailyHoroscopeTimingsResponse? = null
     ): DailyHomeUiState {
         // 1. Header
         val calendar = java.util.Calendar.getInstance()
@@ -131,13 +141,13 @@ object DailyHomeUiMapper {
         sunSign?.let {
             chips.add(ChipUiModel(context.getString(R.string.dashboard_sun), titleCase(it), AstroColors.Sun, ZodiacMapper.getEnglishName(it)))
         }
-        horoscope.meta?.panchanga?.tithi?.let {
-            chips.add(ChipUiModel(context.getString(R.string.dashboard_label_tithi), resolveAreaLabels(it), AstroColors.Jupiter))
-        }
-        horoscope.lucky?.let {
-            val shortColor = titleCase(it.color).substringAfterLast(' ')
-            chips.add(ChipUiModel(context.getString(R.string.dashboard_lucky), "$shortColor · ${it.number}", AstroColors.Venus))
-        }
+        chips.add(
+            ChipUiModel(
+                label = context.getString(R.string.dashboard_chip_today_panchang),
+                value = context.getString(R.string.dashboard_chip_panchang_view),
+                color = AstroColors.Jupiter
+            )
+        )
 
         // 3. Hero
         val overall = horoscope.score.overall
@@ -158,25 +168,10 @@ object DailyHomeUiMapper {
         val areas = mutableListOf<LifeAreaCardUiModel>()
         val textData = horoscope.areas_text
 
-        // General
-        val generalFull = resolveAreaLabels(horoscope.current_state?.advice_now ?: horoscope.tip?.text ?: "")
-        areas.add(
-            LifeAreaCardUiModel(
-                id = "general",
-                label = context.getString(R.string.dashboard_general),
-                score = overall,
-                status = getStatusText("general", overall, context),
-                shortInsight = firstSentence(horoscope.current_state?.advice_now ?: horoscope.tip?.text),
-                color = AstroColors.Default,
-                icon = "✨",
-                fullInsight = generalFull,
-                personalNotes = emptyList()
-            )
-        )
 
         // Love
         val loveScore = horoscope.score.areas?.get("love")?.value ?: overall
-        val loveInsight = textData?.love?.insight ?: "Emotional energy is active today."
+        val loveInsight = textData?.love?.insight ?: ""
         areas.add(
             LifeAreaCardUiModel(
                 id = "love",
@@ -193,7 +188,7 @@ object DailyHomeUiMapper {
 
         // Career
         val careerScore = horoscope.score.areas?.get("career")?.value ?: overall
-        val careerInsight = textData?.career?.insight ?: "Focus on structural tasks and communication."
+        val careerInsight = textData?.career?.insight ?: ""
         areas.add(
             LifeAreaCardUiModel(
                 id = "career",
@@ -210,7 +205,7 @@ object DailyHomeUiMapper {
 
         // Finance
         val financeScore = horoscope.score.areas?.get("finance")?.value ?: overall
-        val financeInsight = textData?.finance?.insight ?: "Financial decisions require grounded thinking."
+        val financeInsight = textData?.finance?.insight ?: ""
         areas.add(
             LifeAreaCardUiModel(
                 id = "finance",
@@ -227,7 +222,7 @@ object DailyHomeUiMapper {
 
         // Health
         val healthScore = horoscope.score.areas?.get("health")?.value ?: overall
-        val healthInsight = textData?.health?.insight ?: "Prioritize vitality and mental wellbeing."
+        val healthInsight = textData?.health?.insight ?: ""
         areas.add(
             LifeAreaCardUiModel(
                 id = "health",
@@ -239,6 +234,44 @@ object DailyHomeUiMapper {
                 icon = "🩺",
                 fullInsight = resolveAreaLabels(healthInsight),
                 personalNotes = textData?.health?.personal_notes?.map { resolveAreaLabels(it) } ?: emptyList()
+            )
+        )
+
+        // Spiritual
+        val spiritualScore = horoscope.score.areas?.get("spiritual")?.value ?: overall
+        val spiritualInsight = textData?.spiritual?.insight ?: ""
+        areas.add(
+            LifeAreaCardUiModel(
+                id = "spiritual",
+                label = context.getString(R.string.consult_tone_spiritual),
+                score = spiritualScore,
+                status = getStatusText("spiritual", spiritualScore, context),
+                shortInsight = firstSentence(spiritualInsight),
+                color = AstroColors.Default,
+                icon = "🕉️",
+                fullInsight = resolveAreaLabels(spiritualInsight),
+                personalNotes = textData?.spiritual?.personal_notes?.map { resolveAreaLabels(it) } ?: emptyList()
+            )
+        )
+
+        // General
+        val generalInsight = horoscope.tip?.text ?: horoscope.current_state?.advice_now ?: ""
+        val adviceRaw = horoscope.current_state?.advice_now.orEmpty()
+        val generalNotes = adviceRaw.split(".")
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .map { resolveAreaLabels(it) + "." }
+        areas.add(
+            LifeAreaCardUiModel(
+                id = "general",
+                label = context.getString(R.string.dashboard_general),
+                score = overall,
+                status = getStatusText("general", overall, context),
+                shortInsight = firstSentence(generalInsight),
+                color = AstroColors.Default,
+                icon = "✨",
+                fullInsight = resolveAreaLabels(generalInsight),
+                personalNotes = generalNotes
             )
         )
 
@@ -256,23 +289,38 @@ object DailyHomeUiMapper {
         )
 
         // 6. Cosmic Hour
-        val triggers = horoscope.time_triggers ?: emptyList()
+        val triggers = timings?.time_triggers ?: horoscope.time_triggers ?: emptyList()
         val activeTrigger = findActiveOrUpcomingTrigger(triggers)
+        val goodTimeRange = timings?.good_time?.let { formatTimeRange(it.start, it.end) } ?: "----"
+        val goodTimeLabel = timings?.good_time?.label ?: ""
+        val goodTimeAdvice = timings?.good_time?.advice ?: ""
+        val rahukaalRange = timings?.rahukaal?.let { formatTimeRange(it.start, it.end) } ?: "----"
+        val rahukaalAdvice = timings?.rahukaal?.advice ?: ""
+
         val cosmicHour = CosmicHourUiModel(
             activeLabel = activeTrigger?.label?.replace("✨", "")?.trim() ?: context.getString(R.string.dashboard_cosmic_flow),
             activeTime = activeTrigger?.let { formatTimeRange(it.start, it.end) } ?: context.getString(R.string.dashboard_all_day),
             activeAdvice = activeTrigger?.advice ?: context.getString(R.string.dashboard_cosmic_flow_advice),
             activeColor = activeTrigger?.let { triggerStyleFor(it.type).color } ?: AstroColors.Default,
-            allTriggers = triggers
+            allTriggers = triggers,
+            goodTime = goodTimeRange,
+            goodTimeLabel = goodTimeLabel,
+            goodTimeAdvice = goodTimeAdvice,
+            goodTimeStartRaw = timings?.good_time?.start,
+            goodTimeEndRaw = timings?.good_time?.end,
+            rahukaal = rahukaalRange,
+            rahukaalAdvice = rahukaalAdvice,
+            rahukaalStartRaw = timings?.rahukaal?.start,
+            rahukaalEndRaw = timings?.rahukaal?.end
         )
 
         // 7. Panchanga
         val panchanga = PanchangaUiModel(
-            tithi = resolveAreaLabels(horoscope.meta?.panchanga?.tithi ?: context.getString(R.string.dashboard_shukla_panchami)),
-            nakshatra = resolveAreaLabels(horoscope.meta?.panchanga?.nakshatra ?: context.getString(R.string.dashboard_rohini)),
-            yoga = resolveAreaLabels(horoscope.meta?.panchanga?.yoga ?: context.getString(R.string.dashboard_siddha)),
-            karana = resolveAreaLabels(horoscope.meta?.panchanga?.karana ?: context.getString(R.string.dashboard_kaulava)),
-            vaara = resolveAreaLabels(horoscope.meta?.panchanga?.vaara ?: context.getString(R.string.dashboard_wednesday)),
+            tithi = resolveAreaLabels(timings?.panchanga?.tithi ?: horoscope.meta?.panchanga?.tithi ?: context.getString(R.string.dashboard_shukla_panchami)),
+            nakshatra = resolveAreaLabels(timings?.panchanga?.nakshatra ?: horoscope.meta?.panchanga?.nakshatra ?: context.getString(R.string.dashboard_rohini)),
+            yoga = resolveAreaLabels(timings?.panchanga?.yoga ?: horoscope.meta?.panchanga?.yoga ?: context.getString(R.string.dashboard_siddha)),
+            karana = resolveAreaLabels(timings?.panchanga?.karana ?: horoscope.meta?.panchanga?.karana ?: context.getString(R.string.dashboard_kaulava)),
+            vaara = resolveAreaLabels(timings?.panchanga?.vaara ?: horoscope.meta?.panchanga?.vaara ?: context.getString(R.string.dashboard_wednesday)),
             luckyColor = titleCase(horoscope.lucky?.color ?: context.getString(R.string.dashboard_pale_yellow)),
             luckyNumber = horoscope.lucky?.number ?: 7,
             retrogradePlanets = horoscope.planetary?.retrograde ?: emptyList()
@@ -291,10 +339,30 @@ object DailyHomeUiMapper {
 
     private fun getStatusText(area: String, score: Int, context: Context): String {
         return when {
-            score < 40 -> context.getString(R.string.dashboard_status_challenging)
-            score < 55 -> context.getString(R.string.dashboard_status_delicate)
-            score < 70 -> context.getString(R.string.dashboard_status_balanced)
-            score < 85 -> {
+            score < 35 -> {
+                when (area.lowercase()) {
+                    "love" -> context.getString(R.string.dashboard_status_love_needs_patience)
+                    "career" -> context.getString(R.string.dashboard_status_career_move_slowly)
+                    "finance" -> context.getString(R.string.dashboard_status_finance_needs_caution)
+                    "health" -> context.getString(R.string.dashboard_status_health_needs_rest)
+                    "spiritual" -> context.getString(R.string.dashboard_status_spiritual_seek_stillness)
+                    "overall" -> context.getString(R.string.dashboard_status_heavy_friction)
+                    else -> context.getString(R.string.dashboard_status_challenging)
+                }
+            }
+            score < 50 -> {
+                when (area.lowercase()) {
+                    "love" -> context.getString(R.string.dashboard_status_love_needs_patience)
+                    "career" -> context.getString(R.string.dashboard_status_career_move_slowly)
+                    "finance" -> context.getString(R.string.dashboard_status_finance_needs_caution)
+                    "health" -> context.getString(R.string.dashboard_status_health_needs_rest)
+                    "spiritual" -> context.getString(R.string.dashboard_status_spiritual_seek_stillness)
+                    "overall" -> context.getString(R.string.dashboard_status_challenging)
+                    else -> context.getString(R.string.dashboard_status_delicate)
+                }
+            }
+            score < 65 -> context.getString(R.string.dashboard_status_balanced)
+            score < 80 -> {
                 when (area.lowercase()) {
                     "career" -> context.getString(R.string.dashboard_status_good_progress)
                     "finance" -> context.getString(R.string.dashboard_status_stable)
@@ -352,6 +420,8 @@ object DailyHomeUiMapper {
             "jupiter", "guru" -> "jupiter"
             "venus", "shukra" -> "venus"
             "saturn", "shani" -> "saturn"
+            "rahu" -> "rahu"
+            "ketu" -> "ketu"
             else -> null
         }
     }

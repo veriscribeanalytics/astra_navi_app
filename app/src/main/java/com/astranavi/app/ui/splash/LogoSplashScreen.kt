@@ -89,7 +89,7 @@ fun LogoSplashScreen(
         contentAlignment = Alignment.Center
     ) {
         // Canvas for rotating ring, outline, dots, and soft theme glow
-        Canvas(modifier = Modifier.size(260.dp)) {
+        Canvas(modifier = Modifier.size(300.dp)) {
             val center = Offset(size.width / 2f, size.height / 2f)
             val radius = size.width * 0.38f
 
@@ -112,7 +112,7 @@ fun LogoSplashScreen(
                 color = antiqueGold.copy(alpha = 0.20f),
                 radius = radius,
                 center = center,
-                style = Stroke(width = 1.5.dp.toPx())
+                style = Stroke(width = 2.dp.toPx())
             )
 
             // 12 tiny dots around the wheel outline (faint premium mark at 20% opacity)
@@ -125,7 +125,7 @@ fun LogoSplashScreen(
                 )
                 drawCircle(
                     color = antiqueGold.copy(alpha = 0.20f),
-                    radius = 2.dp.toPx(),
+                    radius = 3.dp.toPx(),
                     center = dotPos
                 )
             }
@@ -138,7 +138,7 @@ fun LogoSplashScreen(
                 useCenter = false,
                 topLeft = Offset(center.x - radius, center.y - radius),
                 size = Size(radius * 2f, radius * 2f),
-                style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
+                style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
             )
         }
 
@@ -147,14 +147,14 @@ fun LogoSplashScreen(
             BrandMark(
                 brandColor = antiqueGold,
                 shadowColor = shadowGold,
-                fontSize = 42f,
-                letterSpacing = 2f,
-                taglineSpacer = 6f
+                fontSize = 48f,
+                letterSpacing = 3f,
+                taglineSpacer = 8f
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = displayText,
-                style = MaterialTheme.typography.labelSmall.copy(
+                style = MaterialTheme.typography.labelLarge.copy(
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.Light
                 ),

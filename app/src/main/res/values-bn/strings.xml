@@ -5,7 +5,7 @@
     <string name="nav_kundli">কুণ্ডলী</string>
     <string name="nav_match">মিলন</string>
     <string name="nav_consult">পরামর্শ</string>
-    <string name="nav_blogs">জ্ঞান</string>
+    <string name="nav_blogs">শিখুন</string>
     <string name="nav_rashis">রাশি চক্র</string>
     <string name="nav_chat">এআই চ্যাট</string>
     <string name="nav_profile">প্রোফাইল</string>
@@ -99,7 +99,7 @@
     <string name="dashboard_today">আজ</string>
     <string name="dashboard_lucky">শুভ</string>
     <string name="dashboard_saturn_transit">শনি গোচর</string>
-    <string name="dashboard_general">সাধারণ</string>
+    <string name="dashboard_general">সাধারণ দৃষ্টিভঙ্গি</string>
     <string name="dashboard_love">প্রেম</string>
     <string name="dashboard_career">কর্মজীবন</string>
     <string name="dashboard_finance">অর্থ</string>
@@ -125,7 +125,20 @@
     <string name="dashboard_status_stable">স্থিতিশীল</string>
     <string name="dashboard_status_favorable">অনুকূল</string>
     <string name="dashboard_status_excellent">চমৎকার</string>
+    <string name="dashboard_status_heavy_friction">ভারী বাধা</string>
+    <string name="dashboard_status_love_needs_patience">ধৈর্য প্রয়োজন</string>
+    <string name="dashboard_status_career_move_slowly">ধীরে চলুন</string>
+    <string name="dashboard_status_finance_needs_caution">সতর্কতা প্রয়োজন</string>
+    <string name="dashboard_status_health_needs_rest">বিশ্রাম প্রয়োজন</string>
+    <string name="dashboard_status_spiritual_seek_stillness">শান্তি খুঁজুন</string>
+    <string name="dashboard_label_overall_life_score">সম্মিলিত জীবন স্কোর</string>
+    <string name="dashboard_label_caution_window">সতর্কতা সময়</string>
+    <string name="dashboard_label_rahu_kaal_upcoming">রাহু কাল আগামী</string>
+    <string name="dashboard_label_rahu_kaal_active">রাহু কাল সক্রিয়</string>
+    <string name="dashboard_label_rahu_kaal_ended">রাহু কাল সমাপ্ত</string>
     <string name="dashboard_header_life_areas">আজকের জীবনের ক্ষেত্রসমূহ</string>
+    <string name="dashboard_chip_today_panchang">আপনার আজকের পঞ্জিকা</string>
+    <string name="dashboard_chip_panchang_view">দেখুন</string>
     <string name="dashboard_header_current_week">চলতি সপ্তাহ</string>
     <string name="dashboard_header_kundli">কুণ্ডলী</string>
     <string name="dashboard_header_family">পরিবার ও সম্পর্ক</string>
@@ -158,7 +171,7 @@
     <string name="dashboard_btn_ask_navi_today">আজকের দিনটি সম্পর্কে নাভিকে জিজ্ঞাসা করুন</string>
     <string name="dashboard_prompt_ask_navi_today">আজকের আমার শক্তি সম্পর্কে আরও বলুন। স্কোর: %1$d, মেজাজ: %2$s।</string>
     <string name="dashboard_prompt_ask_navi_why">কেন আমার দিনটি একটি %1$s দিন? মহাজাগতিকভাবে কী ঘটছে তা আমাকে বিস্তারিত বুঝিয়ে দিন।</string>
-    <string name="dashboard_label_overall_energy">সামগ্রিক শক্তি</string>
+    <string name="dashboard_label_general_outlook">সাধারণ দৃষ্টিভঙ্গি</string>
     <string name="dashboard_label_main_tip">প্রধান টিপ</string>
     <string name="dashboard_label_dominant_planet">প্রভাবশালী গ্রহ</string>
     <string name="dashboard_label_active_dasha">সক্রিয় দশা / গোচর</string>

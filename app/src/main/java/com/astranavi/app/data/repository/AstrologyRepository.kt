@@ -89,16 +89,7 @@ class AstrologyRepository(
         return apiService.getConsultHistory(limit, page)
     }
 
-    suspend fun getForecast(area: String): Response<ForecastResponse> {
-        val lang = LocaleManager.current()
-        return apiCache?.getOrFetch(
-            logicalKey = apiCache.forecastKey(area, daysBack = null, daysForward = null, lang = lang),
-            responseClass = ForecastResponse::class.java,
-            policy = ApiCachePolicy.UntilNextLocalMidnight
-        ) {
-            apiService.getForecast(area, lang = lang)
-        } ?: apiService.getForecast(area, lang = lang)
-    }
+
 
     suspend fun getGeneralHoroscope(sign: String): Response<HoroscopeResponse> {
         return apiCache?.getOrFetch(

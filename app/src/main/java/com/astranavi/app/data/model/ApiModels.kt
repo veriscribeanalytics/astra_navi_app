@@ -147,7 +147,8 @@ data class AreasTextData(
     val career: AreaInsight?,
     val love: AreaInsight?,
     val health: AreaInsight?,
-    val finance: AreaInsight?
+    val finance: AreaInsight?,
+    val spiritual: AreaInsight? = null
 )
 @Serializable
 data class AreaInsight(val insight: String, val tone: String, val personalization_applied: Boolean? = null, val personal_notes: List<String>? = null)
@@ -608,7 +609,13 @@ data class PersonDetail(
     val dob: String,
     val tob: String,
     val place: String,
-    val gender: String = "male"
+    val gender: String = "male",
+    val birthLatitude: Double? = null,
+    val birthLongitude: Double? = null,
+    val birthPlaceName: String? = null,
+    val birthTimezoneName: String? = null,
+    val birthTimezoneOffsetAtBirth: Double? = null,
+    val birthTimeFold: Double? = null
 )
 
 @Serializable
@@ -770,7 +777,10 @@ data class ChatAvatar(
     val personality: String = "",
     val creditCost: Int = 1,
     val isDefault: Boolean = false,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val accentColor: String? = null,
+    val iconKey: String? = null,
+    val defaultMode: String? = null
 )
 
 @Serializable
@@ -804,7 +814,12 @@ data class ConsultRequest(
     val secondary_category: String,
     val final_question: String,
     val response_tone: String = "warm",
-    val optional_note: String? = null
+    val optional_note: String? = null,
+    val birthLatitude: Double? = null,
+    val birthLongitude: Double? = null,
+    val birthTimezoneName: String? = null,
+    val birthTimezoneOffsetAtBirth: Double? = null,
+    val birthTimeFold: Double? = null
 )
 
 @Serializable
@@ -844,6 +859,7 @@ data class Category(
     val key: String,
     val label: String,
     val icon: String,
+    val description: String? = null,
     val subs: List<SubCategory>
 )
 
@@ -879,4 +895,66 @@ data class ConsultTreeWrapper(
     val age: Int,
     val age_group: AgeGroup? = null,
     val tree: ConsultTree
+)
+
+@Serializable
+data class TimingsLocation(
+    val mode: String? = null,
+    val label: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
+)
+
+@Serializable
+data class TimingsGoodTime(
+    val start: String,
+    val end: String,
+    val type: String,
+    val label: String,
+    val advice: String,
+    val reason: String? = null,
+    val source: String? = null,
+    val trimmed_for_rahukaal: Boolean? = null
+)
+
+@Serializable
+data class TimingsRahukaal(
+    val date: String? = null,
+    val weekday: String? = null,
+    val start: String,
+    val end: String,
+    val startIso: String? = null,
+    val endIso: String? = null,
+    val durationMinutes: Int? = null,
+    val segment: Int? = null,
+    val source: String? = null,
+    val label: String,
+    val type: String,
+    val advice: String
+)
+
+@Serializable
+data class TimingsPanchanga(
+    val tithi: String? = null,
+    val nakshatra: String? = null,
+    val yoga: String? = null,
+    val karana: String? = null,
+    val vaara: String? = null
+)
+
+@Serializable
+data class DailyHoroscopeTimingsResponse(
+    val date: String? = null,
+    val date_display: String? = null,
+    val sign: String? = null,
+    val signLabel: String? = null,
+    val lang: String? = null,
+    val timezone: String? = null,
+    val location: TimingsLocation? = null,
+    val good_time: TimingsGoodTime? = null,
+    val rahukaal: TimingsRahukaal? = null,
+    val time_triggers: List<TimeTrigger>? = null,
+    val risk_windows: List<TimeTrigger>? = null,
+    val panchanga: TimingsPanchanga? = null,
+    val generated_at: String? = null
 )

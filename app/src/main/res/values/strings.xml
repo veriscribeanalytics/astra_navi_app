@@ -5,7 +5,7 @@
     <string name="nav_kundli">Kundli</string>
     <string name="nav_match">Match</string>
     <string name="nav_consult">Consult</string>
-    <string name="nav_blogs">Knowledge</string>
+    <string name="nav_blogs">Learn</string>
     <string name="nav_rashis">Zodiac</string>
     <string name="nav_chat">AI Chat</string>
     <string name="nav_profile">Profile</string>
@@ -20,6 +20,18 @@
     <string name="drawer_celestial_guide">Your celestial guide</string>
     <string name="drawer_good_evening">Good Evening ✦</string>
     <string name="drawer_rising_sign">Rising: %1$s</string>
+    <string name="drawer_view_profile">View profile</string>
+    <string name="drawer_section_quick_action">QUICK ACTION</string>
+    <string name="drawer_section_astrology_tools">ASTROLOGY TOOLS</string>
+    <string name="drawer_section_knowledge_library">KNOWLEDGE LIBRARY</string>
+    <string name="drawer_section_account">ACCOUNT</string>
+    <string name="drawer_cta_ask_ai_title">Ask AI Astrologer</string>
+    <string name="drawer_cta_ask_ai_sub">Get instant guidance from your chart</string>
+    <string name="drawer_item_match_compatibility">Match Compatibility</string>
+    <string name="drawer_item_astrologers_directory">Astrologers Directory</string>
+    <string name="drawer_item_knowledge_hub">Knowledge Hub</string>
+    <string name="drawer_item_rashis">Rashis</string>
+    <string name="drawer_item_plans_credits">Plans &amp; Credits</string>
     <string name="menu_preferences">PREFERENCES</string>
     <string name="menu_light_mode">Switch to Light Mode</string>
     <string name="menu_dark_mode">Switch to Dark Mode</string>
@@ -45,6 +57,7 @@
     <string name="dashboard_label_antardasha_title">Antardasha</string>
     <string name="cd_back">Back</string>
     <string name="cd_open_menu">Open Menu</string>
+    <string name="cd_history">History</string>
     <string name="cd_consult_history">Consult History</string>
     <string name="cd_match_history">Match History</string>
     <string name="cd_close_history">Close History</string>
@@ -99,7 +112,7 @@
     <string name="dashboard_today">Today</string>
     <string name="dashboard_lucky">Lucky</string>
     <string name="dashboard_saturn_transit">Saturn Transit</string>
-    <string name="dashboard_general">General</string>
+    <string name="dashboard_general">General Outlook</string>
     <string name="dashboard_love">Love</string>
     <string name="dashboard_career">Career</string>
     <string name="dashboard_finance">Finance</string>
@@ -125,8 +138,40 @@
     <string name="dashboard_status_stable">Stable</string>
     <string name="dashboard_status_favorable">Favorable</string>
     <string name="dashboard_status_excellent">Excellent</string>
+    <string name="dashboard_status_heavy_friction">Heavy Friction</string>
+    <string name="dashboard_status_love_needs_patience">Needs Patience</string>
+    <string name="dashboard_status_career_move_slowly">Move Slowly</string>
+    <string name="dashboard_status_finance_needs_caution">Needs Caution</string>
+    <string name="dashboard_status_health_needs_rest">Needs Rest</string>
+    <string name="dashboard_status_spiritual_seek_stillness">Seek Stillness</string>
+    <string name="dashboard_label_overall_life_score">COMBINED LIFE SCORE</string>
     <string name="dashboard_header_life_areas">TODAY\'S LIFE AREAS</string>
+    <string name="dashboard_header_today_timing">YOUR TIMING</string>
+    <string name="dashboard_header_today_overview">TODAY OVERVIEW</string>
+    <string name="dashboard_label_your_day">YOUR DAY</string>
+    <string name="dashboard_timing_good_default">Optimal for important work</string>
+    <string name="dashboard_timing_caution_default">Avoid risky decisions</string>
+    <string name="dashboard_header_upcoming_today">UPCOMING TODAY</string>
+    <string name="dashboard_label_view_full_schedule">View full schedule →</string>
+    <string name="dashboard_action_dismiss">Dismiss</string>
+    <string name="dashboard_label_best_time">BEST TIME</string>
+    <string name="dashboard_label_good_time_upcoming">UPCOMING GOOD TIME</string>
+    <string name="dashboard_label_good_time_current">CURRENT GOOD TIME</string>
+    <string name="dashboard_label_good_time">GOOD TIME</string>
+    <string name="dashboard_label_caution_window">CAUTION WINDOW</string>
+    <string name="dashboard_label_rahu_kaal_upcoming">RAHU KAAL UPCOMING</string>
+    <string name="dashboard_label_rahu_kaal_active">RAHU KAAL ACTIVE</string>
+    <string name="dashboard_label_rahu_kaal_ended">RAHU KAAL ENDED</string>
+    <string name="dashboard_label_now">NOW</string>
+    <string name="dashboard_label_current">Current</string>
+    <string name="dashboard_label_dominant_influence">DOMINANT INFLUENCE</string>
+    <string name="dashboard_label_dominant_influence_inline">Dominant Influence:</string>
+    <string name="dashboard_label_full_readings">Full Readings</string>
+    <string name="dashboard_chip_today_panchang">Your Today\'s Panchang</string>
+    <string name="dashboard_chip_panchang_view">View</string>
     <string name="dashboard_header_current_week">CURRENT WEEK</string>
+    <string name="dashboard_header_ask_astrologers">ASK AI ASTROLOGERS</string>
+    <string name="dashboard_label_view_all_arrow">View All →</string>
     <string name="dashboard_header_kundli">KUNDLI</string>
     <string name="dashboard_header_family">FAMILY &amp; RELATIONSHIPS</string>
     <string name="dashboard_header_astro_focus">ASTRO FOCUS</string>
@@ -158,7 +203,7 @@
     <string name="dashboard_btn_ask_navi_today">Ask Navi About Today</string>
     <string name="dashboard_prompt_ask_navi_today">Tell me more about my energy today. Score: %1$d, Mood: %2$s.</string>
     <string name="dashboard_prompt_ask_navi_why">Why is my day a %1$s day? Walk me through what\'s happening cosmically.</string>
-    <string name="dashboard_label_overall_energy">OVERALL ENERGY</string>
+    <string name="dashboard_label_general_outlook">GENERAL OUTLOOK</string>
     <string name="dashboard_label_main_tip">MAIN TIP</string>
     <string name="dashboard_label_dominant_planet">DOMINANT PLANET</string>
     <string name="dashboard_label_active_dasha">ACTIVE DASHA / TRANSIT</string>
@@ -326,6 +371,28 @@
     <string name="profile_success_updated">Profile updated successfully</string>
     <string name="profile_error_delete_failed">Failed to delete account. Please try again later.</string>
 
+    <!-- Profile redesign (hero, chart accuracy, sections, sticky bar) -->
+    <string name="profile_greeting_morning">Good Morning</string>
+    <string name="profile_greeting_afternoon">Good Afternoon</string>
+    <string name="profile_greeting_evening">Good Evening</string>
+    <string name="profile_greeting_night">Good Night</string>
+    <string name="profile_btn_view_kundli">View Kundli</string>
+    <string name="profile_card_chart_accuracy">Chart Accuracy</string>
+    <string name="profile_text_details_complete">%1$d/%2$d details complete</string>
+    <string name="profile_text_predictions_personalized">Your predictions are personalized.</string>
+    <string name="profile_title_birth_details">BIRTH DETAILS</string>
+    <string name="profile_text_birth_helper">Used to calculate your Kundli and predictions</string>
+    <string name="profile_text_personal_helper">Helps personalize guidance and remedies</string>
+    <string name="profile_text_pob_helper">Exact birth place improves house and ascendant accuracy.</string>
+    <string name="profile_label_add_phone">Add phone number</string>
+    <string name="profile_title_account_security">ACCOUNT &amp; SECURITY</string>
+    <string name="profile_title_danger_zone">DANGER ZONE</string>
+    <string name="profile_label_manage_sub">Manage Subscription</string>
+    <string name="profile_text_no_changes">No changes to save</string>
+    <string name="profile_text_up_to_date">Your profile is up to date</string>
+    <string name="profile_text_unsaved_changes">Unsaved changes</string>
+    <string name="profile_text_tap_save">Tap Save to apply</string>
+
     <!-- B6 Plans / Paywall -->
     <string name="paywall_premium_feature">Premium Feature</string>
     <string name="paywall_dismiss">Dismiss</string>
@@ -393,6 +460,11 @@
     <string name="avatar_selection_guides_header">GUIDES</string>
     <string name="avatar_selection_recommended">Recommended</string>
     <string name="avatar_selection_chat_with_name">Chat with %1$s</string>
+    <string name="dashboard_astrologer_ask_now">Ask Now</string>
+    <plurals name="credits_count">
+        <item quantity="one">%1$d credit</item>
+        <item quantity="other">%1$d credits</item>
+    </plurals>
     <string name="avatar_selection_our_cosmic_guides">OUR COSMIC GUIDES</string>
     <string name="avatar_selection_our_cosmic_guides_desc">Meet the AI guides behind Navi. Each one is tuned for a different kind of question — pick the one that fits your moment.</string>
     <plurals name="credits_per_reply">

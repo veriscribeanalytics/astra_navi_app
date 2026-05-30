@@ -38,6 +38,12 @@ class ConsultViewModel(
     val dob = mutableStateOf("")
     val tob = mutableStateOf("")
     val pob = mutableStateOf("")
+    val userName = mutableStateOf("")
+    val birthLatitude = mutableStateOf<Double?>(null)
+    val birthLongitude = mutableStateOf<Double?>(null)
+    val birthTimezoneName = mutableStateOf<String?>(null)
+    val birthTimezoneOffset = mutableStateOf<Double?>(null)
+    val birthTimeFold = mutableStateOf<Double?>(null)
 
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
@@ -45,12 +51,18 @@ class ConsultViewModel(
     private val _tree = mutableStateOf<ConsultTree?>(null)
     val tree: State<ConsultTree?> = _tree
 
+    private val _serverAge = mutableStateOf<Int?>(null)
+    val serverAge: State<Int?> = _serverAge
+
+    private val _ageGroup = mutableStateOf<AgeGroup?>(null)
+    val ageGroup: State<AgeGroup?> = _ageGroup
+
     val selectedCategory = mutableStateOf<Category?>(null)
     val highlightedCategory = mutableStateOf<Category?>(null)
     val selectedSubCategory = mutableStateOf<SubCategory?>(null)
     val selectedQuestion = mutableStateOf("")
     val selectedTone = mutableStateOf("warm")
-    val selectedLanguage = mutableStateOf("English")
+    val selectedLanguage = mutableStateOf("en")
     val customNote = mutableStateOf("")
 
     private val _birthDetailsError = mutableStateOf<String?>(null)
@@ -95,6 +107,12 @@ class ConsultViewModel(
             dob.value = sessionManager.userDob.first() ?: ""
             tob.value = sessionManager.userTob.first() ?: ""
             pob.value = sessionManager.userPob.first() ?: ""
+            userName.value = sessionManager.userName.first() ?: ""
+            birthLatitude.value = sessionManager.birthLatitude.first()
+            birthLongitude.value = sessionManager.birthLongitude.first()
+            birthTimezoneName.value = sessionManager.birthTimezoneName.first()
+            birthTimezoneOffset.value = sessionManager.birthTimezoneOffset.first()
+            birthTimeFold.value = sessionManager.birthTimeFold.first()
         }
     }
 
@@ -102,6 +120,7 @@ class ConsultViewModel(
         if (!validateBirthDetails()) return
         
         val age = calculateAge(dob.value)
+        android.util.Log.d("TreeDebug", "Sending age=$age, dob=${dob.value}")
         _isLoading.value = true
         viewModelScope.launch {
             try {
@@ -110,11 +129,15 @@ class ConsultViewModel(
                     lang = selectedLanguage.value
                 )
                 if (response.isSuccessful && response.body() != null) {
-                    _tree.value = response.body()?.tree
+                    val wrapper = response.body()!!
+                    android.util.Log.d("TreeDebug", "life_stage=${wrapper.tree.life_stage}, primary=${wrapper.tree.primary.map { it.label }}")
+                    _tree.value = wrapper.tree
+                    _serverAge.value = wrapper.age
+                    _ageGroup.value = wrapper.age_group
                     _step.value = ConsultStep.CategorySelection
                 }
             } catch (e: Exception) {
-                // Error handling
+                android.util.Log.e("ConsultViewModel", "Error fetching tree", e)
             } finally {
                 _isLoading.value = false
             }
@@ -162,7 +185,13 @@ class ConsultViewModel(
                     secondary_category = selectedSubCategory.value?.key ?: "",
                     final_question = if (selectedQuestion.value == "Other") customNote.value else selectedQuestion.value,
                     response_tone = selectedTone.value,
-                    language = selectedLanguage.value
+                    language = selectedLanguage.value,
+                    birthLatitude = birthLatitude.value,
+                    birthLongitude = birthLongitude.value,
+                    birthTimezoneName = birthTimezoneName.value,
+                    birthTimezoneOffsetAtBirth = birthTimezoneOffset.value,
+                    birthTimeFold = birthTimeFold.value,
+                    name = userName.value.ifBlank { null }
                 )
 
                 withContext(Dispatchers.IO) {
@@ -210,6 +239,17 @@ class ConsultViewModel(
                     }
                 }
             } catch (e: Exception) {
+                if (e is retrofit2.HttpException) {
+                    val code = e.code()
+                    val errorBody = try {
+                        e.response()?.errorBody()?.string()
+                    } catch (ex: Exception) {
+                        "Failed to read error body: ${ex.message}"
+                    }
+                    android.util.Log.e("ConsultViewModel", "HTTP Error $code response: $errorBody", e)
+                } else {
+                    android.util.Log.e("ConsultViewModel", "Error generating consultation", e)
+                }
                 withContext(Dispatchers.Main) {
                     _consultResult.value = "I'm sorry, I'm having trouble connecting to the stars right now. Please try again later."
                 }

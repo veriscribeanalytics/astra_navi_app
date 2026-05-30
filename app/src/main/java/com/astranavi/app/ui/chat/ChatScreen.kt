@@ -92,7 +92,7 @@ fun ChatScreen(
 
     var showDeleteDialog by remember { mutableStateOf<String?>(null) }
 
-    val palette = chatAvatarPalette(activeAvatar?.avatarId)
+    val palette = chatAvatarPalette(activeAvatar?.accentColor)
     ApplyRootGlow(GlowColors(accent = palette.accent, deep = palette.deep, radial = palette.radial))
 
     // Wide-screen split: guide list left, conversation right.

@@ -103,7 +103,8 @@ fun AstraNaviTheme(
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val semanticColors = if (darkTheme) DarkSemanticColors else LightSemanticColors
-    
+    val appTypography = rememberAppTypography()
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -115,7 +116,10 @@ fun AstraNaviTheme(
         }
     }
 
-    CompositionLocalProvider(LocalSemanticColors provides semanticColors) {
+    CompositionLocalProvider(
+        LocalSemanticColors provides semanticColors,
+        LocalAppTypography provides appTypography
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,

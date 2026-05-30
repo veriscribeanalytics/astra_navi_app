@@ -1,8 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper -->
+    <string name="match_step_details">വിശദാംശങ്ങൾ</string>
+    <string name="match_step_analysis">വിശകലനം</string>
+    <string name="match_step_result">ഫലം</string>
+    <string name="match_step_person1">ഒന്നാമത്തെ വ്യക്തി</string>
+    <string name="match_step_person2">രണ്ടാമത്തെ വ്യക്തി</string>
+    <string name="match_btn_next">അടുത്തത്</string>
+    <string name="match_btn_back">പുറകോട്ട്</string>
+
+    <!-- Match Benefits -->
+    <string name="match_benefits_title">നിങ്ങൾക്ക് ലഭിക്കുന്നത്:</string>
+    <string name="match_benefit_guna_title">വിശദമായ 36 ഗുണ വിശകലനം</string>
+    <string name="match_benefit_guna_desc">പരമ്പരാഗത വേദ തത്ത്വങ്ങളെ അടിസ്ഥാനമാക്കിയ സമ്പൂർണ്ണ പൊരുത്ത സ്കോർ നേടുക.</string>
+    <string name="match_benefit_strengths_title">ശക്തികളും വെല്ലുവിളികളും</string>
+    <string name="match_benefit_strengths_desc">നിങ്ങളുടെ ബന്ധത്തിന്റെ ചലനാത്മകത ആഴത്തിൽ മനസ്സിലാക്കുക.</string>
+    <string name="match_benefit_guidance_title">ഐക്യത്തിനായുള്ള മാർഗനിർദേശം</string>
+    <string name="match_benefit_guidance_desc">മികച്ചതും സന്തുഷ്ടവുമായ ബന്ധത്തിനായുള്ള പ്രായോഗിക നിർദേശങ്ങൾ.</string>
+
     <!-- Match Input Form -->
     <string name="match_btn_calculate">പൊരുത്തം കണക്കാക്കുക</string>
     <string name="match_desc_vedic_analysis">ദാമ്പത്യ ഐക്യത്തിനും ദീർഘായുസ്സിനുമായി പരമ്പരാഗത 36 ഗുണ വേദ പൊരുത്ത വിശകലനം.</string>
+    <string name="match_footer_secure">സുരക്ഷിതം • സ്വകാര്യം • പരമ്പരാഗതം</string>
+    <string name="match_hint_accuracy">ഏറ്റവും കൃത്യമായ പൊരുത്ത വിശകലനത്തിനായി എല്ലാ വിശദാംശങ്ങളും കൃത്യമാണെന്ന് ഉറപ്പാക്കുക.</string>
     <string name="match_label_person1">വ്യക്തി 1 (നിങ്ങൾ)</string>
     <string name="match_label_person2">വ്യക്തി 2 (പങ്കാളി)</string>
     <string name="match_field_name">പേര്</string>

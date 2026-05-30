@@ -17,6 +17,11 @@
     <!-- Consult Screen - Category Selection Step -->
     <string name="consult_title_select_domain">Select Domain</string>
     <string name="consult_label_personalized_guidance">Personalized guidance</string>
+    <string name="consult_question_guidance_prompt">What do you need guidance with?</string>
+    <string name="consult_subtitle_life_stage">Navi will read your chart based on your life stage.</string>
+    <string name="consult_life_stage_age_format">%1$s • Age %2$d</string>
+    <string name="consult_section_more_topics">More Topics</string>
+    <string name="consult_subtitle_more_topics">Additional areas you may ask about</string>
 
     <!-- Consult Screen - Subcategory Selection Step -->
     <string name="consult_title_focus_area_format">Focus area for %1$s</string>

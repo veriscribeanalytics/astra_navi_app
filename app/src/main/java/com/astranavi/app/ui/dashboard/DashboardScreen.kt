@@ -91,6 +91,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.astranavi.app.ui.components.responsiveFontSizes
 import com.astranavi.app.util.LocaleFormatter
 import com.astranavi.app.util.currentAppLocale
 import com.astranavi.app.util.nextLocalHourMillis
@@ -115,6 +116,7 @@ fun DashboardScreen(
     onNavigateToRashis: (String?) -> Unit = {},
     onNavigateToExperts: () -> Unit = {},
     onNavigateToChat: (String?, String?) -> Unit = { _, _ -> },
+    onChatWithAstrologer: (String) -> Unit = {},
     onNavigateToKundli: () -> Unit = {},
     onNavigateToMatch: () -> Unit = {},
     onNavigateToMatchHistory: () -> Unit = {},
@@ -182,6 +184,7 @@ fun DashboardScreen(
                                 scrollState = scrollState,
                                 onNavigateToExperts = onNavigateToExperts,
                                 onNavigateToChat = onNavigateToChat,
+                                onChatWithAstrologer = onChatWithAstrologer,
                                 onNavigateToKundli = onNavigateToKundli,
                                 onNavigateToRashis = onNavigateToRashis,
                                 onNavigateToMatch = onNavigateToMatch,
@@ -211,6 +214,7 @@ fun DashboardContent(
     scrollState: ScrollState,
     onNavigateToExperts: () -> Unit = {},
     onNavigateToChat: (String?, String?) -> Unit = { _, _ -> },
+    onChatWithAstrologer: (String) -> Unit = {},
     onNavigateToKundli: () -> Unit = {},
     onNavigateToRashis: (String?) -> Unit = {},
     onNavigateToMatch: () -> Unit = {},
@@ -232,7 +236,8 @@ fun DashboardContent(
             lagnaSign = uiState.lagnaSign,
             userName = uiState.userName,
             isDarkTheme = !isLightMode,
-            context = context
+            context = context,
+            timings = uiState.timings
         )
     }
 
@@ -240,6 +245,17 @@ fun DashboardContent(
         ScoreColors.paletteFor("general", horoscope.score.overall, isDarkTheme = !isLightMode)
     }
     val themeColor = if (isLightMode) generalPalette.main else generalPalette.glow
+
+    val glowSurface = MaterialTheme.colorScheme.background
+    val dashboardGlowAccent = lerp(generalPalette.glow, glowSurface, 0.25f)
+    val dashboardGlowDeep = lerp(generalPalette.main, glowSurface, 0.25f)
+    com.astranavi.app.ui.components.ApplyRootGlow(
+        com.astranavi.app.ui.components.GlowColors(
+            accent = dashboardGlowAccent,
+            deep = dashboardGlowDeep,
+            radial = dashboardGlowAccent
+        )
+    )
     val weeklyForecastColor = remember(uiState.forecast, isLightMode) {
         if (uiState.forecast != null) {
             val pal = ScoreColors.paletteFor("forecast", 80, isDarkTheme = !isLightMode)
@@ -314,7 +330,7 @@ fun DashboardContent(
     }
 
     // Alert surface intentionally hidden; data still produced by VM.
-    // Cosmic Hour content now lives inside DailyHeroCard.
+    // Cosmic Hour content now lives inside TodayOverviewCard.
     // Restore as in-app notification surface when notifications land. See next steps.md.
     val showAlertRow = false
 
@@ -323,25 +339,30 @@ fun DashboardContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = responsive.pagePadding)
-                .padding(top = 4.dp),
+                .padding(horizontal = responsive.pagePadding * 0.8f)
+                .padding(top = 10.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 1. Greeting + Daily Chips (with inline compact weekly forecast on fold/tablet)
             if (responsive.isMediumWidth && uiState.forecast != null) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.Top
                 ) {
-                    Box(modifier = Modifier.weight(1f)) {
+                    Box(modifier = Modifier.weight(1.1f)) {
                         GreetingAndChips(
                             header = homeUiState.header,
                             chips = homeUiState.chips,
+                            moonSign = uiState.moonSign,
+                            userEmail = uiState.userEmail,
+                            accessToken = uiState.accessToken,
+                            onNavigateToRashis = onNavigateToRashis,
+                            onNavigateToKundli = onNavigateToKundli,
                             onChipClick = { activeBottomSheet = DashboardBottomSheetState.AstroDetails }
                         )
                     }
-                    Box(modifier = Modifier.weight(1f)) {
+                    Box(modifier = Modifier.weight(1.3f)) {
                         WeeklyForecastCompact(
                             forecast = uiState.forecast,
                             themeColor = weeklyForecastColor,
@@ -353,24 +374,41 @@ fun DashboardContent(
                 GreetingAndChips(
                     header = homeUiState.header,
                     chips = homeUiState.chips,
+                    moonSign = uiState.moonSign,
+                    userEmail = uiState.userEmail,
+                    accessToken = uiState.accessToken,
+                    onNavigateToRashis = onNavigateToRashis,
+                    onNavigateToKundli = onNavigateToKundli,
                     onChipClick = { activeBottomSheet = DashboardBottomSheetState.AstroDetails }
                 )
             }
 
-            // 2. Daily Hero Card (now hosts Cosmic Hour content + dominant-planet visual)
-            DailyHeroCard(
+            // 2. Today Overview (score + mood + dominant influence + timing windows, one card)
+            TodayOverviewCard(
                 hero = homeUiState.hero,
                 cosmicHour = homeUiState.cosmicHour,
                 themeColor = themeColor,
                 onScoreClick = { activeBottomSheet = DashboardBottomSheetState.FullEnergy },
-                onCosmicHourClick = { activeBottomSheet = DashboardBottomSheetState.CosmicHourDetails }
+                onTimingClick = { activeBottomSheet = DashboardBottomSheetState.CosmicHourDetails }
             )
 
             // 3. Today's Life Areas Carousel
-            SectionHeader(title = stringResource(R.string.dashboard_header_life_areas))
+            var lifeAreasScrollHint by remember { mutableIntStateOf(0) }
+            SectionHeader(
+                title = stringResource(R.string.dashboard_header_life_areas),
+                trailing = {
+                    Text(
+                        text = "scroll to view all →",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.clickable { lifeAreasScrollHint++ }
+                    )
+                }
+            )
             LifeAreasCarousel(
                 areas = homeUiState.lifeAreas,
-                onAreaClick = { area -> activeBottomSheet = DashboardBottomSheetState.LifeAreaDetails(area.id) }
+                onAreaClick = { area -> activeBottomSheet = DashboardBottomSheetState.LifeAreaDetails(area.id) },
+                scrollHintKey = lifeAreasScrollHint
             )
 
             // 4. Weekly Forecast (mobile only — fold/tablet shows compact variant in top row)
@@ -379,24 +417,37 @@ fun DashboardContent(
                 WeeklyForecastSection(uiState.forecast, weeklyForecastColor, onNavigateToForecast)
             }
 
-            // 5. Kundli Quick Peek
-            if (uiState.kundliPreview != null) {
-                SectionHeader(stringResource(R.string.dashboard_header_kundli))
-                KundliPeekCard(
-                    data = uiState.kundliPreview,
-                    userEmail = uiState.userEmail,
-                    accessToken = uiState.accessToken,
-                    onClick = onNavigateToKundli
+            // 4b. Ask AI Astrologers (first 3 guides + View All → Astrologers screen)
+            if (uiState.topAstrologers.isNotEmpty()) {
+                SectionHeader(
+                    title = stringResource(R.string.dashboard_header_ask_astrologers),
+                    trailing = {
+                        Text(
+                            text = stringResource(R.string.dashboard_label_view_all_arrow),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable { onNavigateToExperts() }
+                        )
+                    }
+                )
+                AskAstrologersRow(
+                    astrologers = uiState.topAstrologers,
+                    onAstrologerClick = { avatar -> onChatWithAstrologer(avatar.avatarId) }
                 )
             }
 
-            // 6. Family & Relationships
+            // 5. Kundli — chart now lives in the greeting tile (top right)
+
+            // 6. Family & Relationships (Commented out fully)
+            /*
             SectionHeader(title = stringResource(R.string.dashboard_header_family))
             FamilyRelationshipsSection(
                 members = familyMembers,
                 isTablet = responsive.isTabletWidth,
                 onMemberClick = { member -> activeBottomSheet = DashboardBottomSheetState.FamilyMemberDetails(member.id) }
             )
+            */
 
             // 7. Alert (gated off; data preserved)
             if (showAlertRow) {
@@ -551,7 +602,7 @@ fun BottomSheetContentSelector(
             AstroDetailsBottomSheetContent(panchanga = homeUiState.panchanga, onAskNavi = { prompt -> onNavigateToChat(prompt, null) }, onDismiss = onDismiss)
         }
         is DashboardBottomSheetState.FullEnergy -> {
-            FullEnergyBottomSheetContent(hero = homeUiState.hero, alert = homeUiState.alert, onAskNavi = { prompt -> onNavigateToChat(prompt, null) }, onDismiss = onDismiss)
+            FullEnergyBottomSheetContent(hero = homeUiState.hero, alert = homeUiState.alert, panchanga = homeUiState.panchanga, onAskNavi = { prompt -> onNavigateToChat(prompt, null) }, onDismiss = onDismiss)
         }
         is DashboardBottomSheetState.LifeAreaDetails -> {
             val area = homeUiState.lifeAreas.find { it.id == state.areaId }
@@ -1455,17 +1506,21 @@ fun AllTriggersBottomSheet(
 }
 
 @Composable
-fun SectionHeader(title: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
-        Box(modifier = Modifier.weight(1f).height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
+fun SectionHeader(title: String, trailing: (@Composable () -> Unit)? = null) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+    ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, letterSpacing = 3.sp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-            modifier = Modifier.padding(horizontal = 16.dp),
-            fontWeight = FontWeight.Black
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, letterSpacing = 2.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            fontWeight = FontWeight.Black,
+            modifier = Modifier.weight(1f)
         )
-        Box(modifier = Modifier.weight(1f).height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
+        if (trailing != null) {
+            trailing()
+        }
     }
 }
 
@@ -1697,44 +1752,6 @@ fun WeeklyForecastSection(forecast: WeeklyForecastResponse, themeColor: Color, o
                     .height(if (metrics.isCompactHeight || metrics.isLargeFont) 88.dp else 100.dp),
                 showLabels = true
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
-            Spacer(modifier = Modifier.height(12.dp))
-
-            val today = forecast.days.find { it.is_today }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "☀️ ${stringResource(R.string.dashboard_today).uppercase()} ${today?.score ?: "--"}",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Black,
-                    color = themeColor
-                )
-                Text(
-                    "  •  ",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                )
-                Text(
-                    text = stringResource(R.string.dashboard_label_mood_title, stringResource(getMoodResource(today?.mood?.value))),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    "  •  ",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                )
-                Text(
-                    text = stringResource(R.string.dashboard_label_details),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Black,
-                    color = themeColor
-                )
-            }
         }
     }
 }
@@ -1745,6 +1762,8 @@ fun WeeklyForecastCompact(
     themeColor: Color,
     onNavigateToForecast: (String?) -> Unit
 ) {
+    val responsive = responsiveMetrics()
+    val fonts = responsiveFontSizes()
     val today = forecast.days.find { it.is_today }
     val bestDayLabel = remember(forecast.summary.best_day) {
         try {
@@ -1757,10 +1776,23 @@ fun WeeklyForecastCompact(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .floatingCard(accent = themeColor, cornerRadius = 14.dp, elevation = 4.dp)
+            .floatingCard(accent = themeColor, cornerRadius = 16.dp, elevation = 5.dp)
             .clickable { onNavigateToForecast(forecast.area) }
     ) {
-        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+            // Header with "Current Week" title
+            Text(
+                text = stringResource(R.string.dashboard_header_current_week),
+                fontSize = fonts.sectionHeader,
+                lineHeight = (fonts.sectionHeader.value + 2).sp,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                letterSpacing = 2.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1768,8 +1800,8 @@ fun WeeklyForecastCompact(
             ) {
                 Text(
                     text = "WEEK • BEST $bestDayLabel",
-                    fontSize = 9.sp,
-                    lineHeight = 11.sp,
+                    fontSize = 10.sp,
+                    lineHeight = 12.sp,
                     fontWeight = FontWeight.Black,
                     color = themeColor,
                     letterSpacing = 0.8.sp,
@@ -1778,20 +1810,20 @@ fun WeeklyForecastCompact(
                 )
                 Text(
                     text = "${today?.score ?: "--"}",
-                    fontSize = 13.sp,
-                    lineHeight = 14.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 16.sp,
                     fontWeight = FontWeight.Black,
                     color = themeColor
                 )
             }
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             WeeklyForecastGraph(
                 days = forecast.days,
                 themeColor = themeColor,
                 area = forecast.area,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(if (responsive.isTabletWidth) 72.dp else 64.dp),
                 showLabels = false
             )
         }
@@ -2121,41 +2153,25 @@ fun KundliPeekCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             val mahadasha = data.dasha?.current?.mahadasha
-            val antardasha = data.dasha?.current?.antardasha
-            if (mahadasha != null || antardasha != null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    if (mahadasha != null) {
-                        MiniDashaChip(
-                            labelRes = R.string.dashboard_label_mahadasha_title,
-                            planetName = mahadasha.planet,
-                            startDate = mahadasha.start,
-                            endDate = mahadasha.end,
-                            isPrimary = true,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    if (antardasha != null) {
-                        MiniDashaChip(
-                            labelRes = R.string.dashboard_label_antardasha_title,
-                            planetName = antardasha.planet,
-                            startDate = antardasha.start,
-                            endDate = antardasha.end,
-                            isPrimary = false,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
+            if (mahadasha != null) {
+                MiniDashaChip(
+                    labelRes = R.string.dashboard_label_mahadasha_title,
+                    planetName = mahadasha.planet,
+                    startDate = mahadasha.start,
+                    endDate = mahadasha.end,
+                    isPrimary = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Action Button
+            val responsive = responsiveMetrics()
+            val exploreButtonHeight = if (responsive.isVeryCompactWidth || responsive.isLargeFont) 46.dp else 48.dp
             Button(
                 onClick = onClick,
-                modifier = Modifier.fillMaxWidth().height(50.dp).shimmerSweepEffect(),
+                modifier = Modifier.fillMaxWidth().height(exploreButtonHeight).shimmerSweepEffect(),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = themeColor)
             ) {
@@ -2177,7 +2193,7 @@ private fun rashiAssetFor(sign: String?): String? {
 private fun planetAssetFor(planet: String?): String? {
     val key = planet?.trim()?.lowercase() ?: return null
     return when (key) {
-        "sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn" -> key
+        "sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu" -> key
         else -> null
     }
 }

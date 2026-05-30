@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper -->
+    <string name="match_step_details">ವಿವರಗಳು</string>
+    <string name="match_step_analysis">ವಿಶ್ಲೇಷಣೆ</string>
+    <string name="match_step_result">ಫಲಿತಾಂಶ</string>
+    <string name="match_step_person1">ವ್ಯಕ್ತಿ 1</string>
+    <string name="match_step_person2">ವ್ಯಕ್ತಿ 2</string>
+    <string name="match_btn_next">ಮುಂದೆ</string>
+    <string name="match_btn_back">ಹಿಂದೆ</string>
+
     <!-- Match Input Form -->
     <string name="match_btn_calculate">ಹೊಂದಾಣಿಕೆ ಲೆಕ್ಕಾಚಾರ ಮಾಡಿ</string>
     <string name="match_desc_vedic_analysis">ಸಾಮರಸ್ಯ ಮತ್ತು ದೀರ್ಘಾಯುಷ್ಯಕ್ಕಾಗಿ ಸಾಂಪ್ರದಾಯಿಕ 36 ಗುಣ ವೈದಿಕ ಹೊಂದಾಣಿಕೆ ವಿಶ್ಲೇಷಣೆ.</string>
+    <string name="match_footer_secure">ಸುರಕ್ಷಿತ • ಖಾಸಗಿ • ಸಾಂಪ್ರದಾಯಿಕ</string>
+    <string name="match_hint_accuracy">ಅತ್ಯಂತ ನಿಖರವಾದ ಹೊಂದಾಣಿಕೆ ವಿಶ್ಲೇಷಣೆಗಾಗಿ ಎಲ್ಲಾ ವಿವರಗಳು ನಿಖರವಾಗಿರುವಂತೆ ದಯವಿಟ್ಟು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.</string>
     <string name="match_label_person1">ವ್ಯಕ್ತಿ 1 (ನೀವು)</string>
     <string name="match_label_person2">ವ್ಯಕ್ತಿ 2 (ಸಂಗಾತಿ)</string>
     <string name="match_field_name">ಹೆಸರು</string>
@@ -37,4 +48,13 @@
     <string name="match_dosha_high_influence">ಹೆಚ್ಚಿನ ಪ್ರಭಾವ ಕಂಡುಬಂದಿದೆ</string>
     <string name="match_dosha_influence">ಪ್ರಭಾವ ಕಂಡುಬಂದಿದೆ</string>
     <string name="match_dosha_no_influence">ಯಾವುದೇ ಪ್ರಮುಖ ಪ್ರಭಾವವಿಲ್ಲ</string>
+
+    <!-- Match Benefits -->
+    <string name="match_benefits_title">ನೀವು ಪಡೆಯುವಿರಿ:</string>
+    <string name="match_benefit_guna_title">ವಿವರವಾದ 36 ಗುಣ ವಿಶ್ಲೇಷಣೆ</string>
+    <string name="match_benefit_guna_desc">ಸಾಂಪ್ರದಾಯಿಕ ವೈದಿಕ ತತ್ವಗಳ ಆಧಾರದ ಮೇಲೆ ಸಂಪೂರ್ಣ ಹೊಂದಾಣಿಕೆ ಅಂಕವನ್ನು ಪಡೆಯಿರಿ.</string>
+    <string name="match_benefit_strengths_title">ಶಕ್ತಿಗಳು &amp; ಸವಾಲುಗಳು</string>
+    <string name="match_benefit_strengths_desc">ನಿಮ್ಮ ಸಂಬಂಧದ ಚಲನಶೀಲತೆಯನ್ನು ಆಳವಾಗಿ ಅರ್ಥಮಾಡಿಕೊಳ್ಳಿ.</string>
+    <string name="match_benefit_guidance_title">ಸಾಮರಸ್ಯಕ್ಕಾಗಿ ಮಾರ್ಗದರ್ಶನ</string>
+    <string name="match_benefit_guidance_desc">ಉತ್ತಮ ಮತ್ತು ಸಂತೋಷದಾಯಕ ಸಂಬಂಧಕ್ಕಾಗಿ ಪ್ರಾಯೋಗಿಕ ಸಲಹೆಗಳು.</string>
 </resources>

@@ -16,6 +16,7 @@ sealed class ApiCachePolicy {
     data class ForDuration(val millis: Long) : ApiCachePolicy()
     object UntilNextLocalHour : ApiCachePolicy()
     object UntilNextLocalMidnight : ApiCachePolicy()
+    object UntilNextSixHourMilestone : ApiCachePolicy()
 }
 
 data class CacheMeta(
@@ -90,6 +91,10 @@ class ApiResponseCache(
         return "daily-horoscope:lang:${keyPart(lang)}"
     }
 
+    fun dailyHoroscopeTimingsKey(lang: String = "en"): String {
+        return "daily-horoscope-timings:lang:${keyPart(lang)}"
+    }
+
     fun generalHoroscopeKey(sign: String): String {
         return "general-horoscope:sign:${keyPart(sign)}"
     }
@@ -123,6 +128,7 @@ class ApiResponseCache(
         listOf(
             "profile",
             "daily-horoscope",
+            "daily-horoscope-timings",
             "general-horoscope",
             "forecast",
             "forecast-period",
@@ -191,6 +197,7 @@ class ApiResponseCache(
             com.astranavi.app.data.model.MonthlyForecastResponse::class.java -> com.astranavi.app.data.model.MonthlyForecastResponse.serializer()
             com.astranavi.app.data.model.YearlyForecastResponse::class.java -> com.astranavi.app.data.model.YearlyForecastResponse.serializer()
             com.astranavi.app.data.model.HoroscopeResponse::class.java -> com.astranavi.app.data.model.HoroscopeResponse.serializer()
+            com.astranavi.app.data.model.DailyHoroscopeTimingsResponse::class.java -> com.astranavi.app.data.model.DailyHoroscopeTimingsResponse.serializer()
             com.astranavi.app.data.model.ProfileResponse::class.java -> com.astranavi.app.data.model.ProfileResponse.serializer()
             else -> error("No cache serializer registered for ${responseClass.name}")
         } as KSerializer<T>
@@ -218,7 +225,30 @@ class ApiResponseCache(
             is ApiCachePolicy.ForDuration -> nowMillis + policy.millis
             ApiCachePolicy.UntilNextLocalHour -> nextLocalHourMillis(nowMillis)
             ApiCachePolicy.UntilNextLocalMidnight -> nextLocalMidnightMillis(nowMillis)
+            ApiCachePolicy.UntilNextSixHourMilestone -> nextSixHourMilestoneMillis(nowMillis)
         }
+    }
+
+    private fun nextSixHourMilestoneMillis(nowMillis: Long): Long {
+        val calendar = java.util.Calendar.getInstance()
+        calendar.timeInMillis = nowMillis
+        val currentHour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
+        val nextMilestoneHour = when {
+            currentHour < 6 -> 6
+            currentHour < 12 -> 12
+            currentHour < 18 -> 18
+            else -> 24
+        }
+        if (nextMilestoneHour == 24) {
+            calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        } else {
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, nextMilestoneHour)
+        }
+        calendar.set(java.util.Calendar.MINUTE, 0)
+        calendar.set(java.util.Calendar.SECOND, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
+        return calendar.timeInMillis
     }
 
     private fun keyPart(value: String?): String {

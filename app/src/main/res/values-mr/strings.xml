@@ -5,7 +5,7 @@
     <string name="nav_kundli">कुंडली</string>
     <string name="nav_match">मिलन</string>
     <string name="nav_consult">सल्लामसलत</string>
-    <string name="nav_blogs">ज्ञान</string>
+    <string name="nav_blogs">शिका</string>
     <string name="nav_rashis">राशी</string>
     <string name="nav_chat">AI चॅट</string>
     <string name="nav_profile">प्रोफाइल</string>
@@ -99,7 +99,7 @@
     <string name="dashboard_today">आज</string>
     <string name="dashboard_lucky">भाग्यशाली</string>
     <string name="dashboard_saturn_transit">शनी गोचर</string>
-    <string name="dashboard_general">सामान्य</string>
+    <string name="dashboard_general">सामान्य दृष्टिकोन</string>
     <string name="dashboard_love">प्रेम</string>
     <string name="dashboard_career">करिअर</string>
     <string name="dashboard_finance">वित्त</string>
@@ -125,7 +125,20 @@
     <string name="dashboard_status_stable">स्थिर</string>
     <string name="dashboard_status_favorable">सकारात्मक</string>
     <string name="dashboard_status_excellent">उत्कृष्ट</string>
+    <string name="dashboard_status_heavy_friction">भारी घर्षण</string>
+    <string name="dashboard_status_love_needs_patience">धीरस्थिती आवश्यक</string>
+    <string name="dashboard_status_career_move_slowly">हळू चला</string>
+    <string name="dashboard_status_finance_needs_caution">चेतवणी आवश्यक</string>
+    <string name="dashboard_status_health_needs_rest">विश्रांती आवश्यक</string>
+    <string name="dashboard_status_spiritual_seek_stillness">शांतता शोधा</string>
+    <string name="dashboard_label_overall_life_score">संयुक्त जीवन स्कोअर</string>
+    <string name="dashboard_label_caution_window">चेतावनी वेळ</string>
+    <string name="dashboard_label_rahu_kaal_upcoming">राहु काळ आगामी</string>
+    <string name="dashboard_label_rahu_kaal_active">राहु काळ सक्रिय</string>
+    <string name="dashboard_label_rahu_kaal_ended">राहु काळ समाप्त</string>
     <string name="dashboard_header_life_areas">आजची जीवन क्षेत्रे</string>
+    <string name="dashboard_chip_today_panchang">तुमचे आजचे पंचांग</string>
+    <string name="dashboard_chip_panchang_view">पहा</string>
     <string name="dashboard_header_current_week">चालू आठवडा</string>
     <string name="dashboard_header_kundli">कुंडली</string>
     <string name="dashboard_header_family">कुटुंब आणि संबंध</string>
@@ -158,7 +171,7 @@
     <string name="dashboard_btn_ask_navi_today">आजच्या दिवसाबाबत नवीला विचारा</string>
     <string name="dashboard_prompt_ask_navi_today">मला आजच्या माझ्या ऊर्जेबद्दल अधिक सांगा. गुण: %1$d, मनःस्थिती: %2$s.</string>
     <string name="dashboard_prompt_ask_navi_why">माझा दिवस %1$s दिवस का आहे? कॉस्मिकली काय घडत आहे ते मला सांगा.</string>
-    <string name="dashboard_label_overall_energy">एकूण ऊर्जा</string>
+    <string name="dashboard_label_general_outlook">सामान्य दृष्टिकोन</string>
     <string name="dashboard_label_main_tip">मुख्य सल्ला</string>
     <string name="dashboard_label_dominant_planet">प्रमुख ग्रह</string>
     <string name="dashboard_label_active_dasha">सक्रिय दशा / गोचर</string>

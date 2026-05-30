@@ -96,6 +96,12 @@ class RegistrationViewModel(
                         dob = user.dob,
                         tob = user.tob,
                         pob = user.pob,
+                        birthPlaceName = user.birthPlaceName,
+                        birthLatitude = user.birthLatitude,
+                        birthLongitude = user.birthLongitude,
+                        birthTimezoneName = user.birthTimezoneName,
+                        birthTimezoneOffsetAtBirth = user.birthTimezoneOffsetAtBirth,
+                        birthTimeFold = user.birthTimeFold,
                         accessToken = data.accessToken,
                         refreshToken = data.refreshToken,
                         profileComplete = data.profileComplete

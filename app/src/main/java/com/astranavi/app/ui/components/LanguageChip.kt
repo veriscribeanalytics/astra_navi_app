@@ -20,7 +20,7 @@ data class LanguageOption(
     val flag: String
 )
 
-private val SupportedLanguages = listOf(
+val SupportedLanguages = listOf(
     LanguageOption("en", "English", "🇬🇧"),
     LanguageOption("hi", "हिंदी", "🇮🇳"),
     LanguageOption("bn", "বাংলা", "🇮🇳"),

@@ -38,7 +38,7 @@ fun CreditBadge(
     Surface(
         modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
-        color = tierColor.copy(alpha = 0.15f),
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, tierColor.copy(alpha = 0.4f))
     ) {
         Row(

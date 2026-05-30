@@ -1,8 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper -->
+    <string name="match_step_details">விவரங்கள்</string>
+    <string name="match_step_analysis">பகுப்பாய்வு</string>
+    <string name="match_step_result">முடிவு</string>
+    <string name="match_step_person1">நபர் 1</string>
+    <string name="match_step_person2">நபர் 2</string>
+    <string name="match_btn_next">அடுத்து</string>
+    <string name="match_btn_back">பின்செல்</string>
+
+    <!-- Match Benefits -->
+    <string name="match_benefits_title">நீங்கள் பெறுவது:</string>
+    <string name="match_benefit_guna_title">விரிவான 36 குண பகுப்பாய்வு</string>
+    <string name="match_benefit_guna_desc">பாரம்பரிய வேத கொள்கைகளின் அடிப்படையில் முழுமையான பொருத்த மதிப்பெண்ணைப் பெறுங்கள்.</string>
+    <string name="match_benefit_strengths_title">பலங்கள் &amp; சவால்கள்</string>
+    <string name="match_benefit_strengths_desc">உங்கள் உறவின் இயக்கங்களை ஆழமாகப் புரிந்துகொள்ளுங்கள்.</string>
+    <string name="match_benefit_guidance_title">இணக்கத்திற்கான வழிகாட்டுதல்</string>
+    <string name="match_benefit_guidance_desc">சிறந்த மற்றும் மகிழ்ச்சியான உறவுக்கான நடைமுறை பரிந்துரைகள்.</string>
+
     <!-- Match Input Form -->
     <string name="match_btn_calculate">பொருத்தம் கணக்கிடு</string>
     <string name="match_desc_vedic_analysis">ஒற்றுமை மற்றும் ஆயுளுக்காக பாரம்பரிய 36 குண வேத பொருத்த பகுப்பாய்வு.</string>
+    <string name="match_footer_secure">பாதுகாப்பானது • தனிப்பட்டது • பாரம்பரியமானது</string>
+    <string name="match_hint_accuracy">மிகவும் துல்லியமான பொருத்தப் பகுப்பாய்விற்காக அனைத்து விவரங்களும் சரியானவை என்பதை உறுதிசெய்யவும்.</string>
     <string name="match_label_person1">நபர் 1 (நீங்கள்)</string>
     <string name="match_label_person2">நபர் 2 (துணை)</string>
     <string name="match_field_name">பெயர்</string>

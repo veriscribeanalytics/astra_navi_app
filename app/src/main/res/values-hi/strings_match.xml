@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Match Stepper -->
+    <string name="match_step_details">विवरण</string>
+    <string name="match_step_analysis">विश्लेषण</string>
+    <string name="match_step_result">परिणाम</string>
+    <string name="match_step_person1">व्यक्ति 1</string>
+    <string name="match_step_person2">व्यक्ति 2</string>
+    <string name="match_btn_next">आगे</string>
+    <string name="match_btn_back">पीछे</string>
+
     <!-- Match Input Form -->
     <string name="match_btn_calculate">अनुकूलता की गणना करें</string>
     <string name="match_desc_vedic_analysis">समरसता और दीर्घायु के लिए परंपरागत 36 गुण वैदिक मेल विश्लेषण।</string>
+    <string name="match_footer_secure">सुरक्षित • निजी • परंपरागत</string>
+    <string name="match_hint_accuracy">सबसे सटीक मेल विश्लेषण के लिए कृपया सुनिश्चित करें कि सभी विवरण सही हैं।</string>
     <string name="match_label_person1">व्यक्ति 1 (आप)</string>
     <string name="match_label_person2">व्यक्ति 2 (साथी)</string>
     <string name="match_field_name">नाम</string>
@@ -37,4 +48,13 @@
     <string name="match_dosha_high_influence">उच्च प्रभाव का पता चला</string>
     <string name="match_dosha_influence">प्रभाव का पता चला</string>
     <string name="match_dosha_no_influence">कोई प्रमुख प्रभाव नहीं</string>
+
+    <!-- Match Benefits -->
+    <string name="match_benefits_title">आपको मिलेगा:</string>
+    <string name="match_benefit_guna_title">विस्तृत 36 गुण विश्लेषण</string>
+    <string name="match_benefit_guna_desc">परंपरागत वैदिक सिद्धांतों पर आधारित संपूर्ण अनुकूलता स्कोर प्राप्त करें।</string>
+    <string name="match_benefit_strengths_title">शक्तियाँ &amp; चुनौतियाँ</string>
+    <string name="match_benefit_strengths_desc">अपने रिश्ते की गतिशीलता को गहराई से समझें।</string>
+    <string name="match_benefit_guidance_title">समरसता के लिए मार्गदर्शन</string>
+    <string name="match_benefit_guidance_desc">बेहतर और खुशहाल रिश्ते के लिए व्यावहारिक सुझाव।</string>
 </resources>

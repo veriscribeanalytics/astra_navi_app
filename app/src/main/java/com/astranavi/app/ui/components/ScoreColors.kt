@@ -24,10 +24,10 @@ object ScoreColors {
         val boundedScore = score.coerceIn(0, 100)
 
         return when {
-            boundedScore < 40 -> ScorePhase.BAD
-            boundedScore < 55 -> ScorePhase.WEAK
-            boundedScore < 70 -> ScorePhase.MIXED
-            boundedScore < 85 -> ScorePhase.GOOD
+            boundedScore < 35 -> ScorePhase.BAD
+            boundedScore < 50 -> ScorePhase.WEAK
+            boundedScore < 65 -> ScorePhase.MIXED
+            boundedScore < 80 -> ScorePhase.GOOD
             else -> ScorePhase.EXCELLENT
         }
     }
@@ -59,7 +59,10 @@ object ScoreColors {
             "career" -> Color(0xFF3B82F6)
             "finance" -> Color(0xFF10B981)
             "health" -> Color(0xFF14B8A6)
-            else -> Color(0xFFF59E0B)
+            "spiritual" -> Color(0xFF8B5CF6)
+            "general" -> Color(0xFF22C55E)
+            "overall" -> Color(0xFF0891B2)
+            else -> Color(0xFF22C55E)
         }
     }
 
@@ -73,14 +76,17 @@ object ScoreColors {
             "career" -> careerSwatch(phase)
             "finance" -> financeSwatch(phase)
             "health" -> healthSwatch(phase)
+            "spiritual" -> spiritualSwatch(phase)
+            "general" -> generalSwatch(phase)
+            "overall" -> overallSwatch(phase)
             else -> generalSwatch(phase)
         }
     }
 
-    /**
-     * GENERAL
-     * Universal score understanding
-     * Red -> Orange -> Amber -> Green
+/**
+     * GENERAL OUTLOOK
+     * Universal Traffic Light palette
+     * Red -> Orange -> Amber -> Green -> Deep Success Green
      */
     private fun generalSwatch(phase: ScorePhase): Swatch = when (phase) {
 
@@ -104,14 +110,14 @@ object ScoreColors {
 
         ScorePhase.GOOD ->
             Swatch(
-                main = Color(0xFF16A34A),
-                glow = Color(0xFF4ADE80)
+                main = Color(0xFF22C55E),
+                glow = Color(0xFF86EFAC)
             )
 
         ScorePhase.EXCELLENT ->
             Swatch(
-                main = Color(0xFF166534),
-                glow = Color(0xFF22C55E)
+                main = Color(0xFF047857),
+                glow = Color(0xFF6EE7B7)
             )
     }
 
@@ -216,7 +222,7 @@ object ScoreColors {
 
         ScorePhase.GOOD ->
             Swatch(
-                main = Color(0xFF10B981),
+                main = Color(0xFF16A34A),
                 glow = Color(0xFF6EE7B7)
             )
 
@@ -253,14 +259,89 @@ object ScoreColors {
 
         ScorePhase.GOOD ->
             Swatch(
-                main = Color(0xFF10B981),
-                glow = Color(0xFF6EE7B7)
+                main = Color(0xFF0D9488),
+                glow = Color(0xFF5EEAD4)
             )
 
         ScorePhase.EXCELLENT ->
             Swatch(
                 main = Color(0xFF14B8A6),
-                glow = Color(0xFF5EEAD4)
+                glow = Color(0xFF99F6E4)
+            )
+    }
+
+/**
+     * SPIRITUAL
+     * Purple / Violet progression
+     */
+    private fun spiritualSwatch(phase: ScorePhase): Swatch = when (phase) {
+
+        ScorePhase.BAD ->
+            Swatch(
+                main = Color(0xFF3B0764),
+                glow = Color(0xFF6D28D9)
+            )
+
+        ScorePhase.WEAK ->
+            Swatch(
+                main = Color(0xFF5B21B6),
+                glow = Color(0xFFA78BFA)
+            )
+
+        ScorePhase.MIXED ->
+            Swatch(
+                main = Color(0xFF7C3AED),
+                glow = Color(0xFFC4B5FD)
+            )
+
+        ScorePhase.GOOD ->
+            Swatch(
+                main = Color(0xFF8B5CF6),
+                glow = Color(0xFFDDD6FE)
+            )
+
+        ScorePhase.EXCELLENT ->
+            Swatch(
+                main = Color(0xFFA855F7),
+                glow = Color(0xFFE9D5FF)
+            )
+    }
+
+    /**
+     * OVERALL LIFE SCORE
+     * Cosmic Momentum / Aurora palette
+     * Deep Indigo -> Royal Indigo -> Aurora Violet -> Aurora Cyan -> Celestial Blue
+     */
+    private fun overallSwatch(phase: ScorePhase): Swatch = when (phase) {
+
+        ScorePhase.BAD ->
+            Swatch(
+                main = Color(0xFF1E1B4B),
+                glow = Color(0xFF6366F1)
+            )
+
+        ScorePhase.WEAK ->
+            Swatch(
+                main = Color(0xFF3730A3),
+                glow = Color(0xFF818CF8)
+            )
+
+        ScorePhase.MIXED ->
+            Swatch(
+                main = Color(0xFF6D5DF6),
+                glow = Color(0xFFBDB4FE)
+            )
+
+        ScorePhase.GOOD ->
+            Swatch(
+                main = Color(0xFF0891B2),
+                glow = Color(0xFF67E8F9)
+            )
+
+        ScorePhase.EXCELLENT ->
+            Swatch(
+                main = Color(0xFF0284C7),
+                glow = Color(0xFFBAE6FD)
             )
     }
 

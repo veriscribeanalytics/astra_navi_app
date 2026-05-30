@@ -65,13 +65,33 @@ fun IntroAnimationScreen(
 
     val timeSec = timeSecAnim.value
 
-    // Responsive Wheel Size
+    // Responsive Sizing
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
     val wheelSize = when {
-        screenWidth < 360.dp -> screenWidth * 0.8f
-        screenWidth < 600.dp -> screenWidth * 0.86f
-        else -> 440.dp
+        screenWidth < 360.dp -> screenWidth * 0.88f
+        screenWidth < 600.dp -> screenWidth * 0.90f
+        else -> 500.dp
+    }
+    val iconSize = when {
+        screenWidth < 360.dp -> 38.dp
+        screenWidth < 600.dp -> 44.dp
+        else -> 48.dp
+    }
+    val glyphFontSize = when {
+        screenWidth < 360.dp -> 14.sp
+        screenWidth < 600.dp -> 16.sp
+        else -> 18.sp
+    }
+    val brandFontSize = when {
+        screenWidth < 360.dp -> 44f
+        screenWidth < 600.dp -> 52f
+        else -> 56f
+    }
+    val bottomPadding = when {
+        screenHeight < 640.dp -> 48.dp
+        else -> 72.dp
     }
 
     // Sub-progress definitions (Master Timeline)
@@ -92,7 +112,7 @@ fun IntroAnimationScreen(
         dualZodiacProgress = getSubProgress(timeSec, 1.8f, 3.4f)
         chartEnergyProgress = getSubProgress(timeSec, 3.4f, 4.7f)
         rashiFadeProgress = getSubProgress(timeSec, 4.7f, 5.1f)
-        revealProgress = getSubProgress(timeSec, 5.1f, 6.0f)
+        revealProgress = getSubProgress(timeSec, 5.1f, 6.1f)
         rotationProgress = getSubProgress(timeSec, 0.8f, totalDurationSec)
         brandRevealStart = 5.1f
     } else {
@@ -104,7 +124,7 @@ fun IntroAnimationScreen(
         dualZodiacProgress = getSubProgress(timeSec, combinedStart, combinedEnd)
         chartEnergyProgress = getSubProgress(timeSec, combinedStart, combinedEnd)
         rashiFadeProgress = getSubProgress(timeSec, 1.2f, 1.5f)
-        revealProgress = getSubProgress(timeSec, 1.2f, totalDurationSec)
+        revealProgress = getSubProgress(timeSec, 1.2f, 2.2f)
         rotationProgress = getSubProgress(timeSec, combinedStart, totalDurationSec)
         brandRevealStart = 1.2f
     }
@@ -163,13 +183,13 @@ fun IntroAnimationScreen(
                 val center = Offset(size.width / 2f, size.height / 2f)
 
                 // Responsive Radii based on wheel size
-                val outerRadius = size.width * 0.38f
-                val middleRadius = size.width * 0.29f
-                val innerRadius = size.width * 0.20f
+                val outerRadius = size.width * 0.42f
+                val middleRadius = size.width * 0.34f
+                val innerRadius = size.width * 0.24f
 
                 // A. Center Seed (0.0s - 0.8s)
                 val pulse = sin(seedProgress * Math.PI.toFloat()).toFloat()
-                val seedSize = (4.dp.toPx() + 12.dp.toPx() * pulse)
+                val seedSize = (6.dp.toPx() + 18.dp.toPx() * pulse)
                 val seedAlpha = if (chartEnergyProgress > 0f) 1.0f - chartEnergyProgress else 1.0f
 
                 if (seedAlpha > 0f) {
@@ -204,7 +224,7 @@ fun IntroAnimationScreen(
                         useCenter = false,
                         topLeft = Offset(center.x - middleRadius, center.y - middleRadius),
                         size = Size(middleRadius * 2f, middleRadius * 2f),
-                        style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
                     )
 
                     // Inner ring fade in
@@ -212,7 +232,7 @@ fun IntroAnimationScreen(
                         color = antiqueOrangishGold.copy(alpha = wheelFormsProgress * 0.4f),
                         radius = innerRadius,
                         center = center,
-                        style = Stroke(width = 1.dp.toPx())
+                        style = Stroke(width = 1.5.dp.toPx())
                     )
 
                     // Divider lines (staggered with circle draw)
@@ -232,7 +252,7 @@ fun IntroAnimationScreen(
                             color = antiqueOrangishGold.copy(alpha = wheelFormsProgress * 0.35f),
                             start = startOffset,
                             end = endOffset,
-                            strokeWidth = 1.dp.toPx()
+                            strokeWidth = 1.5.dp.toPx()
                         )
                     }
                 }
@@ -246,9 +266,9 @@ fun IntroAnimationScreen(
                     val p2 = getPoint(center, innerRadius * 0.6f, 120f + rotationAngle)
                     val p3 = getPoint(center, innerRadius * 0.6f, 240f + rotationAngle)
 
-                    drawLine(antiqueOrangishGold.copy(alpha = geomAlpha), p1, p2, strokeWidth = 1.dp.toPx())
-                    drawLine(antiqueOrangishGold.copy(alpha = geomAlpha), p2, p3, strokeWidth = 1.dp.toPx())
-                    drawLine(antiqueOrangishGold.copy(alpha = geomAlpha), p3, p1, strokeWidth = 1.dp.toPx())
+                    drawLine(antiqueOrangishGold.copy(alpha = geomAlpha), p1, p2, strokeWidth = 1.5.dp.toPx())
+                    drawLine(antiqueOrangishGold.copy(alpha = geomAlpha), p2, p3, strokeWidth = 1.5.dp.toPx())
+                    drawLine(antiqueOrangishGold.copy(alpha = geomAlpha), p3, p1, strokeWidth = 1.5.dp.toPx())
 
                     // Triangle 2 (Purple aspect lines): 60, 180, 300
                     val softPurple = Color(0xFFC084FC)
@@ -256,12 +276,12 @@ fun IntroAnimationScreen(
                     val p5 = getPoint(center, innerRadius * 0.6f, 180f + rotationAngle)
                     val p6 = getPoint(center, innerRadius * 0.6f, 300f + rotationAngle)
 
-                    drawLine(softPurple.copy(alpha = geomAlpha), p4, p5, strokeWidth = 1.dp.toPx())
-                    drawLine(softPurple.copy(alpha = geomAlpha), p5, p6, strokeWidth = 1.dp.toPx())
-                    drawLine(softPurple.copy(alpha = geomAlpha), p6, p4, strokeWidth = 1.dp.toPx())
+                    drawLine(softPurple.copy(alpha = geomAlpha), p4, p5, strokeWidth = 1.5.dp.toPx())
+                    drawLine(softPurple.copy(alpha = geomAlpha), p5, p6, strokeWidth = 1.5.dp.toPx())
+                    drawLine(softPurple.copy(alpha = geomAlpha), p6, p4, strokeWidth = 1.5.dp.toPx())
 
                     // 4 Planet dots
-                    val dotR = 3.dp.toPx() * EaseOutBack.transform(chartEnergyProgress)
+                    val dotR = 4.5.dp.toPx() * EaseOutBack.transform(chartEnergyProgress)
                     val dotAngles = listOf(30f, 150f, 210f, 330f)
                     dotAngles.forEach { ang ->
                         val pt = getPoint(center, innerRadius * 0.6f, ang + rotationAngle)
@@ -310,7 +330,7 @@ fun IntroAnimationScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .graphicsLayer {
-                                val radiusPx = (size.width * 0.38f)
+                                val radiusPx = (size.width * 0.42f)
                                 translationX = radiusPx * cos(angleRad).toFloat()
                                 translationY = radiusPx * sin(angleRad).toFloat()
                                 scaleX = iconScale
@@ -322,7 +342,7 @@ fun IntroAnimationScreen(
                         Image(
                             painter = painterResource(id = resId),
                             contentDescription = null,
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier.size(iconSize),
                             colorFilter = ColorFilter.tint(antiqueOrangishGold, BlendMode.SrcAtop)
                         )
                     }
@@ -359,7 +379,7 @@ fun IntroAnimationScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .graphicsLayer {
-                                val radiusPx = (size.width * 0.17f) // just inside inner ring
+                                val radiusPx = (size.width * 0.20f) // just inside inner ring
                                 translationX = radiusPx * cos(angleRad).toFloat()
                                 translationY = radiusPx * sin(angleRad).toFloat()
                                 alpha = finalAlpha
@@ -369,7 +389,7 @@ fun IntroAnimationScreen(
                         Text(
                             text = glyph,
                             color = highlightGold,
-                            fontSize = 11.sp,
+                            fontSize = glyphFontSize,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -380,7 +400,7 @@ fun IntroAnimationScreen(
         // 3. Center Brand Reveal text
         AnimatedVisibility(
             visible = timeSec >= brandRevealStart,
-            enter = fadeIn(tween(700)) + scaleIn(initialScale = 0.85f, animationSpec = tween(700)),
+            enter = fadeIn(tween(500)) + scaleIn(initialScale = 0.85f, animationSpec = tween(500)),
             exit = fadeOut(tween(400))
         ) {
             Column(
@@ -389,7 +409,10 @@ fun IntroAnimationScreen(
             ) {
                 BrandMark(
                     brandColor = antiqueOrangishGold,
-                    shadowColor = shadowGold
+                    shadowColor = shadowGold,
+                    fontSize = brandFontSize,
+                    letterSpacing = 4f,
+                    taglineSpacer = 10f
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 
@@ -411,7 +434,7 @@ fun IntroAnimationScreen(
                 ) { text ->
                     Text(
                         text = text,
-                        style = MaterialTheme.typography.labelMedium.copy(
+                        style = MaterialTheme.typography.bodyLarge.copy(
                             letterSpacing = 2.sp,
                             fontWeight = FontWeight.Light
                         ),
@@ -441,8 +464,8 @@ fun IntroAnimationScreen(
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 64.dp)
-                .padding(horizontal = 32.dp),
+                .padding(bottom = bottomPadding)
+                .padding(horizontal = 24.dp),
             contentAlignment = Alignment.Center
         ) {
             Crossfade(
@@ -453,7 +476,7 @@ fun IntroAnimationScreen(
                 if (text.isNotEmpty()) {
                     Text(
                         text = text,
-                        style = MaterialTheme.typography.titleMedium.copy(
+                        style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Normal,
                             letterSpacing = 1.sp,
                             shadow = Shadow(

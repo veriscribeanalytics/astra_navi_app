@@ -18,6 +18,7 @@ import com.astranavi.app.ui.login.RegistrationViewModel
 import com.astranavi.app.ui.match.MatchHistoryViewModel
 import com.astranavi.app.ui.match.MatchViewModel
 import com.astranavi.app.ui.forecast.ForecastViewModel
+import com.astranavi.app.ui.test.TestViewModel
 import com.astranavi.app.ui.profile.ProfileViewModel
 import com.astranavi.app.ui.rashis.RashiViewModel
 
@@ -79,6 +80,9 @@ class ViewModelFactory(
             }
             modelClass.isAssignableFrom(PlansViewModel::class.java) -> {
                 PlansViewModel(entitlementRepository) as T
+            }
+            modelClass.isAssignableFrom(TestViewModel::class.java) -> {
+                TestViewModel(dashboardRepository) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

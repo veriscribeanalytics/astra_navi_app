@@ -4,7 +4,7 @@
     <string name="nav_kundli">쿤들리</string>
     <string name="nav_match">매칭</string>
     <string name="nav_consult">상담</string>
-    <string name="nav_blogs">지식</string>
+    <string name="nav_blogs">학습</string>
     <string name="nav_rashis">조디악</string>
     <string name="nav_chat">AI 채팅</string>
     <string name="nav_profile">프로필</string>
@@ -98,7 +98,7 @@
     <string name="dashboard_today">오늘</string>
     <string name="dashboard_lucky">행운</string>
     <string name="dashboard_saturn_transit">토성 운행</string>
-    <string name="dashboard_general">일반</string>
+    <string name="dashboard_general">일반 전망</string>
     <string name="dashboard_love">연애</string>
     <string name="dashboard_career">커리어</string>
     <string name="dashboard_finance">재정</string>
@@ -124,7 +124,20 @@
     <string name="dashboard_status_stable">안정적</string>
     <string name="dashboard_status_favorable">유리함</string>
     <string name="dashboard_status_excellent">탁월함</string>
+    <string name="dashboard_status_heavy_friction">큰 마찰</string>
+    <string name="dashboard_status_love_needs_patience">인내 필요</string>
+    <string name="dashboard_status_career_move_slowly">느리게 이동</string>
+    <string name="dashboard_status_finance_needs_caution">주의 필요</string>
+    <string name="dashboard_status_health_needs_rest">휴식 필요</string>
+    <string name="dashboard_status_spiritual_seek_stillness">평화 추구</string>
+    <string name="dashboard_label_overall_life_score">통합 생활 점수</string>
+    <string name="dashboard_label_caution_window">주의 시간</string>
+    <string name="dashboard_label_rahu_kaal_upcoming">라후 칼 예정</string>
+    <string name="dashboard_label_rahu_kaal_active">라후 칼 진행 중</string>
+    <string name="dashboard_label_rahu_kaal_ended">라후 칼 종료</string>
     <string name="dashboard_header_life_areas">오늘의 생활 영역</string>
+    <string name="dashboard_chip_today_panchang">당신의 오늘의 판창가</string>
+    <string name="dashboard_chip_panchang_view">보기</string>
     <string name="dashboard_header_current_week">이번 주</string>
     <string name="dashboard_header_kundli">쿤들리</string>
     <string name="dashboard_header_family">가족 및 관계</string>
@@ -157,7 +170,7 @@
     <string name="dashboard_btn_ask_navi_today">오늘에 대해 Navi에게 묻기</string>
     <string name="dashboard_prompt_ask_navi_today">오늘 내 에너지에 대해 더 알려줘. 점수: %1$d, 상태: %2$s.</string>
     <string name="dashboard_prompt_ask_navi_why">왜 오늘이 %1$s의 날인지 우주적 흐름으로 설명해줘.</string>
-    <string name="dashboard_label_overall_energy">종합 에너지</string>
+    <string name="dashboard_label_general_outlook">일반 전망</string>
     <string name="dashboard_label_main_tip">주요 팁</string>
     <string name="dashboard_label_dominant_planet">지배 행성</string>
     <string name="dashboard_label_active_dasha">활성 다샤 / 운행</string>

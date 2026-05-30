@@ -1,14 +1,12 @@
 package com.astranavi.app.ui.chat
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 
 /**
- * Color triple driving [com.astranavi.app.ui.components.AnimatedAtmosphericGlow]
- * for the chat screen, plus the tint used on the user's message bubble so the
- * conversation visually belongs to the chosen guide.
- *
- * One palette per Navi avatar — colors are pulled to roughly match the
- * avatar's portrait art so the screen mood stays coherent.
+ * All chat-screen tints derive from a single accent color sent by the backend
+ * (`ChatAvatar.accentColor`). Brighter / softer / darker variants are produced
+ * here so the server stays the single source of truth.
  */
 data class ChatAvatarPalette(
     val accent: Color,
@@ -18,50 +16,32 @@ data class ChatAvatarPalette(
     val onBubble: Color
 )
 
-private val NaviPalette = ChatAvatarPalette(
-    accent = Color(0xFFFFC36B),    // warm amber
-    deep = Color(0xFFB8741A),
-    radial = Color(0xFFFFD89B),
-    bubble = Color(0xFFE89A3C),
-    onBubble = Color(0xFF1F1303)
-)
+private val DefaultAccent = Color(0xFF6366F1) // matches Navi's server accent
 
-private val AryaPalette = ChatAvatarPalette(
-    accent = Color(0xFF8AA9FF),    // strategic indigo
-    deep = Color(0xFF1E3A8A),
-    radial = Color(0xFFA5B4FC),
-    bubble = Color(0xFF4F46E5),
-    onBubble = Color.White
-)
+fun chatAvatarPalette(accentHex: String?): ChatAvatarPalette {
+    val accent = parseHexColor(accentHex) ?: DefaultAccent
+    return ChatAvatarPalette(
+        accent = accent,
+        deep = accent.darken(0.55f),
+        radial = accent.copy(alpha = 0.60f),
+        bubble = accent,
+        onBubble = if (accent.luminance() > 0.55f) Color(0xFF1A1003) else Color.White
+    )
+}
 
-private val MeeraPalette = ChatAvatarPalette(
-    accent = Color(0xFFF4A8C7),    // tender rose
-    deep = Color(0xFF9D174D),
-    radial = Color(0xFFFBCFE8),
-    bubble = Color(0xFFDB2777),
-    onBubble = Color.White
-)
+private fun parseHexColor(hex: String?): Color? {
+    if (hex.isNullOrBlank()) return null
+    val cleaned = hex.trim().removePrefix("#")
+    val normalized = when (cleaned.length) {
+        6 -> "FF$cleaned"
+        8 -> cleaned
+        else -> return null
+    }
+    return runCatching { Color(normalized.toLong(16)) }.getOrNull()
+}
 
-private val AnandPalette = ChatAvatarPalette(
-    accent = Color(0xFFE5B45A),    // sandalwood saffron
-    deep = Color(0xFF7C2D12),
-    radial = Color(0xFFFCD980),
-    bubble = Color(0xFFCA8A04),
-    onBubble = Color(0xFF1A1003)
-)
-
-private val RishiPalette = ChatAvatarPalette(
-    accent = Color(0xFFB498F0),    // deep sage violet
-    deep = Color(0xFF4C1D95),
-    radial = Color(0xFFD9C6F8),
-    bubble = Color(0xFF6D28D9),
-    onBubble = Color.White
-)
-
-fun chatAvatarPalette(avatarId: String?): ChatAvatarPalette = when (avatarId) {
-    "career_mentor" -> AryaPalette
-    "relationship_guide" -> MeeraPalette
-    "spiritual_guide" -> AnandPalette
-    "astro_sage" -> RishiPalette
-    else -> NaviPalette
+/** Pulls a color toward black by [factor] (0f = unchanged, 1f = black). */
+private fun Color.darken(factor: Float): Color {
+    val k = 1f - factor.coerceIn(0f, 1f)
+    return Color(red = red * k, green = green * k, blue = blue * k, alpha = alpha)
 }
